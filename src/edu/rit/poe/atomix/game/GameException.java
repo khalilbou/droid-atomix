@@ -54,4 +54,15 @@ public class GameException extends Exception {
         super( message );
     }
     
+    /**
+     * Constructs a new <tt>GameException</tt>.
+     * 
+     * @param   message     the error message
+     * @param   cause       the underlying <tt>Exception</tt> that caused this
+     *                      one
+     */
+    public GameException( String message, Exception cause ) {
+        super( message, cause );
+    }
+    
 } // GameException

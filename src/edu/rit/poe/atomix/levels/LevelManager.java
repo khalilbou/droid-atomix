@@ -30,6 +30,10 @@
 
 package edu.rit.poe.atomix.levels;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+import android.util.Log;
+import java.io.InputStream;
 import java.util.LinkedList;
 
 /**
@@ -60,6 +64,21 @@ public class LevelManager {
             }
         }
         return instance;
+    }
+    
+    public void init( Context context ) {
+        levelList = new LinkedList<Level>();
+        
+        Level level1 = null;
+        try {
+            AssetManager am = context.getAssets();
+            InputStream is = am.open( "levels/level1.level" );
+            level1 = Level.loadLevel( is );
+        } catch ( Exception e ) {
+            // ignore
+        }
+        
+        levelList.add( level1 );
     }
     
     public Level getStartingLevel() {

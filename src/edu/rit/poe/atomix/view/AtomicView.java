@@ -105,7 +105,8 @@ public class AtomicView extends View {
         Square[][] board = context.getGameState().getBoard();
         
         int SQUARES = Math.max( board.length, board[ 0 ].length );
-        int size = ( int )( canvas.getHeight() / SQUARES );
+        int MAX_PIXELS = Math.min( canvas.getWidth(), canvas.getHeight() );
+        int size = ( int )( MAX_PIXELS / SQUARES );
         Log.i( "SIZE", "Size: " + size );
         
         int tx = ( canvas.getHeight() - ( size * board[ 0 ].length ) ) / 2;
@@ -143,7 +144,13 @@ public class AtomicView extends View {
                         int cy = ty;
                         int r = ( size - 6 ) / 2;
                         
-                        p.setColor( Color.RED );
+                        if ( context.getGameState().getSelected() ==
+                                board[ j ][ i ] ) {
+                            p.setColor( Color.BLUE );
+                        } else {
+                            p.setColor( Color.RED );
+                        }
+                        
                         canvas.drawCircle( cx, cy, r, p );
                     } else {
                         p.setColor( bgcolor );
@@ -179,7 +186,14 @@ public class AtomicView extends View {
             }
         }
         
+        p.setColor( Color.RED );
+        
+        canvas.drawLine( x0, y0, x0 + 1, y0 + 1, p );
     }
+    
+    int x0 = 0;
+    
+    int y0 = 0;
     
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
@@ -187,14 +201,17 @@ public class AtomicView extends View {
             int x = ( int )event.getX();
             int y = ( int )event.getY();
             
+            x0 = x;
+            y0 = y;
+            
             int i = x / 29;
             int j = y / 29;
             
             Log.i( "TOUCH EVENT", "Touched at " + i + ", " + j );
             try {
-                //field[ i ][ j ].color = Color.RED;
+                context.getGameState().select( i, j );
             } catch ( Exception e ) {
-                // ArrayIndexOutOfBoundsExceptionIgnore
+                
             }
             super.postInvalidate();
         }

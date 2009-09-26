@@ -34,6 +34,7 @@ import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
+import java.util.EnumSet;
 
 /**
  * A Java Bean style class to hold and persist game state for a single user.
@@ -83,15 +84,95 @@ public class GameState {
     
     public Atom move( int x, int y, Direction direction )
             throws GameException {
-        if ( ! ( board[ y ][ x ] instanceof Atom ) ) {
+        Atom atom = null;
+        try {
+            atom = ( Atom )board[ y ][ x ];
+        } catch ( ClassCastException e ) {
             throw new GameException( "No atom at specified location." );
         }
         
+        int endX = x;
+        int endY = y;
         
+        // perform an iterative search for the furthest distance the atom can
+        // travel in the given direction
+        int nextX = endX;
+        int nextY = endY;
+        boolean hit = false;
+        while ( ! hit ) {
+            // is next move in given direction a wall/end of board?
+            switch ( direction ) {
+                case RIGHT: {
+                    nextX++;
+                } break;
+                case LEFT: {
+                    nextX--;
+                } break;
+                case DOWN: {
+                    nextY++;
+                }
+                case UP: {
+                    nextY++;
+                }
+            }
+            
+            // hit a board boundary?
+            if ( ( nextY == board.length ) || ( nextX == board[ 0 ].length ) ) {
+                hit = true;
+            } else if ( board[ nextY ][ nextX ] == Square.WALL ) {
+                hit = true;
+            } else {
+                endX = nextX;
+                endY = nextY;
+            }
+        }
         
-        return ( Atom )board[ y ][ x ];
+        // enter the final position
+        atom.setX( endX );
+        atom.setY( endY );
+        board[ endY ][ endX ] = atom;
+        
+        return atom;
     }
     
+    public EnumSet<Direction> getPossibleDirections( Atom atom ) {
+        EnumSet<Direction> directions = EnumSet.noneOf( Direction.class );
+        
+        int x = atom.getX();
+        int y = atom.getY();
+        
+        // can we go left?
+        if ( ( ( x - 1 ) >= 0 ) && ( board[ y ][ x - 1 ] == Square.EMPTY ) ) {
+            directions.add( Direction.LEFT );
+        }
+        
+        // can we go right?
+        if ( ( ( x + 1 ) < board[ 0 ].length ) &&
+                ( board[ y ][ x + 1 ] == Square.EMPTY ) ) {
+            directions.add( Direction.RIGHT );
+        }
+        
+        // can we go up?
+        if ( ( ( y - 1 ) >= 0 ) && ( board[ y - 1 ][ x ] == Square.EMPTY ) ) {
+            directions.add( Direction.UP );
+        }
+        
+        // can we go down?
+        if ( ( ( y + 1 ) < board.length ) &&
+                ( board[ y + 1 ][ x ] == Square.EMPTY ) ) {
+            directions.add( Direction.UP );
+        }
+        
+        return directions;
+    }
+    
+    public void select( int x, int y ) throws GameException {
+        try {
+            selected = ( Atom )board[ y ][ x ];
+        } catch ( ClassCastException e ) {
+            throw new GameException( "No atom at specified location." );
+        }
+    }
     
     public Atom getSelected() {
         return selected;
