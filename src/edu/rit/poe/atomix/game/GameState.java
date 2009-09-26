@@ -31,12 +31,12 @@
 package edu.rit.poe.atomix.game;
 
 import edu.rit.poe.atomix.levels.Atom;
+import edu.rit.poe.atomix.levels.Level;
+import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
-import java.util.logging.Level;
 
 /**
- * 
- * 
+ * A Java Bean style class to hold and persist game state for a single user.
  * 
  * @author  Peter O. Erickson
  *
@@ -60,21 +60,41 @@ public class GameState {
     
     private Square[][] board;
     
+    private Atom selected;
+    
     /**
      * Constructs a new <tt>GameState</tt>.
+     * 
+     * @param   user    the user that this game state exists for
      */
-    public GameState() {
+    public GameState( User user ) {
+        
+        // load the initial level for game state
+        LevelManager levelManager = LevelManager.getInstance();
+        currentLevel = levelManager.getStartingLevel();
+        
+        // make a copy of the level's board, for own own use and modification
+        board = currentLevel.copyBoard();
+    }
+
+    public Square[][] getBoard() {
+        return board;
     }
     
     public Atom move( int x, int y, Direction direction )
             throws GameException {
         if ( ! ( board[ y ][ x ] instanceof Atom ) ) {
-            throw new GameException( "No molecule at specified location." );
+            throw new GameException( "No atom at specified location." );
         }
         
         
         
-        return null;
+        return ( Atom )board[ y ][ x ];
+    }
+    
+    
+    public Atom getSelected() {
+        return selected;
     }
     
 } // GameState

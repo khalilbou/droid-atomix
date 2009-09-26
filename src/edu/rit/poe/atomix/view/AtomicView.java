@@ -30,8 +30,6 @@
 
 package edu.rit.poe.atomix.view;
 
-import android.content.Context;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -41,11 +39,10 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import edu.rit.poe.atomix.AtomicActivity;
 import edu.rit.poe.atomix.R;
-import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Square;
-import java.io.InputStream;
 
 /**
  *
@@ -55,39 +52,19 @@ import java.io.InputStream;
  */
 public class AtomicView extends View {
     
-    private Level level;
-    
-    private Context context;
+    private AtomicActivity context;
     
     /**
      * Constructs a new <tt>AtomicView</tt>.
      * 
      * @param   context     the activity context that launched this view
      */
-    public AtomicView( Context context ) {
+    public AtomicView( AtomicActivity context ) {
         super( context );
         this.context = context;
         
         super.setScrollContainer( false );
         super.setClickable( true );
-        
-        
-        
-        field = new Box[ 13 ][ 13 ];
-        for ( int i = 0; i < 13; i++ ) {
-            for ( int j = 0 ; j < 13; j++ ) {
-                field[ i ][ j ] = new Box( i, j, Color.BLUE );
-            }
-        }
-        
-        try {
-            AssetManager am = context.getAssets();
-            InputStream is = am.open( "levels/level1.level" );
-            level = Level.loadLevel( is );
-        } catch ( Exception e ) {
-            // ignore
-        }
-        
     }
     
     /**
@@ -125,7 +102,7 @@ public class AtomicView extends View {
         
         // board
         
-        Square[][] board = level.getBoard();
+        Square[][] board = context.getGameState().getBoard();
         
         int SQUARES = Math.max( board.length, board[ 0 ].length );
         int size = ( int )( canvas.getHeight() / SQUARES );
@@ -204,24 +181,6 @@ public class AtomicView extends View {
         
     }
     
-    private Box[][] field;
-    
-    class Box {
-        
-        private int color;
-        
-        private int x;
-        
-        private int y;
-        
-        Box( int x, int y, int color ) {
-            this.x = x;
-            this.y = y;
-            this.color = color;
-        }
-        
-    }
-    
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
         if ( event.getAction() == MotionEvent.ACTION_UP ) {
@@ -233,7 +192,7 @@ public class AtomicView extends View {
             
             Log.i( "TOUCH EVENT", "Touched at " + i + ", " + j );
             try {
-                field[ i ][ j ].color = Color.RED;
+                //field[ i ][ j ].color = Color.RED;
             } catch ( Exception e ) {
                 // ArrayIndexOutOfBoundsExceptionIgnore
             }

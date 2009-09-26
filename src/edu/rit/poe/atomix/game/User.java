@@ -1,5 +1,5 @@
 /*
- * AtomicActivity.java
+ * User.java
  *
  * Version:
  *      $Id$
@@ -28,49 +28,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package edu.rit.poe.atomix;
-
-import android.app.Activity;
-import android.content.pm.ActivityInfo;
-import android.os.Bundle;
-import android.view.Window;
-import edu.rit.poe.atomix.game.GameState;
-import edu.rit.poe.atomix.view.AtomicView;
+package edu.rit.poe.atomix.game;
 
 /**
+ * A user in the Atomix game.
+ * 
+ * @author  Peter O. Erickson
  *
- * @author poe9514
+ * @version $Id$
  */
-public class AtomicActivity extends Activity {
+public class User {
     
-    private GameState gameState;
+    /** The user's name. */
+    private String name;
     
     /**
-     * Called when the activity is first created.
-     * 
-     * @param   icicle  the bundle of saved state information
+     * Constructs a new <tt>User</tt>.
      */
-    @Override
-    public void onCreate( Bundle icicle ) {
-        super.onCreate( icicle );
-        
-        super.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
-        
-        // remove the titlebar (it's not needed)
-        super.requestWindowFeature( Window.FEATURE_NO_TITLE );
-        //super.getWindow().setFlags(
-        //        WindowManager.LayoutParams.FLAG_FULLSCREEN,   
-        //        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-        
-        // setup the game state
-        gameState = new GameState();
-        
-        super.setContentView( new AtomicView( this ) );
+    public User() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName( String name ) {
+        this.name = name;
     }
     
-    public GameState getGameState() {
-        return gameState;
-    }
-    
-} // AtomicActivity
+} // User

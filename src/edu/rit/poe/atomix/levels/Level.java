@@ -49,6 +49,13 @@ import java.util.Set;
  */
 public class Level {
     
+    /**
+     * Enumerated type of sections of a level file.
+     * 
+     * @author  Peter O. Erickson
+     * 
+     * @version $Id$
+     */
     private static enum LevelFileSection {
         
         NAME,
@@ -96,8 +103,29 @@ public class Level {
         return molecules;
     }
     
-    public Square[][] getBoard(){
-        return board;
+    public Square[][] copyBoard() {
+        // make a full copy of the baord
+        Square[][] copy = new Square[ board.length ][ board[ 0 ].length ];
+        for ( int i = 0; i < board.length; i++ ) {
+            System.arraycopy( board[ i ], 0, copy[ i ], 0, board[ i ].length );
+        }
+        
+        return copy;
+    }
+    
+    /**
+     * This method is used to check for success conditions on a board.
+     * 
+     * @param   board   the board to check for completeness
+     * 
+     * @return          <tt>true</tt> if the board is complete, otherwise
+     *                  <tt>false</tt>
+     */
+    public boolean isComplete( Square[][] board ) {
+        
+        // @todo implement
+        
+        return false;
     }
     
     public static final Level loadLevel( InputStream is )

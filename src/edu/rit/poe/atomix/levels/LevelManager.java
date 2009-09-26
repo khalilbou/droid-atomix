@@ -1,5 +1,5 @@
 /*
- * AtomicActivity.java
+ * LevelManager.java
  *
  * Version:
  *      $Id$
@@ -28,49 +28,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package edu.rit.poe.atomix;
+package edu.rit.poe.atomix.levels;
 
-import android.app.Activity;
-import android.content.pm.ActivityInfo;
-import android.os.Bundle;
-import android.view.Window;
-import edu.rit.poe.atomix.game.GameState;
-import edu.rit.poe.atomix.view.AtomicView;
+import java.util.LinkedList;
 
 /**
  *
- * @author poe9514
+ * @author  Peter O. Erickson
+ *
+ * @version $Id$
  */
-public class AtomicActivity extends Activity {
+public class LevelManager {
     
-    private GameState gameState;
+    private static volatile LevelManager instance;
+    
+    private LinkedList<Level> levelList;
     
     /**
-     * Called when the activity is first created.
-     * 
-     * @param   icicle  the bundle of saved state information
+     * Constructs a new <tt>LevelManager</tt>.
      */
-    @Override
-    public void onCreate( Bundle icicle ) {
-        super.onCreate( icicle );
-        
-        super.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
-        
-        // remove the titlebar (it's not needed)
-        super.requestWindowFeature( Window.FEATURE_NO_TITLE );
-        //super.getWindow().setFlags(
-        //        WindowManager.LayoutParams.FLAG_FULLSCREEN,   
-        //        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-        
-        // setup the game state
-        gameState = new GameState();
-        
-        super.setContentView( new AtomicView( this ) );
+    private LevelManager() {
     }
     
-    public GameState getGameState() {
-        return gameState;
+    public static final LevelManager getInstance() {
+        // DCL anti-pattern avoided by use of 'volatile'
+        if ( instance == null ) {
+            synchronized( LevelManager.class ) {
+                if ( instance == null ) {
+                    instance = new LevelManager();
+                }
+            }
+        }
+        return instance;
     }
     
-} // AtomicActivity
+    public Level getStartingLevel() {
+        return levelList.getFirst();
+    }
+    
+} // LevelManager
