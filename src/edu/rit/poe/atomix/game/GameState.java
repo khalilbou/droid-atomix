@@ -30,6 +30,7 @@
 
 package edu.rit.poe.atomix.game;
 
+import android.util.Log;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
@@ -135,32 +136,46 @@ public class GameState {
         return atom;
     }
     
-    public EnumSet<Direction> getPossibleDirections( Atom atom ) {
+    /**
+     * Returns the possible directions that the currently selected atom can
+     * move.
+     * 
+     * @return  a set of directions that the selected atom can move
+     */
+    public EnumSet<Direction> getPossibleDirections() {
         EnumSet<Direction> directions = EnumSet.noneOf( Direction.class );
         
-        int x = atom.getX();
-        int y = atom.getY();
-        
-        // can we go left?
-        if ( ( ( x - 1 ) >= 0 ) && ( board[ y ][ x - 1 ] == Square.EMPTY ) ) {
-            directions.add( Direction.LEFT );
+        if ( selected != null ) {
+            int x = selected.getX();
+            int y = selected.getY();
+            
+            // can we go left?
+            if ( ( ( x - 1 ) >= 0 ) &&
+                    ( board[ y ][ x - 1 ] == Square.EMPTY ) ) {
+                directions.add( Direction.LEFT );
+            }
+            
+            // can we go right?
+            if ( ( ( x + 1 ) < board[ 0 ].length ) &&
+                    ( board[ y ][ x + 1 ] == Square.EMPTY ) ) {
+                directions.add( Direction.RIGHT );
+            }
+            
+            // can we go up?
+            if ( ( ( y - 1 ) >= 0 ) &&
+                    ( board[ y - 1 ][ x ] == Square.EMPTY ) ) {
+                directions.add( Direction.UP );
+            }
+            
+            // can we go down?
+            if ( ( ( y + 1 ) < board.length ) &&
+                    ( board[ y + 1 ][ x ] == Square.EMPTY ) ) {
+                directions.add( Direction.DOWN );
+            }
         }
-        
-        // can we go right?
-        if ( ( ( x + 1 ) < board[ 0 ].length ) &&
-                ( board[ y ][ x + 1 ] == Square.EMPTY ) ) {
-            directions.add( Direction.RIGHT );
-        }
-        
-        // can we go up?
-        if ( ( ( y - 1 ) >= 0 ) && ( board[ y - 1 ][ x ] == Square.EMPTY ) ) {
-            directions.add( Direction.UP );
-        }
-        
-        // can we go down?
-        if ( ( ( y + 1 ) < board.length ) &&
-                ( board[ y + 1 ][ x ] == Square.EMPTY ) ) {
-            directions.add( Direction.UP );
+        Log.d( "GameState", "POSSIBLE DIRECTIONS:" );
+        for ( Direction dir : directions ) {
+            Log.d( "GameState", "  " + dir );
         }
         
         return directions;
