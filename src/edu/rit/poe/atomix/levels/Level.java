@@ -137,7 +137,7 @@ public class Level {
         
         String line = null;
         LevelFileSection section = null;
-        Map<Short, Atom> moleculeMap = new HashMap<Short, Atom>();
+        Map<Short, Atom> atomMap = new HashMap<Short, Atom>();
         int y = -1;
         try {
             while( ( line = in.readLine() ) != null ) {
@@ -210,7 +210,7 @@ public class Level {
                                 ( level.molecules ).add( molecule );
                                 Log.d( "LevelLoader",
                                         "Setting molecule " + id );
-                                moleculeMap.put( id, molecule );
+                                atomMap.put( id, molecule );
                             } catch ( Exception e ) {
                                 
                             }
@@ -230,13 +230,14 @@ public class Level {
                                 } else if ( Character.isDigit( row[ x ] ) ) {
                                     short id = -1;
                                     try {
-                                        Log.d( "LevelLoader",
-                                                "Digit: " + row[ x ] );
-                                        
                                         id = Short.parseShort( "" + row[ x ] );
-                                        sqr = moleculeMap.get( id );
-                                        Log.d( "LevelLoader",
-                                                "Square: " + sqr );
+                                        Atom atom =  atomMap.get( id );
+                                        
+                                        // assign the X, Y of the Atom
+                                        atom.setX( x );
+                                        atom.setY( y );
+                                        
+                                        sqr = atom;
                                     } catch ( Exception e ) {
                                         Log.e( "LevelLoader",
                                                 Log.getStackTraceString( e ) );
