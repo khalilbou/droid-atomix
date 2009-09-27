@@ -78,22 +78,30 @@ public class GameState {
         // make a copy of the level's board, for own own use and modification
         board = currentLevel.copyBoard();
     }
-
+    
+    /**
+     * Returns the game's board.
+     * 
+     * @return
+     */
     public Square[][] getBoard() {
         return board;
     }
     
-    public Atom move( int x, int y, Direction direction )
-            throws GameException {
-        Atom atom = null;
-        try {
-            atom = ( Atom )board[ y ][ x ];
-        } catch ( ClassCastException e ) {
-            throw new GameException( "No atom at specified location." );
+    /**
+     * Moves the currently selected atom in the specified direction until an
+     * obstacle is hit.
+     * 
+     * @param   direction       the direction to move the selected atom in
+     * 
+     * @throws  GameException   if there is no currently selected atom
+     */
+    public void moveSelected( Direction direction ) throws GameException {
+        if ( selected == null ) {
+            throw new GameException( "No currently selected atom." );
         }
-        
-        int endX = x;
-        int endY = y;
+        int endX = selected.getX();
+        int endY = selected.getY();
         
         // perform an iterative search for the furthest distance the atom can
         // travel in the given direction
@@ -111,10 +119,10 @@ public class GameState {
                 } break;
                 case DOWN: {
                     nextY++;
-                }
+                } break;
                 case UP: {
-                    nextY++;
-                }
+                    nextY--;
+                } break;
             }
             
             // hit a board boundary?
@@ -122,18 +130,21 @@ public class GameState {
                 hit = true;
             } else if ( board[ nextY ][ nextX ] == Square.WALL ) {
                 hit = true;
+            } else if ( board[ nextY ][ nextX ] instanceof Atom ) {
+                hit = true;
             } else {
                 endX = nextX;
                 endY = nextY;
             }
         }
         
-        // enter the final position
-        atom.setX( endX );
-        atom.setY( endY );
-        board[ endY ][ endX ] = atom;
+        // clear the original position
+        board[ selected.getY() ][ selected.getX() ] = Square.EMPTY;
         
-        return atom;
+        // enter the final position
+        selected.setX( endX );
+        selected.setY( endY );
+        board[ endY ][ endX ] = selected;
     }
     
     /**
