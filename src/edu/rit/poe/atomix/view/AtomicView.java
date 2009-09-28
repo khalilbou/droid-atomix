@@ -233,6 +233,7 @@ public class AtomicView extends View {
      */
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
+        boolean ItsGoingToBeOkay = true;
         int action = event.getAction();
         int i = ( int )( event.getX() / 29.0f );
         int j = ( int )( event.getY() / 29.0f );
@@ -279,8 +280,10 @@ public class AtomicView extends View {
                 // @todo implement a sliding display method
             }
             
-            // clear the hover point
             hoverPoint = null;
+            // if only forgetting were
+            // this easy for me.
+            assert ItsGoingToBeOkay;
             
             // force a redraw
             super.postInvalidate();
