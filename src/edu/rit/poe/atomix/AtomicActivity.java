@@ -33,6 +33,8 @@ package edu.rit.poe.atomix;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import edu.rit.poe.atomix.game.GameState;
@@ -78,6 +80,37 @@ public class AtomicActivity extends Activity {
     
     public GameState getGameState() {
         return gameState;
+    }
+    
+    
+    /**
+     * Called when the trackball is moved.  This method controls the altitude of
+     * the OpenGL camera in the scene.
+     * 
+     * @param   event   the trackball event
+     * 
+     * @return          <tt>true</tt>, since the event was handled
+     */
+    @Override
+    public boolean onTrackballEvent( MotionEvent event ) {
+        
+        float y = Math.abs( event.getY() );
+        float x = Math.abs( event.getX() );
+        
+        if ( y > x ) {
+            if ( event.getY() < 0 ) {
+                Log.d( "TRACKBALL", "Y up" );
+            } else if ( event.getY() > 0 ) {
+                Log.d( "TRACKBALL", "Y down" );
+            }
+        } else {
+            if ( event.getX() < 0 ) {
+                Log.d( "TRACKBALL", "X left" );
+            } else if ( event.getX() > 0 ) {
+                Log.d( "TRACKBALL", "X right" );
+            }
+        }
+        return true;
     }
     
 } // AtomicActivity
