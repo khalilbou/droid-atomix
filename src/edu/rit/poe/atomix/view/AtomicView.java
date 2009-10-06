@@ -35,6 +35,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
@@ -157,10 +158,54 @@ public class AtomicView extends View {
                         if ( ( dir = arrowSquares.get( new Point( i, j ) ) )
                                 != null ) {
                             
-                            // @todo draw an arrow point in the 'dir' direction
-                            
-                            p.setColor( Color.GREEN );
+                            p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
+                            
+                            int cx = sq.width() / 2;
+                            int cy = sq.height() / 2;
+                            
+                            switch ( dir ) {
+                                case UP: {
+                                    
+                                    drawArrow( canvas, sq );
+                                    
+                                } break;
+                                case DOWN: {
+                                    canvas.translate( cx, cy );
+                                    canvas.rotate( 180.0f );
+                                    canvas.translate( -cx, -cy );
+                                    
+                                    drawArrow( canvas, sq );
+                                    
+                                    canvas.translate( cx, cy );
+                                    canvas.rotate( -180.0f );
+                                    canvas.translate( -cx, -cy );
+                                } break;
+                                case LEFT: {
+                                    canvas.translate( cx, cy );
+                                    canvas.rotate( 270.0f );
+                                    canvas.translate( -cx, -cy );
+                                    
+                                    drawArrow( canvas, sq );
+                                    
+                                    canvas.translate( cx, cy );
+                                    canvas.rotate( -270.0f );
+                                    canvas.translate( -cx, -cy );
+                                } break;
+                                case RIGHT: {
+                                    canvas.translate( cx, cy );
+                                    canvas.rotate( 90.0f );
+                                    canvas.translate( -cx, -cy );
+                                    
+                                    drawArrow( canvas, sq );
+                                    
+                                    canvas.translate( cx, cy );
+                                    canvas.rotate( -90.0f );
+                                    canvas.translate( -cx, -cy );
+                                } break;
+                            }
+                            
+                            
                         } else {
                             p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
@@ -221,6 +266,22 @@ public class AtomicView extends View {
                 canvas.translate( -left, -top );
             }
         }
+    }
+    
+    private static void drawArrow( Canvas canvas, Rect sq ) {
+        
+        int w = sq.width();
+        int h = sq.height();
+        
+        Path path = new Path();
+        
+        path.moveTo( 3, ( h - 3 ) );
+        path.lineTo( ( w - 3 ), ( h - 3 ) );
+        path.lineTo( ( w / 2 ), 3 );
+        
+        Paint paint = new Paint();
+        paint.setColor( Color.GREEN );
+        canvas.drawPath( path, paint );
     }
     
     /**
