@@ -50,6 +50,8 @@ public class AtomicActivity extends Activity {
     
     private GameState gameState;
     
+    private AtomicView view;
+    
     /**
      * Called when the activity is first created.
      * 
@@ -75,17 +77,17 @@ public class AtomicActivity extends Activity {
         // setup the game state
         gameState = new GameState( new User() );
         
-        super.setContentView( new AtomicView( this ) );
+        view = new AtomicView( this );
+        
+        super.setContentView( view );
     }
     
     public GameState getGameState() {
         return gameState;
     }
     
-    
     /**
-     * Called when the trackball is moved.  This method controls the altitude of
-     * the OpenGL camera in the scene.
+     * Called when the trackball is moved.
      * 
      * @param   event   the trackball event
      * 
@@ -93,24 +95,8 @@ public class AtomicActivity extends Activity {
      */
     @Override
     public boolean onTrackballEvent( MotionEvent event ) {
-        
-        float y = Math.abs( event.getY() );
-        float x = Math.abs( event.getX() );
-        
-        if ( y > x ) {
-            if ( event.getY() < 0 ) {
-                Log.d( "TRACKBALL", "Y up" );
-            } else if ( event.getY() > 0 ) {
-                Log.d( "TRACKBALL", "Y down" );
-            }
-        } else {
-            if ( event.getX() < 0 ) {
-                Log.d( "TRACKBALL", "X left" );
-            } else if ( event.getX() > 0 ) {
-                Log.d( "TRACKBALL", "X right" );
-            }
-        }
-        return true;
+        // pass-through to AtomicView
+        return view.onTrackballEvent( event );
     }
     
 } // AtomicActivity

@@ -70,6 +70,9 @@ public class AtomicView extends View {
     /** The point that is currently being hovered over, or <tt>null</tt>. */
     private Point hoverPoint;
     
+    /** The point that is currently being hovered over via the trackpad. */
+    private Point trackPoint;
+    
     /**
      * Constructs a new <tt>AtomicView</tt>.
      * 
@@ -350,6 +353,36 @@ public class AtomicView extends View {
             super.postInvalidate();
         }
         
+        return true;
+    }
+    
+    /**
+     * Called when the trackball is moved.  This method controls the hover
+     * location when the user is using the trackball to control the game.
+     * 
+     * @param   event   the trackball event
+     * 
+     * @return          <tt>true</tt>, since the event was handled
+     */
+    @Override
+    public boolean onTrackballEvent( MotionEvent event ) {
+        
+        float y = Math.abs( event.getY() );
+        float x = Math.abs( event.getX() );
+        
+        if ( y > x ) {
+            if ( event.getY() < 0 ) {
+                Log.d( "TRACKBALL", "Y up" );
+            } else if ( event.getY() > 0 ) {
+                Log.d( "TRACKBALL", "Y down" );
+            }
+        } else {
+            if ( event.getX() < 0 ) {
+                Log.d( "TRACKBALL", "X left" );
+            } else if ( event.getX() > 0 ) {
+                Log.d( "TRACKBALL", "X right" );
+            }
+        }
         return true;
     }
     
