@@ -33,10 +33,8 @@ package edu.rit.poe.atomix;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Window;
-import android.view.WindowManager;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.game.User;
 import edu.rit.poe.atomix.levels.LevelManager;
@@ -62,13 +60,10 @@ public class AtomicActivity extends Activity {
         super.onCreate( icicle );
         
         super.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE );
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
         
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
-        super.getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,   
-                WindowManager.LayoutParams.FLAG_FULLSCREEN );
         
         // initialize the level manager
         LevelManager lm = LevelManager.getInstance();

@@ -30,8 +30,6 @@
 
 package edu.rit.poe.atomix.view;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -45,7 +43,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import edu.rit.poe.atomix.AtomicActivity;
-import edu.rit.poe.atomix.R;
 import edu.rit.poe.atomix.game.GameException;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.levels.Atom;
@@ -70,8 +67,11 @@ public class AtomicView extends View {
     /** The point that is currently being hovered over, or <tt>null</tt>. */
     private Point hoverPoint;
     
-    /** The point that is currently being hovered over via the trackpad. */
-    private Point trackPoint;
+    private long trackballTime = 0L;
+    
+    private GameState.Direction trackballDir;
+    
+    private float trackballSum;
     
     /**
      * Constructs a new <tt>AtomicView</tt>.
@@ -89,6 +89,8 @@ public class AtomicView extends View {
         
         super.setScrollContainer( false );
         super.setClickable( true );
+        
+        hoverPoint = new Point( 0, 0 );
     }
     
     /**
@@ -115,26 +117,26 @@ public class AtomicView extends View {
         
         // side area
         
-        rect = new Rect( 320, 0, canvas.getWidth(), canvas.getHeight() );
-        p.setColor( Color.BLACK );
-        canvas.drawRect( rect, p );
+        //rect = new Rect( 320, 0, canvas.getWidth(), canvas.getHeight() );
+        //p.setColor( Color.BLACK );
+        //canvas.drawRect( rect, p );
         
-        Bitmap bitmap = BitmapFactory.decodeResource( atomix.getResources(),
-                R.drawable.atomix_logo );
+        //Bitmap bitmap = BitmapFactory.decodeResource( atomix.getResources(),
+        //        R.drawable.atomix_logo );
         
-        Rect prect = new Rect( 320, 0, canvas.getWidth(), 40 );
+        //Rect prect = new Rect( 320, 0, canvas.getWidth(), 40 );
         
-        canvas.drawBitmap( bitmap, null, prect, null );
+        //canvas.drawBitmap( bitmap, null, prect, null );
         
         int SQUARES = Math.max( board.length, board[ 0 ].length );
         int MAX_PIXELS = Math.min( canvas.getWidth(), canvas.getHeight() );
         int size = ( int )( MAX_PIXELS / SQUARES );
         Log.i( "SIZE", "Size: " + size );
         
-        int tx = ( canvas.getHeight() - ( size * board[ 0 ].length ) ) / 2;
-        int ty = ( canvas.getHeight() - ( size * board.length ) ) / 2;
+        //int tx = ( canvas.getHeight() - ( size * board[ 0 ].length ) ) / 2;
+        //int ty = ( canvas.getHeight() - ( size * board.length ) ) / 2;
         
-        canvas.translate( ( tx + 1 ), ( ty + 1 ) );
+        //canvas.translate( ( tx + 1 ), ( ty + 1 ) );
         
         GameState.Direction dir = null;
         for ( int i = 0; i < board[ 0 ].length; i++ ) {
@@ -160,55 +162,10 @@ public class AtomicView extends View {
                         // check whether this square should represent an arrow
                         if ( ( dir = arrowSquares.get( new Point( i, j ) ) )
                                 != null ) {
-                            
                             p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
                             
-                            int cx = sq.width() / 2;
-                            int cy = sq.height() / 2;
-                            
-                            switch ( dir ) {
-                                case UP: {
-                                    
-                                    drawArrow( canvas, sq );
-                                    
-                                } break;
-                                case DOWN: {
-                                    canvas.translate( cx, cy );
-                                    canvas.rotate( 180.0f );
-                                    canvas.translate( -cx, -cy );
-                                    
-                                    drawArrow( canvas, sq );
-                                    
-                                    canvas.translate( cx, cy );
-                                    canvas.rotate( -180.0f );
-                                    canvas.translate( -cx, -cy );
-                                } break;
-                                case LEFT: {
-                                    canvas.translate( cx, cy );
-                                    canvas.rotate( 270.0f );
-                                    canvas.translate( -cx, -cy );
-                                    
-                                    drawArrow( canvas, sq );
-                                    
-                                    canvas.translate( cx, cy );
-                                    canvas.rotate( -270.0f );
-                                    canvas.translate( -cx, -cy );
-                                } break;
-                                case RIGHT: {
-                                    canvas.translate( cx, cy );
-                                    canvas.rotate( 90.0f );
-                                    canvas.translate( -cx, -cy );
-                                    
-                                    drawArrow( canvas, sq );
-                                    
-                                    canvas.translate( cx, cy );
-                                    canvas.rotate( -90.0f );
-                                    canvas.translate( -cx, -cy );
-                                } break;
-                            }
-                            
-                            
+                            drawArrow( canvas, dir, sq );
                         } else {
                             p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
@@ -217,8 +174,8 @@ public class AtomicView extends View {
                         p.setColor( fgcolor );
                         canvas.drawRect( sq, p );
                         
-                        int cx = tx + ( size / 2 );
-                        int cy = ty;
+                        int cx = ( size / 2 );
+                        int cy = ( size / 2 );
                         int r = ( size - 6 ) / 2;
                         
                         if ( gameState.getSelected() == board[ j ][ i ] ) {
@@ -271,16 +228,30 @@ public class AtomicView extends View {
         }
     }
     
-    private static void drawArrow( Canvas canvas, Rect sq ) {
+    private static void drawArrow( Canvas canvas, GameState.Direction dir,
+	    Rect sq ) {
         
         int w = sq.width();
         int h = sq.height();
         
         Path path = new Path();
-        
-        path.moveTo( 3, ( h - 3 ) );
-        path.lineTo( ( w - 3 ), ( h - 3 ) );
-        path.lineTo( ( w / 2 ), 3 );
+        if ( dir == GameState.Direction.UP ) {
+            path.moveTo( 3, ( h - 3 ) );
+            path.lineTo( ( w - 2 ), ( h - 3 ) );
+            path.lineTo( ( ( w + 1 ) / 2 ), 3 );
+        } else if ( dir == GameState.Direction.DOWN ) {
+            path.moveTo( 3, 3 );
+            path.lineTo( ( w - 2 ), 3 );
+            path.lineTo( ( ( w + 1 ) / 2 ), ( h - 3 ) );
+        } else if ( dir == GameState.Direction.RIGHT ) {
+            path.moveTo( 4, 4 );
+            path.lineTo( 4, ( h - 3 ) );
+            path.lineTo( ( w - 2 ), ( ( h + 1 ) / 2 ) );
+        } else if ( dir == GameState.Direction.LEFT ) {
+            path.moveTo( ( w - 3 ), 4 );
+            path.lineTo( ( w - 3 ), ( h - 3 ) );
+            path.lineTo( 3, ( ( h + 1 ) / 2 ) );
+        }
         
         Paint paint = new Paint();
         paint.setColor( Color.GREEN );
@@ -297,7 +268,6 @@ public class AtomicView extends View {
      */
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
-        boolean ItsGoingToBeOkay = true;
         int action = event.getAction();
         int i = ( int )( event.getX() / 29.0f );
         int j = ( int )( event.getY() / 29.0f );
@@ -314,8 +284,121 @@ public class AtomicView extends View {
             }
         } else if ( event.getAction() == MotionEvent.ACTION_UP ) {
             Log.i( "TOUCH EVENT", "Selected at " + i + ", " + j );
-            GameState.Direction d = null;
             
+            // select the currently hovered square
+            touch( i, j );
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Called when the trackball is moved.  This method controls the hover
+     * location when the user is using the trackball to control the game.
+     * 
+     * @param   event   the trackball event
+     * 
+     * @return          <tt>true</tt>, since the event was handled
+     */
+    @Override
+    public boolean onTrackballEvent( MotionEvent event ) {
+        // switch on the type of action
+        if ( event.getAction() == MotionEvent.ACTION_DOWN ) {
+            Log.d( "TRACKBALL", "PRESS EVENT" );
+            
+            // select the currently hovered square
+            touch( hoverPoint.x, hoverPoint.y );
+            
+        } else if ( event.getAction() == MotionEvent.ACTION_MOVE ) {
+            float y = Math.abs( event.getY() );
+            float x = Math.abs( event.getX() );
+            
+            GameState.Direction dir = null;
+            float sum = 0.0f;
+            if ( y > x ) {
+                sum = event.getY();
+                if ( event.getY() < 0 ) {
+                    Log.d( "TRACKBALL", "Y up: " + event.getY() );
+                    dir = GameState.Direction.UP;
+                } else if ( event.getY() > 0 ) {
+                    Log.d( "TRACKBALL", "Y down " + event.getY() );
+                    dir = GameState.Direction.DOWN;
+                }
+            } else {
+                sum = event.getX();
+                if ( event.getX() < 0 ) {
+                    Log.d( "TRACKBALL", "X left " + event.getX() );
+                    dir = GameState.Direction.LEFT;
+                } else if ( event.getX() > 0 ) {
+                    Log.d( "TRACKBALL", "X right " + event.getX() );
+                    dir = GameState.Direction.RIGHT;
+                }
+            }
+            
+            long curr = System.currentTimeMillis();
+            if ( ( trackballDir != dir ) ||
+                    ( ( curr - trackballTime ) > 500 ) ) {
+                trackballDir = dir;
+                trackballSum = 0.0f;
+            }
+            trackballSum += sum;
+            
+            if ( Math.abs( trackballSum ) > .50 ) {
+                Log.d( "TRACKBALL", "TRIGGERED!" );
+                
+                // set the track point
+                switch ( trackballDir ) {
+                    case UP: {
+                        if ( canMove( hoverPoint, 0, -1 ) ) {
+                            hoverPoint.offset( 0, -1 );
+                        }
+                    } break;
+                    case DOWN: {
+                        if ( canMove( hoverPoint, 0, 1 ) ) {
+                            hoverPoint.offset( 0, 1 );
+                        }
+                    } break;
+                    case RIGHT: {
+                        if ( canMove( hoverPoint, 1, 0 ) ) {
+                            hoverPoint.offset( 1, 0 );
+                        }
+                    } break;
+                    case LEFT: {
+                        if ( canMove( hoverPoint, -1, 0 ) ) {
+                            hoverPoint.offset( -1, 0 );
+                        }
+                    } break;
+                }
+                
+                trackballSum = 0.0f;
+            }
+            
+            super.postInvalidate();
+            trackballTime = curr;
+        }
+        return true;
+    }
+    
+    private boolean canMove( Point p, int dx, int dy ) {
+        boolean retVal = true;
+        
+        int nx = p.x + dx;
+        int ny = p.y + dy;
+        
+        if ( ( nx >= board[ 0 ].length ) || ( nx < 0 ) || ( ny >= board.length )
+                || ( ny < 0 )  ) {
+            retVal = false;
+        } else if ( board[ ny ][ nx ] == null ) {
+            retVal = false;
+        }
+        
+        return retVal;
+    }
+    
+    private void touch( int i, int j ) {
+        boolean ItsGoingToBeOkay = true;
+        GameState.Direction d = null;
+        try {
             if ( board[ j ][ i ] instanceof Atom ) {
                 try {
                     gameState.select( i, j );
@@ -338,52 +421,28 @@ public class AtomicView extends View {
                     assert false;
                 }
                 
+                // move the hover point to the new location of the Atom
+                Atom selected = gameState.getSelected();
+                hoverPoint.set( selected.getX(), selected.getY() );
+                
                 // set the squares were arrows should be drawn
                 this.setArrowSquares();
                 
-                // @todo implement a sliding display method
+                
             }
             
-            hoverPoint = null;
+            //hoverPoint = null;
+            
             // if only forgetting were
             // this easy for me.
             assert ItsGoingToBeOkay;
             
             // force a redraw
             super.postInvalidate();
+            
+        } catch ( ArrayIndexOutOfBoundsException e ) {
+            // touch out of bounds
         }
-        
-        return true;
-    }
-    
-    /**
-     * Called when the trackball is moved.  This method controls the hover
-     * location when the user is using the trackball to control the game.
-     * 
-     * @param   event   the trackball event
-     * 
-     * @return          <tt>true</tt>, since the event was handled
-     */
-    @Override
-    public boolean onTrackballEvent( MotionEvent event ) {
-        
-        float y = Math.abs( event.getY() );
-        float x = Math.abs( event.getX() );
-        
-        if ( y > x ) {
-            if ( event.getY() < 0 ) {
-                Log.d( "TRACKBALL", "Y up" );
-            } else if ( event.getY() > 0 ) {
-                Log.d( "TRACKBALL", "Y down" );
-            }
-        } else {
-            if ( event.getX() < 0 ) {
-                Log.d( "TRACKBALL", "X left" );
-            } else if ( event.getX() > 0 ) {
-                Log.d( "TRACKBALL", "X right" );
-            }
-        }
-        return true;
     }
     
     private void setArrowSquares() {
