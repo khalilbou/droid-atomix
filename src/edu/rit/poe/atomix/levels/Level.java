@@ -141,12 +141,12 @@ public class Level {
         int y = -1;
         try {
             while( ( line = in.readLine() ) != null ) {
-                line = line.trim();
+                
                 LevelFileSection s = null;
                 
                 if ( line.startsWith( "#" ) ) {
                     // comment line, ignore
-                } else if ( line.equals( "" ) ) {
+                } else if ( line.trim().equals( "" ) ) {
                     // empty line, ignore
                 } else if ( ( s = LevelFileSection.parse(
                         line.replaceAll( ":", "" ) ) ) != null ) {
@@ -227,6 +227,8 @@ public class Level {
                                     sqr = Square.WALL;
                                 } else if ( row[ x ] == ' ' ) {
                                     sqr = Square.EMPTY;
+                                } else if ( row[ x ] == 'B' ) {
+                                    sqr = null;
                                 } else if ( Character.isDigit( row[ x ] ) ) {
                                     short id = -1;
                                     try {

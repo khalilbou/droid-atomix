@@ -31,18 +31,21 @@ molecules:
 # The actual level map (note that the outer border may be trimmed, if
 # necessary for screen size).
 #
-# X's denote walls, and numbers identify molecules previously specified.
+# X's denote walls, spaces denote open board, B's represent blank space outside
+# the board, and numbers identify molecules previously specified.
+#
+# The ENTIRE area of the board should be populated.
 map:
-XXXXX
-X   X
-X  1XXXXXX
-X  X     X
+XXXXXBBBBBB
+X   XBBBBBB
+X  1XXXXXXB
+X  X     XB
 X X      XX
 X X    XX X
 X    X X3 X
 XXX2X  X  X
- X        X
- XXXXXXXXXX
+BX        X
+BXXXXXXXXXX
 
 # The goal configuration of the level.  This must be tighly packed, where
 # spaces denote any square type (wall or empty square), and can use multiple
