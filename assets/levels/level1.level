@@ -14,7 +14,7 @@ H_2O
 size:
 11X10
 
-# The molecules on the map.
+# The xmolecules on the map.
 #
 # Molecules are specified by the element letter, followed by any combination of
 # l, r, u, d, ur, ul, lr, ll for left, right, up, down, upper right, upper
@@ -24,9 +24,9 @@ size:
 # example, an Oxygen element with a left double line connector, and upper right
 # single connector is specified by: 1 O =l -ul
 molecules:
-1 H -l
-2 H -r
-3 O -l -r
+1 0000FF H -l
+2 0000FF H -r
+3 FF0000 O -l -r
 
 # The actual level map (note that the outer border may be trimmed, if
 # necessary for screen size).

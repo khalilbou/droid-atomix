@@ -42,6 +42,8 @@ public final class Atom extends Square {
     
     private short id;
     
+    private String color;
+    
     private char element;
     
     private Set<Connector> connectors;
@@ -54,17 +56,24 @@ public final class Atom extends Square {
      * Constructs a new <tt>Atom</tt>.
      * 
      * @param   id          the atom ID
+     * @param   color       the color of the atom
      * @param   element     the element letter
      * @param   connectors  the atom connectors
      */
-    public Atom( short id, char element, Set<Connector> connectors ) {
+    public Atom( short id, String color, char element,
+            Set<Connector> connectors ) {
         this.id = id;
+        this.color = color;
         this.element = element;
         this.connectors = connectors;
     }
 
     public short getId() {
         return id;
+    }
+    
+    public String getColor() {
+        return color;
     }
     
     public char getElement() {

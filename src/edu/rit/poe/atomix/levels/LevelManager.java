@@ -34,6 +34,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 /**
@@ -69,16 +70,27 @@ public class LevelManager {
     public void init( Context context ) {
         levelList = new LinkedList<Level>();
         
-        Level level1 = null;
+        Level level = null;
         try {
             AssetManager am = context.getAssets();
-            InputStream is = am.open( "levels/level1.level" );
-            level1 = Level.loadLevel( is );
+            
+            // get all level files in the "levels" directory
+            String[] levelFiles = am.list( "levels" );
+            Arrays.sort( levelFiles );
+            
+            Log.d( "LevelManager", "Level File List:" );
+            
+            for ( String levelFile : levelFiles ) {
+                Log.d( "LevelManager FILE:", levelFile );
+                
+                InputStream is = am.open( "levels/" + levelFile );
+                level = Level.loadLevel( is );
+                
+                levelList.add( level );
+            }
         } catch ( Exception e ) {
             // ignore
         }
-        
-        levelList.add( level1 );
     }
     
     public Level getStartingLevel() {

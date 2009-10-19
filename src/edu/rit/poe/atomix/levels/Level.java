@@ -180,11 +180,12 @@ public class Level {
                                 String[] args = line.split( "\\s+" );
                                 
                                 short id = Short.parseShort( args[ 0 ] );
-                                char element = args[ 1 ].charAt( 0 );
+                                String color = args[ 1 ];
+                                char element = args[ 2 ].charAt( 0 );
                                 
                                 Set<Connector> connectors =
                                         new HashSet<Connector>();
-                                for ( int i = 2; i < args.length; i++ ) {
+                                for ( int i = 3; i < args.length; i++ ) {
                                     // bond type -/=
                                     Connector.Bond bond = null;
                                     char b = args[ i ].charAt( 0 );
@@ -204,8 +205,8 @@ public class Level {
                                             new Connector( direction, bond ) );
                                 }
                                 
-                                Atom molecule =
-                                        new Atom( id, element, connectors );
+                                Atom molecule = new Atom( id, color, element,
+                                        connectors );
                                 
                                 ( level.molecules ).add( molecule );
                                 Log.d( "LevelLoader",
