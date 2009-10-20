@@ -117,7 +117,7 @@ public class AtomicView extends View {
         int SQUARES = Math.max( board.length, board[ 0 ].length );
         int MAX_PIXELS = Math.min( canvas.getWidth(), canvas.getHeight() );
         int size = ( int )( MAX_PIXELS / SQUARES );
-        Log.i( "SIZE", "Size: " + size );
+        Log.d( "SIZE", "Size: " + size );
         
         GameState.Direction dir = null;
         for ( int i = 0; i < board[ 0 ].length; i++ ) {
@@ -175,10 +175,18 @@ public class AtomicView extends View {
                             if ( c.getBond() == Connector.Bond.SINGLE ) {
                                 p.setColor( Color.BLACK );
                                 canvas.drawLine( 1, 0, 1, -r, p );
-                                p.setColor( Color.WHITE );
+                                p.setColor( Color.BLACK );
                                 canvas.drawLine( 0, 0, 0, -r, p );
                                 p.setColor( Color.BLACK );
                                 canvas.drawLine( -1, 0, -1, -r, p );
+                            } else if ( c.getBond() == Connector.Bond.DOUBLE ) {
+                                p.setColor( Color.BLACK );
+                                canvas.drawLine( 3, 0, 3, -r, p );
+                                canvas.drawLine( 2, 0, 2, -r, p );
+                                
+                                p.setColor( Color.BLACK );
+                                canvas.drawLine( -2, 0, -2, -r, p );
+                                canvas.drawLine( -3, 0, -3, -r, p );
                             }
                             
                             canvas.restore();
@@ -242,12 +250,20 @@ public class AtomicView extends View {
         }
     }
     
+    /**
+     * Draws an arrow on the given canvas.
+     * 
+     * @param   canvas  the canvas to draw to (also translated to the proper
+     *                  drawing location)
+     * @param   dir     the direction of the arrow
+     * @param   r       the radius of the square
+     */
     private static void drawArrow( Canvas canvas, GameState.Direction dir,
             int r ) {
         Path path = new Path();
-        path.moveTo( ( -r + 1 ), ( r - 1 ) );
-        path.lineTo( ( r - 1 ), ( r - 1 ) );
-        path.lineTo( 0, ( -r - 1 ) );
+        path.moveTo( ( -r + 3 ), ( r - 3 ) );
+        path.lineTo( ( r - 3 ), ( r - 3 ) );
+        path.lineTo( 0, ( -r + 5 ) );
         
         canvas.save();
         
@@ -293,7 +309,7 @@ public class AtomicView extends View {
                 super.postInvalidate();
             }
         } else if ( event.getAction() == MotionEvent.ACTION_UP ) {
-            Log.i( "TOUCH EVENT", "Selected at " + i + ", " + j );
+            Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
 
             // select the currently hovered square
             touch( i, j );

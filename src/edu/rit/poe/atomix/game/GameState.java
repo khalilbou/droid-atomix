@@ -35,6 +35,7 @@ import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
+import java.io.Serializable;
 import java.util.EnumSet;
 
 /**
@@ -44,7 +45,7 @@ import java.util.EnumSet;
  *
  * @version $Id$
  */
-public class GameState {
+public class GameState implements Serializable {
     
     public static enum Direction {
         
