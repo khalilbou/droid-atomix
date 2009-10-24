@@ -114,10 +114,21 @@ public class AtomicView extends View {
         Rect rect = new Rect( 0, 0, canvas.getWidth(), canvas.getHeight() );
         canvas.drawRect( rect, p );
         
+        // the board region is given an 11x11 with 29x29 squares
+        
+        // determine where to put the board
+        
+        
         int SQUARES = Math.max( board.length, board[ 0 ].length );
+        
+        
+        
         int MAX_PIXELS = Math.min( canvas.getWidth(), canvas.getHeight() );
         int size = ( int )( MAX_PIXELS / SQUARES );
         Log.d( "SIZE", "Size: " + size );
+        
+        // translate to create the 1px top/left gap
+        canvas.translate( 1, 2 );
         
         GameState.Direction dir = null;
         for ( int i = 0; i < board[ 0 ].length; i++ ) {
