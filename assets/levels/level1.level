@@ -47,6 +47,10 @@ XXX2X  X  X
 BX        X
 BXXXXXXXXXX
 
+# The size of the goal configuration (widthXheight)
+goal_size:
+3X1
+
 # The goal configuration of the level.  This must be tighly packed, where
 # spaces denote any square type (wall or empty square), and can use multiple
 # lines for configurations in the vertical direction.

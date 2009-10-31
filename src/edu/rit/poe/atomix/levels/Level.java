@@ -68,6 +68,8 @@ public class Level {
         
         MAP,
         
+        GOAL_SIZE,
+        
         GOAL;
         
         static LevelFileSection parse( String str ) {
@@ -90,6 +92,8 @@ public class Level {
     private String formula;
     
     private Square[][] board;
+    
+    private Square[][] goal;
     
     private Set<Atom> molecules;
     
@@ -123,6 +127,10 @@ public class Level {
      */
     public boolean isComplete( Square[][] board ) {
         
+        // match the kernel with the a particular atom (top-left?) and short
+        // circuit on the first non-match (whitespace is wildcard, but not an
+        // atom)
+        
         // @todo implement
         
         return false;
@@ -139,6 +147,7 @@ public class Level {
         LevelFileSection section = null;
         Map<Short, Atom> atomMap = new HashMap<Short, Atom>();
         int y = -1;
+        int goalY = -1;
         try {
             while( ( line = in.readLine() ) != null ) {
                 
@@ -172,6 +181,7 @@ public class Level {
                                 level.board = new Square[ height ][ width ];
                             } catch ( Exception e ) {
                                 // error creating level map!
+                                //@todo handle this exception
                             }
                         } break;
                         
@@ -213,7 +223,7 @@ public class Level {
                                         "Setting molecule " + id );
                                 atomMap.put( id, molecule );
                             } catch ( Exception e ) {
-                                
+                                //@todo handle this exception
                             }
                         } break;
                         
@@ -234,7 +244,7 @@ public class Level {
                                     short id = -1;
                                     try {
                                         id = Short.parseShort( "" + row[ x ] );
-                                        Atom atom =  atomMap.get( id );
+                                        Atom atom = atomMap.get( id );
                                         
                                         // assign the X, Y of the Atom
                                         atom.setX( x );
@@ -248,6 +258,46 @@ public class Level {
                                 }
                                 
                                 level.board[ y ][ x ] = sqr;
+                            }
+                            
+                        } break;
+                        
+                        case GOAL_SIZE: {
+                            // parse the size of the board
+                            try {
+                                String[] args = line.split( "[Xx]" );
+                                
+                                int width = Integer.parseInt( args[ 0 ] );
+                                int height = Integer.parseInt( args[ 1 ] );
+                                
+                                level.goal = new Square[ height ][ width ];
+                            } catch ( Exception e ) {
+                                // error creating goal map!
+                                //@todo handle this exception
+                            }
+                        } break;
+                        
+                        case GOAL: {
+                            char[] row = line.toCharArray();
+                            
+                            goalY++;
+                            for ( int x = 0; x < row.length; x++ ) {
+                                Square sqr = null;
+                                
+                                if ( Character.isDigit( row[ x ] ) ) {
+                                    short id = -1;
+                                    try {
+                                        id = Short.parseShort( "" + row[ x ] );
+                                        sqr = atomMap.get( id );
+                                    } catch ( Exception e ) {
+                                        Log.e( "LevelLoader",
+                                                Log.getStackTraceString( e ) );
+                                    }
+                                } else if ( row[ x ] == ' ' ) {
+                                    sqr = Square.EMPTY;
+                                }
+                                
+                                level.goal[ y ][ x ] = sqr;
                             }
                             
                         } break;

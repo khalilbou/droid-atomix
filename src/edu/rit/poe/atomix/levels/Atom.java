@@ -100,4 +100,14 @@ public final class Atom extends Square {
         this.y = y;
     }
     
+    /**
+     * Returns this atom in <tt>String</tt> form.
+     * 
+     * @return  this atom as a <tt>String</tt>
+     */
+    @Override
+    public String toString() {
+        return Character.toString( element );
+    }
+    
 } // Atom

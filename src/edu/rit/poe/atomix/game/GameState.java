@@ -30,6 +30,7 @@
 
 package edu.rit.poe.atomix.game;
 
+import android.graphics.Point;
 import android.util.Log;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
@@ -65,6 +66,9 @@ public class GameState implements Serializable {
     
     private Atom selected;
     
+    /** The point that is currently being hovered over, or <tt>null</tt>. */
+    private Point hoverPoint;
+    
     /**
      * Constructs a new <tt>GameState</tt>.
      * 
@@ -95,9 +99,12 @@ public class GameState implements Serializable {
      * 
      * @param   direction       the direction to move the selected atom in
      * 
+     * @return                  <tt>true</tt> if this move entered the board
+     *                          into a goal state
+     * 
      * @throws  GameException   if there is no currently selected atom
      */
-    public void moveSelected( Direction direction ) throws GameException {
+    public boolean moveSelected( Direction direction ) throws GameException {
         if ( selected == null ) {
             throw new GameException( "No currently selected atom." );
         }
@@ -146,6 +153,9 @@ public class GameState implements Serializable {
         selected.setX( endX );
         selected.setY( endY );
         board[ endY ][ endX ] = selected;
+        
+        // check for win conditions
+        return currentLevel.isComplete( board );
     }
     
     /**
@@ -203,6 +213,14 @@ public class GameState implements Serializable {
     
     public Atom getSelected() {
         return selected;
+    }
+
+    public Point getHoverPoint() {
+        return hoverPoint;
+    }
+
+    public void setHoverPoint( Point hoverPoint ) {
+        this.hoverPoint = hoverPoint;
     }
     
 } // GameState

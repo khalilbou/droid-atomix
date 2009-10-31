@@ -1,5 +1,5 @@
 /*
- * AtomicActivity.java
+ * MenuActivity.java
  *
  * Version:
  *      $Id$
@@ -31,25 +31,24 @@
 package edu.rit.poe.atomix;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
-import edu.rit.poe.atomix.game.GameState;
-import edu.rit.poe.atomix.game.User;
-import edu.rit.poe.atomix.levels.LevelManager;
-import edu.rit.poe.atomix.view.AtomicView;
+import android.widget.Button;
 
 /**
  *
- * @author poe9514
+ * @author  Peter O. Erickson
+ *
+ * @version $Id$
  */
-public class AtomicActivity extends Activity {
-    
-    private GameState gameState;
-    
-    private AtomicView view;
+public class MenuActivity extends Activity {
     
     /**
      * Called when the activity is first created.
@@ -63,45 +62,41 @@ public class AtomicActivity extends Activity {
         super.setRequestedOrientation(
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
         
+        
+        
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
         
-        // initialize the level manager
-        LevelManager lm = LevelManager.getInstance();
-        lm.init( this );
         
-        // setup the game state
-        gameState = new GameState( new User() );
+        super.setContentView( R.layout.menu );
         
-        view = new AtomicView( this );
+        GradientDrawable grad = new GradientDrawable( Orientation.TOP_BOTTOM,
+            new int[] { Color.BLACK, Color.parseColor( "#CC0000" ) } );
+        grad.setGradientRadius( 1.0f );
+        grad.setGradientType( GradientDrawable.LINEAR_GRADIENT );
         
-        super.setContentView( view );
+        super.getWindow().setBackgroundDrawable( grad );
+        
+        // setup button callbacks
+        Button resume = ( Button )findViewById( R.id.resume );
+		resume.setOnClickListener( new View.OnClickListener() {
+			public void onClick( View view ) {
+                // start the situation display
+                Intent intent = new Intent( MenuActivity.this,
+                        AtomicActivity.class );
+                MenuActivity.super.startActivity( intent );
+                
+                // never resume the menu with the back button
+                MenuActivity.super.finish();
+			}
+		} );
     }
     
-    public GameState getGameState() {
-        return gameState;
-    }
-    
-    /**
-     * Called when the trackball is moved.
-     * 
-     * @param   event   the trackball event
-     * 
-     * @return          <tt>true</tt>, since the event was handled
-     */
-    @Override
-    public boolean onTrackballEvent( MotionEvent event ) {
-        // pass-through to AtomicView
-        return view.onTrackballEvent( event );
-    }
     
     @Override
     protected void onSaveInstanceState( Bundle icicle ) {
         super.onSaveInstanceState( icicle );
-        Log.d( "DROID_ATOMIX", "onSaveInstanceState() called" );
-        
-        // save the game state
-        icicle.putSerializable( "game_state", gameState );
+        Log.d( "DROID_ATOMIX", "onSaveInstanceState() called." );
     }
     
     @Override
@@ -113,16 +108,14 @@ public class AtomicActivity extends Activity {
     @Override
     protected void onRestoreInstanceState( Bundle icicle ) {
         super.onRestoreInstanceState( icicle );
-        Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called" );
-        
-        // restore game state
-        gameState = ( GameState )icicle.getSerializable( "game_state" );
+        Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called." );
     }
     
     @Override
     public void onResume() {
         super.onResume();
-        Log.d( "DROID_ATOMIX", "onResume() called" );
+        Log.d( "DROID_ATOMIX", "onResume() called." );
     }
     
-} // AtomicActivity
+    
+} // MenuActivity

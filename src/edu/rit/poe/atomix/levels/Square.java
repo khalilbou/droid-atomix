@@ -30,13 +30,15 @@
 
 package edu.rit.poe.atomix.levels;
 
+import java.io.Serializable;
+
 /**
  *
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
-public class Square {
+public class Square implements Serializable {
     
     public static final Square WALL = new Square();
     

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : menu.xml
+    Created on : October 30th, 2009 at 18:37:06
+    Author     : poe9514
+    Description:
+        The main menu of the DroidAtomix application.
+-->
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/bglayout">
+    </LinearLayout>
+    
+    <ImageView
+        android:id="@+id/atomix_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/droid_atomix3"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="5dip"/>
+    
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:id="@+id/location_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:padding="30dip">
+        <Button
+            android:id="@+id/resume"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Continue"/>
+        <Button
+            android:id="@+id/new_game"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="New Game"/>
+        <Button
+            android:id="@+id/options"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Options"/>
+        <Button
+            android:id="@+id/help"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Help"/>
+    </LinearLayout>
+    
+</merge>
