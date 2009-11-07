@@ -23,6 +23,8 @@ size:
 # There should be a space between all connectors and element letters.  For
 # example, an Oxygen element with a left double line connector, and upper right
 # single connector is specified by: 1 O =l -ul
+#
+# Identifiers for elements should be numbers 0-9 or lowercase letters a-z.
 molecules:
 1 0000FF H -l
 2 0000FF H -r

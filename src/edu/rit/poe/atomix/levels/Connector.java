@@ -30,6 +30,7 @@
 
 package edu.rit.poe.atomix.levels;
 
+import java.io.Serializable;
 import java.util.EnumSet;
 
 /**
@@ -38,7 +39,7 @@ import java.util.EnumSet;
  *
  * @version $Id$
  */
-public class Connector {
+public class Connector implements Serializable {
     
     public static enum Direction {
         

@@ -37,7 +37,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Window;
 import edu.rit.poe.atomix.game.GameState;
-import edu.rit.poe.atomix.game.User;
 import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.view.AtomicView;
 
@@ -71,7 +70,7 @@ public class AtomicActivity extends Activity {
         lm.init( this );
         
         // setup the game state
-        gameState = new GameState( new User() );
+        //gameState = new GameState( "username" );
         
         view = new AtomicView( this );
         

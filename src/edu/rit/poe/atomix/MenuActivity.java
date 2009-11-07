@@ -41,6 +41,11 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+import edu.rit.poe.atomix.game.GameDatabase;
+import edu.rit.poe.atomix.game.GameState;
+import java.util.List;
 
 /**
  *
@@ -62,11 +67,8 @@ public class MenuActivity extends Activity {
         super.setRequestedOrientation(
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
         
-        
-        
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
-        
         
         super.setContentView( R.layout.menu );
         
@@ -77,19 +79,54 @@ public class MenuActivity extends Activity {
         
         super.getWindow().setBackgroundDrawable( grad );
         
-        // setup button callbacks
-        Button resume = ( Button )findViewById( R.id.resume );
-		resume.setOnClickListener( new View.OnClickListener() {
-			public void onClick( View view ) {
-                // start the situation display
-                Intent intent = new Intent( MenuActivity.this,
-                        AtomicActivity.class );
-                MenuActivity.super.startActivity( intent );
-                
-                // never resume the menu with the back button
+        // load the game database
+        try {
+            GameDatabase.load( this );
+        } catch ( Exception e ) {
+            // @todo ignore for now
+        }
+        
+        // set the "Continue" button functionality, if any
+        final List<GameState> states = GameDatabase.getActive();
+        LinearLayout menu = ( LinearLayout )findViewById( R.id.button_list );
+        Button resume = ( Button )findViewById( R.id.continue_button );
+        if ( ! states.isEmpty() ) {
+            // setup button callbacks
+            resume.setOnClickListener( new View.OnClickListener() {
+                public void onClick( View view ) {
+                    // start the situation display
+                    Intent intent = new Intent( MenuActivity.this,
+                            AtomicActivity.class );
+                    MenuActivity.super.startActivity( intent );
+                    
+                    // for now, allow returning to the menu screen
+                    //MenuActivity.super.finish();
+                }
+            } );
+        } else {
+            // turn off the "Continue" button
+            Log.d( "MenuActivity", "Turning off \"Continue\" button." );
+            menu.removeView( resume );
+        }
+        
+        // set help functionality
+        Button help = ( Button )findViewById( R.id.help_button );
+        help.setOnClickListener( new View.OnClickListener() {
+            public void onClick( View view ) {
+                Toast toast = Toast.makeText( MenuActivity.this, "HELP!",
+                        Toast.LENGTH_LONG );
+                toast.show();
+            }
+        } );
+        
+        // set quit functionality
+        Button quit = ( Button )findViewById( R.id.quit_button );
+        quit.setOnClickListener( new View.OnClickListener() {
+            public void onClick( View view ) {
                 MenuActivity.super.finish();
-			}
-		} );
+            }
+        } );
+        
     }
     
     

@@ -37,6 +37,7 @@ import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.EnumSet;
 
 /**
@@ -46,7 +47,7 @@ import java.util.EnumSet;
  *
  * @version $Id$
  */
-public class GameState implements Serializable {
+public class GameState implements Serializable, Comparable<GameState> {
     
     public static enum Direction {
         
@@ -59,6 +60,12 @@ public class GameState implements Serializable {
         LEFT;
         
     } // Direction
+    
+    private String user;
+    
+    private Calendar createDate;
+    
+    Calendar lastPlayed;
     
     private Level currentLevel;
     
@@ -74,7 +81,8 @@ public class GameState implements Serializable {
      * 
      * @param   user    the user that this game state exists for
      */
-    public GameState( User user ) {
+    GameState( String user ) {
+        this.user = user;
         
         // load the initial level for game state
         LevelManager levelManager = LevelManager.getInstance();
@@ -82,6 +90,8 @@ public class GameState implements Serializable {
         
         // make a copy of the level's board, for own own use and modification
         board = currentLevel.copyBoard();
+        
+        this.createDate = Calendar.getInstance();
     }
     
     /**
@@ -221,6 +231,38 @@ public class GameState implements Serializable {
 
     public void setHoverPoint( Point hoverPoint ) {
         this.hoverPoint = hoverPoint;
+    }
+    
+    @Override
+    public int hashCode() {
+        return user.hashCode() + createDate.hashCode();
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        boolean retVal = false;
+        if ( ( o != null ) && ( o instanceof GameState ) ) {
+            GameState gs = ( GameState )o;
+            
+            if ( this.hashCode() == gs.hashCode() ) {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+    
+    /**
+     * Compares this game state object to the specified game state object.
+     * Game states are ranked by their last-played date.
+     * 
+     * @param   state   the state to be compared with this one
+     * 
+     * @return          a positive value if this state has been played more
+     *                  recently than the specified state, otherwise a negative
+     *                  value
+     */
+    public int compareTo( GameState state ) {
+        return lastPlayed.compareTo( state.lastPlayed );
     }
     
 } // GameState
