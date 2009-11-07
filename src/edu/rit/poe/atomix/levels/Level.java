@@ -1,9 +1,6 @@
 /*
  * Level.java
  *
- * Version:
- *      $Id$
- *
  * Copyright (c) 2009 Peter O. Erickson
  *
  * Permission is hereby granted, free of charge, to any person
@@ -126,14 +123,35 @@ public class Level {
      *                  <tt>false</tt>
      */
     public boolean isComplete( Square[][] board ) {
+        boolean retVal = false;
         
-        // match the kernel with the a particular atom (top-left?) and short
-        // circuit on the first non-match (whitespace is wildcard, but not an
-        // atom)
+        int ymax = board.length - goal.length;
+        int xmax = board[ 0 ].length - goal[ 0 ].length;
         
-        // @todo implement
-        
-        return false;
+        // pass a kernel over the board.  not the most efficient, but it works
+        for ( int y = 0; ( ( y < ymax ) && ( ! retVal ) );  y++ ) {
+            for ( int x = 0; ( ( x < xmax ) && ( ! retVal ) ); x++ ) {
+                boolean goalFound = true;
+                
+                // check all parts of the kernel
+                for ( int y0 = 0; ( ( y0 < goal.length ) && goalFound );
+                        y0++ ) {
+                    for ( int x0 = 0; ( ( x0 < goal[ 0 ].length )
+                            && goalFound ); x0++ ) {
+                        
+                        Square boardSqr = board[ y + y0 ][ x + x0 ];
+                        Square goalSqr = goal[ y0 ][ x0 ];
+                        
+                        if ( ( goalSqr != Square.EMPTY ) &&
+                                ( boardSqr != goalSqr ) ) {
+                            goalFound = false;
+                        }
+                    }
+                }
+                retVal = goalFound;
+            }
+        }
+        return retVal;
     }
     
     public static final Level loadLevel( InputStream is )
@@ -272,13 +290,16 @@ public class Level {
                                 
                                 level.goal = new Square[ height ][ width ];
                             } catch ( Exception e ) {
-                                // error creating goal map!
-                                //@todo handle this exception
+                                Log.e( "LevelLoader",
+                                        "Error setting new goal array" );
                             }
                         } break;
                         
                         case GOAL: {
+                            Log.d( "LevelLoader", "Loading goal..." );
                             char[] row = line.toCharArray();
+                            Log.d( "LevelLoader", "Goal length: "
+                                    + row.length );
                             
                             goalY++;
                             for ( int x = 0; x < row.length; x++ ) {
@@ -297,9 +318,8 @@ public class Level {
                                     sqr = Square.EMPTY;
                                 }
                                 
-                                level.goal[ y ][ x ] = sqr;
+                                level.goal[ goalY ][ x ] = sqr;
                             }
-                            
                         } break;
                     }
                 }
