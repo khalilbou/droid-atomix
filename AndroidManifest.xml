@@ -3,7 +3,8 @@
      package="edu.rit.poe.atomix" android:versionCode="1" android:versionName="1.0.0">
     <application>
          <activity android:name=".MenuActivity" android:label="DroidAtomix"
-                android:icon="@drawable/atomix_icon">
+                android:icon="@drawable/atomix_icon"
+                android:configChanges="orientation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

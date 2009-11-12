@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : game_dialog.xml
+    Created on : November 7th, 2009, 8:43 PM
+    Author     : poe9514
+    Description:
+        Purpose of the document follows.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/newgame_dialog"
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:padding="10dip">
+                  
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/newgame_header"
+              android:orientation="horizontal"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:padding="0dip">
+               
+        <TextView android:id="@+id/newgame_title"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:textStyle="bold"
+              android:textSize="10pt"
+              android:textColor="#FFFFFF"
+              android:gravity="center_horizontal|center_vertical"
+              android:text="Start A New Game"/>
+              
+    </LinearLayout>
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/detailstable"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:stretchColumns="1"
+            android:padding="5dip">
+                
+        <TableRow>
+            
+            <TextView android:textStyle="bold" android:text="Name:"
+            android:paddingRight="10dip"/>
+            
+            <EditText android:id="@+id/new_name"
+                    android:padding="5dip"
+                    android:lines="1"
+                    android:inputType="textPersonName"/>
+        </TableRow>
+        
+    </TableLayout>
+    
+    <Button android:id="@+id/play_button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Play!"/>
+    
+</LinearLayout>

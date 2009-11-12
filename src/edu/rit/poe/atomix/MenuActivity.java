@@ -31,16 +31,21 @@
 package edu.rit.poe.atomix;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import edu.rit.poe.atomix.game.GameDatabase;
@@ -55,6 +60,10 @@ import java.util.List;
  */
 public class MenuActivity extends Activity {
     
+    private Dialog newGameDialog;
+    
+    private EditText editText;
+    
     /**
      * Called when the activity is first created.
      * 
@@ -64,8 +73,10 @@ public class MenuActivity extends Activity {
     public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
         
-        super.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
+        Log.d( "MenuActivity", "onCreate() called." );
+        
+        //super.setRequestedOrientation(
+        //        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
         
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
@@ -88,7 +99,8 @@ public class MenuActivity extends Activity {
         
         // set the "Continue" button functionality, if any
         final List<GameState> states = GameDatabase.getActive();
-        LinearLayout menu = ( LinearLayout )findViewById( R.id.button_list );
+        LinearLayout menu =
+                ( LinearLayout )findViewById( R.id.main_button_list );
         Button resume = ( Button )findViewById( R.id.continue_button );
         if ( ! states.isEmpty() ) {
             // setup button callbacks
@@ -108,6 +120,43 @@ public class MenuActivity extends Activity {
             Log.d( "MenuActivity", "Turning off \"Continue\" button." );
             menu.removeView( resume );
         }
+        
+        // set new game dialog functionality
+        LayoutInflater inflater =
+                ( LayoutInflater )MenuActivity.this.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE );
+        View layout = inflater.inflate( R.layout.game_dialog,
+                ( ViewGroup )MenuActivity.this.findViewById(
+                R.id.newgame_dialog ) );
+        AlertDialog.Builder b = new AlertDialog.Builder( MenuActivity.this );
+        b.setView( layout );
+        newGameDialog = b.create();
+        
+        // set the new game button
+        Button newGame = ( Button )findViewById( R.id.new_game_button );
+        newGame.setOnClickListener( new View.OnClickListener() {
+            public void onClick( View view ) {
+                
+                // show the new name dialog
+                newGameDialog.show();
+                
+                // clear the name
+                editText = ( EditText )newGameDialog.findViewById( R.id.new_name );
+                editText.setText( "" );
+                
+                // set the start game button
+                Button startGame = ( Button )newGameDialog.findViewById( R.id.play_button );
+                startGame.setOnClickListener( new View.OnClickListener() {
+                    public void onClick( View view ) {
+
+                        // create a new game
+                        GameState newState =
+                                GameDatabase.newGame( editText.getText().toString() );
+
+                    }
+                } );
+            }
+        } );
         
         // set help functionality
         Button help = ( Button )findViewById( R.id.help_button );
@@ -134,18 +183,29 @@ public class MenuActivity extends Activity {
     protected void onSaveInstanceState( Bundle icicle ) {
         super.onSaveInstanceState( icicle );
         Log.d( "DROID_ATOMIX", "onSaveInstanceState() called." );
+        
+        icicle.putBoolean( "new-game-dialog", newGameDialog.isShowing() );
     }
     
     @Override
     public void onPause() {
         super.onPause();
         Log.d( "DROID_ATOMIX", "onPause() called." );
+        
+        if ( newGameDialog.isShowing() ) {
+            newGameDialog.cancel();
+        }
     }
     
     @Override
     protected void onRestoreInstanceState( Bundle icicle ) {
         super.onRestoreInstanceState( icicle );
         Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called." );
+        
+        if ( icicle.getBoolean( "new-game-dialog" ) ) {
+            newGameDialog.show();
+            //editText.setText( icicle.getString( "new-game-name" ) );
+        }
     }
     
     @Override

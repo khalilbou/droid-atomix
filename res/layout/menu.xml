@@ -25,38 +25,43 @@
         android:layout_gravity="center_horizontal|top"
         android:layout_marginTop="5dip"/>
     
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/button_list"
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom"
-        android:padding="30dip">
-        <Button
-            android:id="@+id/continue_button"
+    <ScrollView
+            android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Continue"/>
-        <Button
-            android:id="@+id/new_game_button"
+            android:layout_gravity="center_horizontal|bottom"
+            android:padding="30dip">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/main_button_list"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="New Game"/>
-        <Button
-            android:id="@+id/options_button"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Options"/>
-        <Button
-            android:id="@+id/help_button"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Help"/>
-        <Button
-            android:id="@+id/quit_button"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Quit"/>
-    </LinearLayout>
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <Button
+                android:id="@+id/continue_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Continue"/>
+            <Button
+                android:id="@+id/new_game_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="New Game"/>
+            <Button
+                android:id="@+id/options_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Options"/>
+            <Button
+                android:id="@+id/help_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Help"/>
+            <Button
+                android:id="@+id/quit_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Quit"/>
+        </LinearLayout>
+    </ScrollView>
     
 </merge>
