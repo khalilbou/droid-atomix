@@ -31,18 +31,13 @@
 package edu.rit.poe.atomix;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,6 +45,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import edu.rit.poe.atomix.game.GameDatabase;
 import edu.rit.poe.atomix.game.GameState;
+import edu.rit.poe.atomix.levels.LevelManager;
+import edu.rit.poe.atomix.view.NewGameDialog;
 import java.util.List;
 
 /**
@@ -60,7 +57,7 @@ import java.util.List;
  */
 public class MenuActivity extends Activity {
     
-    private Dialog newGameDialog;
+    private NewGameDialog newGameDialog;
     
     private EditText editText;
     
@@ -70,7 +67,7 @@ public class MenuActivity extends Activity {
      * @param   icicle  the bundle of saved state information
      */
     @Override
-    public void onCreate( Bundle icicle ) {
+    public void onCreate( final Bundle icicle ) {
         super.onCreate( icicle );
         
         Log.d( "MenuActivity", "onCreate() called." );
@@ -90,6 +87,10 @@ public class MenuActivity extends Activity {
         
         super.getWindow().setBackgroundDrawable( grad );
         
+        // initialize the level manager
+        LevelManager lm = LevelManager.getInstance();
+        lm.init( this );
+        
         // load the game database
         try {
             GameDatabase.load( this );
@@ -106,7 +107,7 @@ public class MenuActivity extends Activity {
             // setup button callbacks
             resume.setOnClickListener( new View.OnClickListener() {
                 public void onClick( View view ) {
-                    // start the situation display
+                    // start the game!
                     Intent intent = new Intent( MenuActivity.this,
                             AtomicActivity.class );
                     MenuActivity.super.startActivity( intent );
@@ -115,46 +116,16 @@ public class MenuActivity extends Activity {
                     //MenuActivity.super.finish();
                 }
             } );
-        } else {
-            // turn off the "Continue" button
-            Log.d( "MenuActivity", "Turning off \"Continue\" button." );
-            menu.removeView( resume );
         }
         
-        // set new game dialog functionality
-        LayoutInflater inflater =
-                ( LayoutInflater )MenuActivity.this.getSystemService(
-                Context.LAYOUT_INFLATER_SERVICE );
-        View layout = inflater.inflate( R.layout.game_dialog,
-                ( ViewGroup )MenuActivity.this.findViewById(
-                R.id.newgame_dialog ) );
-        AlertDialog.Builder b = new AlertDialog.Builder( MenuActivity.this );
-        b.setView( layout );
-        newGameDialog = b.create();
-        
         // set the new game button
+        newGameDialog = new NewGameDialog( MenuActivity.this );
         Button newGame = ( Button )findViewById( R.id.new_game_button );
         newGame.setOnClickListener( new View.OnClickListener() {
             public void onClick( View view ) {
-                
                 // show the new name dialog
+                newGameDialog.clearText();
                 newGameDialog.show();
-                
-                // clear the name
-                editText = ( EditText )newGameDialog.findViewById( R.id.new_name );
-                editText.setText( "" );
-                
-                // set the start game button
-                Button startGame = ( Button )newGameDialog.findViewById( R.id.play_button );
-                startGame.setOnClickListener( new View.OnClickListener() {
-                    public void onClick( View view ) {
-
-                        // create a new game
-                        GameState newState =
-                                GameDatabase.newGame( editText.getText().toString() );
-
-                    }
-                } );
             }
         } );
         
@@ -184,7 +155,8 @@ public class MenuActivity extends Activity {
         super.onSaveInstanceState( icicle );
         Log.d( "DROID_ATOMIX", "onSaveInstanceState() called." );
         
-        icicle.putBoolean( "new-game-dialog", newGameDialog.isShowing() );
+        Bundle dialogBundle = newGameDialog.onSaveInstanceState();
+        icicle.putBundle( "dialog-bundle", dialogBundle );
     }
     
     @Override
@@ -193,7 +165,7 @@ public class MenuActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onPause() called." );
         
         if ( newGameDialog.isShowing() ) {
-            newGameDialog.cancel();
+            newGameDialog.dismiss();
         }
     }
     
@@ -202,9 +174,9 @@ public class MenuActivity extends Activity {
         super.onRestoreInstanceState( icicle );
         Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called." );
         
-        if ( icicle.getBoolean( "new-game-dialog" ) ) {
-            newGameDialog.show();
-            //editText.setText( icicle.getString( "new-game-name" ) );
+        Bundle dialogBundle = icicle.getBundle( "dialog-bundle" );
+        if ( dialogBundle != null ) {
+            newGameDialog.onRestoreInstanceState( dialogBundle );
         }
     }
     

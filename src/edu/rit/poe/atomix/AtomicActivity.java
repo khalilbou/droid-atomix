@@ -36,17 +36,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Window;
+import edu.rit.poe.atomix.game.GameDatabase;
 import edu.rit.poe.atomix.game.GameState;
-import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.view.AtomicView;
+import java.io.IOException;
 
 /**
  *
  * @author poe9514
  */
 public class AtomicActivity extends Activity {
-    
-    private GameState gameState;
     
     private AtomicView view;
     
@@ -65,20 +64,9 @@ public class AtomicActivity extends Activity {
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
         
-        // initialize the level manager
-        LevelManager lm = LevelManager.getInstance();
-        lm.init( this );
-        
-        // setup the game state
-        //gameState = new GameState( "username" );
-        
         view = new AtomicView( this );
         
         super.setContentView( view );
-    }
-    
-    public GameState getGameState() {
-        return gameState;
     }
     
     /**
@@ -100,12 +88,20 @@ public class AtomicActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onSaveInstanceState() called" );
         
         // save the game state
-        icicle.putSerializable( "game_state", gameState );
+        icicle.putSerializable( "game_state", GameState.getCurrent() );
+        
+        
+        try {
+            GameDatabase.save( this );
+        } catch ( IOException ex ) {
+            // ignore for now
+        }
     }
     
     @Override
     public void onPause() {
         super.onPause();
+        
         Log.d( "DROID_ATOMIX", "onPause() called." );
     }
     
@@ -115,7 +111,8 @@ public class AtomicActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called" );
         
         // restore game state
-        gameState = ( GameState )icicle.getSerializable( "game_state" );
+        GameState.setCurrent(
+                ( GameState )icicle.getSerializable( "game_state" ) );
     }
     
     @Override

@@ -61,6 +61,8 @@ public class GameState implements Serializable, Comparable<GameState> {
         
     } // Direction
     
+    private static GameState current;
+    
     private String user;
     
     private Calendar createDate;
@@ -92,6 +94,14 @@ public class GameState implements Serializable, Comparable<GameState> {
         board = currentLevel.copyBoard();
         
         this.createDate = Calendar.getInstance();
+    }
+    
+    public static void setCurrent( GameState current ) {
+        GameState.current = current;
+    }
+    
+    public static GameState getCurrent() {
+        return current;
     }
     
     /**

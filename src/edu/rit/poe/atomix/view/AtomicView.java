@@ -85,7 +85,7 @@ public class AtomicView extends View {
         // squares that will be drawn as arrows
         arrowSquares = new HashMap<Point, GameState.Direction>();
         
-        atomix.getGameState().setHoverPoint( new Point( 0, 0 ) );
+        GameState.getCurrent().setHoverPoint( new Point( 0, 0 ) );
         trackballTime = 0L;
     }
     
@@ -112,7 +112,7 @@ public class AtomicView extends View {
         
         // determine where to put the board
         
-        Square[][] board = atomix.getGameState().getBoard();
+        Square[][] board = GameState.getCurrent().getBoard();
         int SQUARES = Math.max( board.length, board[ 0 ].length );
         
         int MAX_PIXELS = Math.min( canvas.getWidth(), canvas.getHeight() );
@@ -221,7 +221,7 @@ public class AtomicView extends View {
                 
                 // does this square as the hover point?
                 
-                Point hoverPoint = atomix.getGameState().getHoverPoint();
+                Point hoverPoint = GameState.getCurrent().getHoverPoint();
                 if ( ( hoverPoint != null ) && hoverPoint.equals( i, j ) ) {
                     int hoverColor = Color.argb( 100, 255, 0, 0 );
                     p.setColor( hoverColor );
@@ -307,9 +307,9 @@ public class AtomicView extends View {
         if ( ( action == MotionEvent.ACTION_DOWN ) ||
                 ( action == MotionEvent.ACTION_MOVE ) ) {
             // is this a new hover point?
-            Point hoverPoint = atomix.getGameState().getHoverPoint();
+            Point hoverPoint = GameState.getCurrent().getHoverPoint();
             if ( ( hoverPoint == null ) || ( ! hoverPoint.equals( i, j ) ) ) {
-                atomix.getGameState().setHoverPoint( new Point( i, j ) );
+                GameState.getCurrent().setHoverPoint( new Point( i, j ) );
 
                 // force a redraw
                 super.postInvalidate();
@@ -339,7 +339,7 @@ public class AtomicView extends View {
             Log.d( "TRACKBALL", "PRESS EVENT" );
             
             // select the currently hovered square
-            Point hoverPoint = atomix.getGameState().getHoverPoint();
+            Point hoverPoint = GameState.getCurrent().getHoverPoint();
             touch( hoverPoint.x, hoverPoint.y );
             
         } else if ( event.getAction() == MotionEvent.ACTION_MOVE ) {
@@ -378,7 +378,7 @@ public class AtomicView extends View {
             
             if ( Math.abs( trackballSum ) > .50 ) {
                 Log.d( "TRACKBALL", "TRIGGERED!" );
-                Point hoverPoint = atomix.getGameState().getHoverPoint();
+                Point hoverPoint = GameState.getCurrent().getHoverPoint();
 
                 // set the track point
                 switch ( trackballDir ) {
@@ -419,7 +419,7 @@ public class AtomicView extends View {
         int nx = p.x + dx;
         int ny = p.y + dy;
         
-        Square[][] board = atomix.getGameState().getBoard();
+        Square[][] board = GameState.getCurrent().getBoard();
         if ( ( nx >= board[ 0 ].length ) || ( nx < 0 ) ||
                 ( ny >= board.length ) || ( ny < 0 ) ) {
             retVal = false;
@@ -434,10 +434,10 @@ public class AtomicView extends View {
         boolean ItsGoingToBeOkay = true;
         GameState.Direction d = null;
         try {
-            Square[][] board = atomix.getGameState().getBoard();
+            Square[][] board = GameState.getCurrent().getBoard();
             if ( board[ j ][ i ] instanceof Atom ) {
                 try {
-                    atomix.getGameState().select( i, j );
+                    GameState.getCurrent().select( i, j );
                 } catch ( GameException e ) {
                     // this shouldn't ever happen, we checked beforehand
                     assert false;
@@ -451,7 +451,7 @@ public class AtomicView extends View {
                 Log.d( "Atomix:TouchEvent", "Touched an arrow: " + d );
                 
                 try {
-                    if ( atomix.getGameState().moveSelected( d ) ) {
+                    if ( GameState.getCurrent().moveSelected( d ) ) {
                         Log.d( "Atomix:GameState", "You win!" );
                         // we won the level!
                         Toast toast = Toast.makeText( atomix, "You win!",
@@ -465,9 +465,9 @@ public class AtomicView extends View {
                 }
                 
                 // move the hover point to the new location of the Atom
-                Atom selected = atomix.getGameState().getSelected();
+                Atom selected = GameState.getCurrent().getSelected();
                 
-                Point hoverPoint = atomix.getGameState().getHoverPoint();
+                Point hoverPoint = GameState.getCurrent().getHoverPoint();
                 hoverPoint.set( selected.getX(), selected.getY() );
 
                 // set the squares were arrows should be drawn
@@ -492,12 +492,12 @@ public class AtomicView extends View {
     private void setArrowSquares() {
         // identify and store all Direction flags to be drawn
         EnumSet<GameState.Direction> directions =
-                atomix.getGameState().getPossibleDirections();
+                GameState.getCurrent().getPossibleDirections();
         
         arrowSquares.clear();
         for ( GameState.Direction dir : directions ) {
-            int x = atomix.getGameState().getSelected().getX();
-            int y = atomix.getGameState().getSelected().getY();
+            int x = GameState.getCurrent().getSelected().getX();
+            int y = GameState.getCurrent().getSelected().getY();
             switch ( dir ) {
                 case UP: {
                     y--;

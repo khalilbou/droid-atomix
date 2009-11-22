@@ -28,7 +28,7 @@
               android:textStyle="bold"
               android:textSize="10pt"
               android:textColor="#FFFFFF"
-              android:gravity="center_horizontal|center_vertical"
+              android:gravity="center_horizontal|top"
               android:text="Start A New Game"/>
               
     </LinearLayout>

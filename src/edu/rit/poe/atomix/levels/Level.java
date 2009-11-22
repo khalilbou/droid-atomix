@@ -32,6 +32,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +45,7 @@ import java.util.Set;
  *
  * @version $Id$
  */
-public class Level {
+public class Level implements Serializable {
     
     /**
      * Enumerated type of sections of a level file.
