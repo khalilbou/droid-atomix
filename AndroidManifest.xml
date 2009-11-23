@@ -12,4 +12,6 @@
         </activity>
          <activity android:name=".AtomicActivity"/>
     </application>
+    <supports-screen android:smallScreens="false" android:normalScreens="true"
+            android:largeScreens="false" android:anyDensity="false"/>
 </manifest>

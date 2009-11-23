@@ -33,7 +33,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -49,6 +48,7 @@ import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Connector;
 import edu.rit.poe.atomix.levels.Square;
+import edu.rit.poe.atomix.util.Point;
 
 /**
  * The primary view of the DroidAtomix game.
@@ -198,7 +198,9 @@ public class AtomicView extends View {
                         // draw the atom circle
                         p.setColor( Color.parseColor( "#" + atom.getColor() ) );
                         int radius = r - 4;
+                        p.setAntiAlias( true );
                         canvas.drawCircle( 0, 0, radius, p );
+                        p.setAntiAlias( false );
                         
                         // draw the element letter
                         p.setTypeface( Typeface.DEFAULT_BOLD );

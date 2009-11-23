@@ -14,24 +14,6 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:padding="10dip">
-                  
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/newgame_header"
-              android:orientation="horizontal"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:padding="0dip">
-               
-        <TextView android:id="@+id/newgame_title"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:textStyle="bold"
-              android:textSize="10pt"
-              android:textColor="#FFFFFF"
-              android:gravity="center_horizontal|top"
-              android:text="Start A New Game"/>
-              
-    </LinearLayout>
 
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/detailstable"

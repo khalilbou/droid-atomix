@@ -30,12 +30,12 @@
 
 package edu.rit.poe.atomix.game;
 
-import android.graphics.Point;
 import android.util.Log;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
+import edu.rit.poe.atomix.util.Point;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.EnumSet;

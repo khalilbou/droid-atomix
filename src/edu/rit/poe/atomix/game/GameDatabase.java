@@ -54,6 +54,10 @@ public final class GameDatabase {
     
     private static Data data;
     
+    public static boolean isLoaded() {
+        return ( data != null );
+    }
+    
     public static void load( Context context ) throws IOException {
         // try loading the database object
         try {
