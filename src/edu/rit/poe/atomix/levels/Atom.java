@@ -33,23 +33,31 @@ package edu.rit.poe.atomix.levels;
 import java.util.Set;
 
 /**
- *
+ * This class represents an individual atom.  This class stores the current
+ * location, ID, atom character and color of an atom.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
 public final class Atom extends Square {
     
+    /** The short ID of this atom. */
     private short id;
     
+    /** The color of this atom. */
     private String color;
     
+    /** The atom character. */
     private char element;
     
+    /** The connectors associated with this atom. */
     private Set<Connector> connectors;
     
+    /** The X coordinate of this atom. */
     private int x;
     
+    /** The Y coordinate of this atom. */
     private int y;
     
     /**

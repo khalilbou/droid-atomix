@@ -78,16 +78,57 @@ public class Point implements Serializable {
     /**
      * Offsets this point's location by <tt>x</tt> and <tt>y</tt>.
      * 
-     * @param   x   
-     * @param   y   
+     * @param   x   the X coordinate offset 
+     * @param   y   the Y coordinate offset
      */
     public void offset( int x, int y ) {
         this.x += x;
         this.y += y;
     }
     
+    /**
+     * Returns <tt>true</tt> if this point matches the specified X and Y
+     * coordiantes.
+     * 
+     * @param   x   the X coordinate
+     * @param   y   the Y coordinate
+     * 
+     * @return      <tt>true</tt> if the specified coordinates are identical to
+     *              this point, otherwise <tt>false</tt>
+     */
     public boolean equals( int x, int y ) {
         return ( ( this.x == x ) && ( this.y == y ) );
+    }
+    
+    /**
+     * Returns <tt>true</tt> if this point matches the specified point.
+     * 
+     * @param   obj     the object to be compared to this one for equality
+     * 
+     * @return          <tt>true</tt> if the specified object equals this one,
+     *                  otherwise <tt>false</tt>
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        boolean retVal = false;
+        if ( obj instanceof Point ) {
+            Point p = ( Point )obj;
+            retVal = equals( p.x, p.y );
+        }
+        return retVal;
+    }
+    
+    /**
+     * Returns a hashcode of this point.
+     * 
+     * @return  the hashcode of this point's coordinates.
+     */
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 23 * hash + this.x;
+        hash = 23 * hash + this.y;
+        return hash;
     }
     
 } // Point
