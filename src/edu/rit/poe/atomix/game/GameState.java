@@ -92,6 +92,7 @@ public class GameState implements Serializable, Comparable<GameState> {
         
         // make a copy of the level's board, for own own use and modification
         board = currentLevel.copyBoard();
+        hoverPoint = new Point( 0, 0 );
         
         this.createDate = Calendar.getInstance();
     }
@@ -241,6 +242,10 @@ public class GameState implements Serializable, Comparable<GameState> {
 
     public void setHoverPoint( Point hoverPoint ) {
         this.hoverPoint = hoverPoint;
+    }
+    
+    public String getUser() {
+        return user;
     }
     
     @Override

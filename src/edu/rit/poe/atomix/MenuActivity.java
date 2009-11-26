@@ -44,6 +44,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Toast;
 import edu.rit.poe.atomix.game.GameDatabase;
 import edu.rit.poe.atomix.game.GameState;
@@ -86,7 +87,7 @@ public class MenuActivity extends Activity {
         
         GradientDrawable grad = new GradientDrawable( Orientation.TOP_BOTTOM,
             new int[] { Color.BLACK, Color.parseColor( "#CC0000" ) } );
-        grad.setGradientRadius( 1.0f );
+        grad.setGradientRadius( 100.0f );
         grad.setGradientType( GradientDrawable.LINEAR_GRADIENT );
         
         super.getWindow().setBackgroundDrawable( grad );
@@ -107,6 +108,12 @@ public class MenuActivity extends Activity {
         
         // set the "Continue" button functionality, if any
         final List<GameState> states = GameDatabase.getActive();
+        
+        Log.d( "DROID_ATOMIX", "SAVED ACTIVE GAMES:" );
+        for ( GameState state : states ) {
+            Log.d( "DROID_ATOMIX", "GAME: " + state.getUser() );
+        }
+        
         LinearLayout menu =
                 ( LinearLayout )findViewById( R.id.main_button_list );
         Button resume = ( Button )findViewById( R.id.continue_button );
@@ -114,6 +121,25 @@ public class MenuActivity extends Activity {
             // setup button callbacks
             resume.setOnClickListener( new View.OnClickListener() {
                 public void onClick( View view ) {
+                    
+                    // if there's only one game, start it!
+                    if ( states.size() == 1 ) {
+                        // set the one game
+                        GameState.setCurrent( GameDatabase.getLast() );
+                    } else {
+                        
+                        // display a pop-up to select which game
+                        
+                        ListView list = new ListView( MenuActivity.this );
+            
+                        AlertDialog.Builder ad =
+                                new AlertDialog.Builder( MenuActivity.this );
+                        ad.setTitle( "Continue A Saved Game" );
+                        ad.setView( list );
+                        ad.show();
+                        
+                    }
+                    
                     // start the game!
                     Intent intent = new Intent( MenuActivity.this,
                             AtomicActivity.class );
@@ -138,9 +164,10 @@ public class MenuActivity extends Activity {
             AlertDialog.Builder ad = new AlertDialog.Builder( this );
             ad.setTitle( "Start A New Game" );
             ad.setView( view );
+            ad.setIcon( android.R.drawable.ic_menu_more );
             
             newName = ( EditText )view.findViewById( R.id.new_name );
-
+            
             // set the start game button
             Button startGame = ( Button )view.findViewById( R.id.play_button );
             startGame.setOnClickListener( new View.OnClickListener() {
@@ -150,9 +177,9 @@ public class MenuActivity extends Activity {
                         blankNameMessage.show();
                     } else {
                         // create a new game
-                        GameState.setCurrent(
-                                GameDatabase.newGame( newName.toString() ) );
-
+                        GameState.setCurrent( GameDatabase.newGame(
+                                newName.getText().toString() ) );
+                        
                         Intent i = new Intent( MenuActivity.this,
                                 AtomicActivity.class );
                         MenuActivity.this.startActivity( i );

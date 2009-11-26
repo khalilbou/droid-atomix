@@ -88,7 +88,9 @@ public final class GameDatabase {
         }
         
         // save the "last-played" date of the active game
-        data.last.lastPlayed = Calendar.getInstance();
+        if ( data.last != null ) {
+            data.last.lastPlayed = Calendar.getInstance();
+        }
         
         try {
             FileOutputStream fos = context.openFileOutput( GAME_FILENAME,
@@ -111,7 +113,6 @@ public final class GameDatabase {
         
         GameState game = new GameState( user );
         data.active.add( game );
-        data.last = game;
         
         return game;
     }
@@ -125,6 +126,14 @@ public final class GameDatabase {
         Collections.sort( data.active );
         
         return data.active;
+    }
+    
+    public static GameState getLast() {
+        return data.last;
+    }
+    
+    public static void setLast( GameState last ) {
+        data.last = last;
     }
     
     public static final class Data implements Serializable {
