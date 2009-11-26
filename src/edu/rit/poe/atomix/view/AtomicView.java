@@ -35,6 +35,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -71,6 +72,58 @@ public class AtomicView extends View {
     private float trackballSum;
     
     /**
+     * An enumerated type to represent screen sizes of devices such as the HTC
+     * Dream or Motorola Droid.
+     * 
+     * @author  Peter O. Erickson
+     * 
+     * @version $Id$
+     */
+    private static enum ScreenSize {
+        
+        /** The HTC Dream (T-Mobile G1) or a device with a 320x400 screen. */
+        HVGA( 320, 480 ),
+        
+        /** The Motorola Droid or a device with a 400x800 screen. */
+        WVGA( 480, 854 ),
+        
+        /** A device with a different screen size. */
+        OTHER( -1, -1 );
+        
+        /** The width of the screen. */
+        private int width;
+        
+        /** The height of the screen. */
+        private int height;
+        
+        /**
+         * Constructs a new <tt>ScreenSize</tt>.
+         * 
+         * @param   width   the device's screen width
+         * @param   height  the device's screen height
+         */
+        ScreenSize( int width, int height ) {
+            this.width = width;
+            this.height = height;
+        }
+        
+        /**
+         * Returns <tt>true</tt> if this <tt>ScreenSize</tt> has an identical
+         * size to the specified <tt>DisplayMetrics</tt>.
+         * 
+         * @param   dm  the <tt>DisplayMetrics</tt> to compare this screen to
+         * 
+         * @return      <tt>true</tt> if the screen size is equal, otherwise
+         *              <tt>false</tt>
+         */
+        public boolean equals( DisplayMetrics dm ) {
+            return ( ( dm.widthPixels == this.width ) &&
+                    ( dm.heightPixels == this.height  ) );
+        }
+        
+    } // ScreenSize
+    
+    /**
      * Constructs a new <tt>AtomicView</tt>.
      * 
      * @param   atomix  the Atomix Activity that launched this view
@@ -84,8 +137,9 @@ public class AtomicView extends View {
         
         // squares that will be drawn as arrows
         arrowSquares = new HashMap<Point, GameState.Direction>();
+        // if this is being re-instated, set the arrow squares
+        this.setArrowSquares();
         
-        GameState.getCurrent().setHoverPoint( new Point( 0, 0 ) );
         trackballTime = 0L;
     }
     
@@ -108,15 +162,54 @@ public class AtomicView extends View {
         Rect rect = new Rect( 0, 0, canvas.getWidth(), canvas.getHeight() );
         canvas.drawRect( rect, p );
         
-        // the board region is given an 11x11 with 29x29 squares
+        //
+        // DISPLAY SETTINGS:
+        //
+        // HTC DREAM (320x480 phones):
+        //     28x28 squares, with 1px on each side
+        //     TOTAL game area:  320x320
+        //
+        // MOTOROLA DROID (400x800 phones):
+        //     35x35 squares, with 1px on each side (and 2px left, 1px right)
+        //     TOTAL game area: 400x400
+        //
+        DisplayMetrics dm = new DisplayMetrics();
+        atomix.getWindowManager().getDefaultDisplay().getMetrics( dm );
         
-        // determine where to put the board
+        int SQUARE_AREA = 11; // how many squares in the S x S board
+        int size = 0; // size of a single block (s x s)
+        int offsetX = 0;
+        int offsetY = 0;
+        
+        Log.d( "Display Metrics: ",
+                "W: " + dm.widthPixels + " H: " + dm.heightPixels );
+        
+        // if G1
+        if ( ScreenSize.HVGA.equals( dm ) ) {
+            Log.d( "DROID_ATOMIX",
+                    "This is not the Droid you are looking for." );
+            
+            size = 29;
+            offsetX = 1;
+            offsetY = 2;
+            
+            // else if Droid
+        } else if ( ScreenSize.WVGA.equals( dm ) ) {
+            Log.d( "DROID_ATOMIX", "This IS the Droid you are looking for." );
+            
+            size = 43;
+            offsetX = 4;
+            offsetY = 4;
+            
+        } else {
+            Log.d( "DROID_ATOMIX", "Resorting to HTC Dream display size." );
+            
+            size = 28;
+            offsetX = 1;
+            offsetY = 2;
+        }
         
         Square[][] board = GameState.getCurrent().getBoard();
-        int SQUARES = Math.max( board.length, board[ 0 ].length );
-        
-        int MAX_PIXELS = Math.min( canvas.getWidth(), canvas.getHeight() );
-        int size = ( int )( MAX_PIXELS / SQUARES );
         Log.d( "SIZE", "Size: " + size );
         
         // translate to create the 1px top/left gap
@@ -516,6 +609,7 @@ public class AtomicView extends View {
             }
             arrowSquares.put( new Point( x, y ), dir );
         }
+        Log.d( "DROID_ATOMIX", "Arrow Squares Set: " + arrowSquares.size() );
     }
     
 } // AtomicView
