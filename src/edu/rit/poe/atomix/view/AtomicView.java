@@ -231,10 +231,10 @@ public class AtomicView extends View {
                 canvas.drawRect( sq, p );
                 
                 try {
-                    if ( board[ j ][ i ] == Square.WALL ) {
+                    if ( board[ j ][ i ] instanceof Square.Wall ) {
                         p.setColor( colorred );
                         canvas.drawRect( sq, p );
-                    } else if ( board[ j ][ i ] == Square.EMPTY ) {
+                    } else if ( board[ j ][ i ] instanceof Square.Empty ) {
                         // check whether this square should represent an arrow
                         if ( ( dir = arrowSquares.get( new Point( i, j ) ) ) !=
                                 null ) {
@@ -530,6 +530,14 @@ public class AtomicView extends View {
         GameState.Direction d = null;
         try {
             Square[][] board = GameState.getCurrent().getBoard();
+            
+            if ( board[ j ][ i ] instanceof Atom ) {
+                
+            } else if ( board[ j ][ i ] instanceof Square ) {
+                
+            }
+            
+            
             if ( board[ j ][ i ] instanceof Atom ) {
                 try {
                     GameState.getCurrent().select( i, j );

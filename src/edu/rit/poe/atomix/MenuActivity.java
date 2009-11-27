@@ -101,31 +101,36 @@ public class MenuActivity extends Activity {
             // don't load database twice
             if ( ! GameDatabase.isLoaded() ) {
                 GameDatabase.load( this );
+                Log.d( "DROID_ATOMIX", "Loaded game database." );
             }
         } catch ( Exception e ) {
-            // @todo ignore for now
+            Log.e( "DROID_ATOMIX", "Error loading game database: "
+                    + Log.getStackTraceString( e ) );
         }
         
         // set the "Continue" button functionality, if any
         final List<GameState> states = GameDatabase.getActive();
-        
         Log.d( "DROID_ATOMIX", "SAVED ACTIVE GAMES:" );
         for ( GameState state : states ) {
             Log.d( "DROID_ATOMIX", "GAME: " + state.getUser() );
+        }
+        if ( GameDatabase.getLast() != null ) {
+            Log.d( "DROID_ATOMIX",
+                    "Last game: " + GameDatabase.getLast().getUser() );
         }
         
         LinearLayout menu =
                 ( LinearLayout )findViewById( R.id.main_button_list );
         Button resume = ( Button )findViewById( R.id.continue_button );
         if ( ! states.isEmpty() ) {
+            Log.d( "DROID_ATOMIX", "Display CONTINUE button." );
             // setup button callbacks
             resume.setOnClickListener( new View.OnClickListener() {
                 public void onClick( View view ) {
                     
+                    /*
                     // if there's only one game, start it!
                     if ( states.size() == 1 ) {
-                        // set the one game
-                        GameState.setCurrent( GameDatabase.getLast() );
                     } else {
                         
                         // display a pop-up to select which game
@@ -139,6 +144,13 @@ public class MenuActivity extends Activity {
                         ad.show();
                         
                     }
+                    */
+                    
+                    // set the one game
+                    GameState lastGame = GameDatabase.getLast();
+                    Log.d( "DROID_ATOMIX",
+                            "Starting the last game: " + lastGame.getUser() );
+                    GameState.setCurrent( lastGame );
                     
                     // start the game!
                     Intent intent = new Intent( MenuActivity.this,
@@ -177,12 +189,14 @@ public class MenuActivity extends Activity {
                         blankNameMessage.show();
                     } else {
                         // create a new game
-                        GameState.setCurrent( GameDatabase.newGame(
-                                newName.getText().toString() ) );
+                        String username = newName.getText().toString();
+                        GameState game = GameDatabase.newGame( username );
                         
-                        Intent i = new Intent( MenuActivity.this,
+                        // set the current game state and start playing
+                        GameState.setCurrent( game );
+                        Intent intent = new Intent( MenuActivity.this,
                                 AtomicActivity.class );
-                        MenuActivity.this.startActivity( i );
+                        MenuActivity.this.startActivity( intent );
 
                         // do not return to the menu activity with the back
                         // button

@@ -35,7 +35,8 @@ import android.content.res.AssetManager;
 import android.util.Log;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -45,9 +46,11 @@ import java.util.LinkedList;
  */
 public class LevelManager {
     
+    public static final int FIRST_LEVEL = 1;
+    
     private static volatile LevelManager instance;
     
-    private LinkedList<Level> levelList;
+    private Map<Integer, Level> levelMap;
     
     /**
      * Constructs a new <tt>LevelManager</tt>.
@@ -56,7 +59,7 @@ public class LevelManager {
     }
     
     public static final LevelManager getInstance() {
-        // DCL anti-pattern avoided by use of 'volatile'
+        // DCL anti-pattern avoided by way of 'volatile'
         if ( instance == null ) {
             synchronized( LevelManager.class ) {
                 if ( instance == null ) {
@@ -68,7 +71,7 @@ public class LevelManager {
     }
     
     public void init( Context context ) {
-        levelList = new LinkedList<Level>();
+        levelMap = new HashMap<Integer, Level>();
         
         Level level = null;
         try {
@@ -86,15 +89,20 @@ public class LevelManager {
                 InputStream is = am.open( "levels/" + levelFile );
                 level = Level.loadLevel( is );
                 
-                levelList.add( level );
+                levelMap.put( level.getLevel(), level );
             }
         } catch ( Exception e ) {
             // ignore
         }
     }
     
-    public Level getStartingLevel() {
-        return levelList.getFirst();
+    public Level getLevel( int levelNumber ) throws IllegalArgumentException {
+        Level level = null;
+        if ( ( level = levelMap.get( levelNumber ) ) == null ) {
+            throw new IllegalArgumentException(
+                    "Level " + levelNumber + " does not exist." );
+        }
+        return level;
     }
     
 } // LevelManager

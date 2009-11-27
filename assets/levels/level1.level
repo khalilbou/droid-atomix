@@ -2,6 +2,10 @@
 #
 # POE 09/17/2009 14:04:32
 
+# The level number
+level:
+1
+
 # The name of this molecule.
 name:
 Water
