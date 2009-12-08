@@ -37,6 +37,8 @@ import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
 import edu.rit.poe.atomix.util.Point;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.EnumSet;
 
@@ -48,6 +50,9 @@ import java.util.EnumSet;
  * @version $Id$
  */
 public class GameState implements Serializable, Comparable<GameState> {
+    
+    public static final DateFormat DATE_FORMAT =
+            new SimpleDateFormat( "MM/dd/yyyy hh:mm a" );
     
     public static enum Direction {
         
@@ -255,6 +260,15 @@ public class GameState implements Serializable, Comparable<GameState> {
     }
     
     public String getUser() {
+        return user;
+    }
+    
+    public String getLastPlayed() {
+        return DATE_FORMAT.format( lastPlayed.getTime() );
+    }
+    
+    @Override
+    public String toString() {
         return user;
     }
     

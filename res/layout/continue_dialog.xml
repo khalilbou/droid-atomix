@@ -14,29 +14,9 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:padding="10dip">
-
-    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:stretchColumns="1"
-            android:padding="5dip">
-                
-        <TableRow>
-            
-            <TextView android:textStyle="bold" android:text="Name:"
-            android:paddingRight="10dip"/>
-            
-            <EditText android:id="@+id/new_name"
-                    android:padding="5dip"
-                    android:lines="1"
-                    android:inputType="textPersonName"/>
-        </TableRow>
-        
-    </TableLayout>
-    
-    <Button android:id="@+id/play_button"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Play!"/>
+                  
+    <ListView android:id="@+id/saved_games_list" 
+              android:layout_width="fill_parent" 
+              android:layout_height="fill_parent"/>
     
 </LinearLayout>

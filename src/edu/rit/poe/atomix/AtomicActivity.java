@@ -93,7 +93,6 @@ public class AtomicActivity extends Activity {
         try {
             Log.d( "DROID_ATOMIX", "Saving state: "
                     + GameState.getCurrent().getUser() );
-            GameDatabase.setLast( GameState.getCurrent() );
             GameDatabase.save( this );
         } catch ( IOException ex ) {
             Log.e( "DROID_ATOMIX", Log.getStackTraceString( ex ) );
