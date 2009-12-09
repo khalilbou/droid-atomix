@@ -258,8 +258,7 @@ public class Level implements Serializable {
                                         connectors );
                                 
                                 ( level.molecules ).add( molecule );
-                                Log.d( "LevelLoader",
-                                        "Setting molecule " + id );
+                                
                                 atomMap.put( id, molecule );
                             } catch ( Exception e ) {
                                 //@todo handle this exception
@@ -317,10 +316,7 @@ public class Level implements Serializable {
                         } break;
                         
                         case GOAL: {
-                            Log.d( "LevelLoader", "Loading goal..." );
                             char[] row = line.toCharArray();
-                            Log.d( "LevelLoader", "Goal length: "
-                                    + row.length );
                             
                             goalY++;
                             for ( int x = 0; x < row.length; x++ ) {
