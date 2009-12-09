@@ -1,0 +1,60 @@
+# DroidAtomix Map Config File
+#
+# POE 09/17/2009 14:04:32
+
+# The name of this molecule.
+name:
+Water
+
+# The chemical formula of the molecule.
+formula:
+H_2O
+
+# The size of the map (the map size will be trimmed if necessary).
+size:
+11X10
+
+# The xmolecules on the map.
+#
+# Molecules are specified by the element letter, followed by any combination of
+# l, r, u, d, ur, ul, lr, ll for left, right, up, down, upper right, upper
+# left, lower right, and lower left connectors, respectively, preceeded by the
+# line type, denoted by a "-" for a single line, and "=" for a double line.
+# There should be a space between all connectors and element letters.  For
+# example, an Oxygen element with a left double line connector, and upper right
+# single connector is specified by: 1 O =l -ul
+#
+# Identifiers for elements should be numbers 0-9 or lowercase letters a-z.
+molecules:
+1 0000FF H -l
+2 0000FF H -r
+3 FF0000 O -l -r
+
+# The actual level map (note that the outer border may be trimmed, if
+# necessary for screen size).
+#
+# X's denote walls, spaces denote open board, B's represent blank space outside
+# the board, and numbers identify molecules previously specified.
+#
+# The ENTIRE area of the board should be populated.
+map:
+XXXXXBBBBBB
+X   XBBBBBB
+X  1XXXXXXB
+X  X     XB
+X X      XX
+X X    XX X
+X    X X3 X
+XXX2X  X  X
+BX        X
+BXXXXXXXXXX
+
+# The size of the goal configuration (widthXheight)
+goal_size:
+3X1
+
+# The goal configuration of the level.  This must be tighly packed, where
+# spaces denote any square type (wall or empty square), and can use multiple
+# lines for configurations in the vertical direction.
+goal:
+231
