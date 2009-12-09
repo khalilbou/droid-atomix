@@ -71,6 +71,12 @@ public class AtomicView extends View {
     
     private float trackballSum;
     
+    private Rect gameArea;
+    
+    private int offsetX;
+    
+    private int offsetY;
+    
     /**
      * An enumerated type to represent screen sizes of devices such as the HTC
      * Dream or Motorola Droid.
@@ -178,8 +184,6 @@ public class AtomicView extends View {
         
         int SQUARE_AREA = 11; // how many squares in the S x S board
         int size = 0; // size of a single block (s x s)
-        int offsetX = 0;
-        int offsetY = 0;
         
         Log.d( "Display Metrics: ",
                 "W: " + dm.widthPixels + " H: " + dm.heightPixels );
@@ -209,11 +213,24 @@ public class AtomicView extends View {
             offsetY = 2;
         }
         
+        // grab the board from the game state
         Square[][] board = GameState.getCurrent().getBoard();
+        int boardWidth = board[ 0 ].length;
+        int boardHeight = board.length;
+        gameArea = new Rect( 0, 0, ( SQUARE_AREA * size ),
+                ( SQUARE_AREA * size ) );
+        
         Log.d( "SIZE", "Size: " + size );
         
+        // calculate centering offset
+        
+        offsetX += ( ( float )( ( SQUARE_AREA - boardWidth ) * size ) ) / 2.0f;
+        offsetY += ( ( float )( ( SQUARE_AREA - boardHeight ) * size ) ) / 2.0f;
+        //@todo account for offset when clicking
+        
         // translate to create the 1px top/left gap
-        canvas.translate( 1, 2 );
+        canvas.save();
+        canvas.translate( offsetX, offsetY );
         
         GameState.Direction dir = null;
         for ( int i = 0; i < board[ 0 ].length; i++ ) {
@@ -253,59 +270,8 @@ public class AtomicView extends View {
                         p.setColor( fgcolor );
                         canvas.drawRect( sq, p );
                         
-                        // draw the connectors first
-                        for ( Connector c : atom.getConnectors() ) {
-                            canvas.save();
-                            switch ( c.getDirection() ) {
-                                case DOWN: {
-                                    canvas.rotate( 180.0f );
-                                } break;
-                                case RIGHT: {
-                                    canvas.rotate( 90.0f );
-                                } break;
-                                case LEFT: {
-                                    canvas.rotate( -90.0f );
-                                } break;
-                            }
-                            
-                            if ( c.getBond() == Connector.Bond.SINGLE ) {
-                                p.setColor( Color.BLACK );
-                                canvas.drawLine( 1, 0, 1, -r, p );
-                                p.setColor( Color.BLACK );
-                                canvas.drawLine( 0, 0, 0, -r, p );
-                                p.setColor( Color.BLACK );
-                                canvas.drawLine( -1, 0, -1, -r, p );
-                            } else if ( c.getBond() == Connector.Bond.DOUBLE ) {
-                                p.setColor( Color.BLACK );
-                                canvas.drawLine( 3, 0, 3, -r, p );
-                                canvas.drawLine( 2, 0, 2, -r, p );
-                                
-                                p.setColor( Color.BLACK );
-                                canvas.drawLine( -2, 0, -2, -r, p );
-                                canvas.drawLine( -3, 0, -3, -r, p );
-                            }
-                            
-                            canvas.restore();
-                        }
-                        
-                        // draw the atom circle
-                        p.setColor( Color.parseColor( "#" + atom.getColor() ) );
-                        int radius = r - 4;
-                        p.setAntiAlias( true );
-                        canvas.drawCircle( 0, 0, radius, p );
-                        p.setAntiAlias( false );
-                        
-                        // draw the element letter
-                        p.setTypeface( Typeface.DEFAULT_BOLD );
-                        Rect bounds = new Rect();
-                        p.getTextBounds( new char[]{ atom.getElement() }, 0, 1,
-                                bounds );
-                        int tx = 0 - ( ( bounds.width() / 2 ) + 1 );
-                        int ty = 0 + ( bounds.height() / 2 );
-                        p.setColor( Color.WHITE );
-                        canvas.drawText( Character.toString(
-                                atom.getElement() ), tx, ty, p );
-                        
+                        // draw the atom to the board
+                        drawAtom( canvas, atom, r );
                     } else {
                         p.setColor( bgcolor );
                         canvas.drawRect( sq, p );
@@ -348,6 +314,79 @@ public class AtomicView extends View {
                 canvas.restore();
             }
         }
+        
+        int t = SQUARE_AREA * size;
+        int solutionPanelWidth = super.getWidth() - 2;
+        int solutionPanelHeight = super.getHeight() - t - 2;
+        canvas.restore();
+        canvas.translate( 0, t );
+        
+        // set black background for solution area
+        p.setColor( Color.BLACK );
+        canvas.drawRect( 1, 0, solutionPanelWidth, solutionPanelHeight, p );
+        
+        // draw the solution
+        
+        //@todo algorithm to draw the solution
+        // if we can support normal-sized squares, do so, otherwise scale
+        
+    }
+    
+    private static void drawAtom( Canvas canvas, Atom atom, int r ) {
+        Paint p = new Paint();
+        
+        // draw the connectors first
+        for ( Connector c : atom.getConnectors() ) {
+            canvas.save();
+            switch ( c.getDirection() ) {
+                case DOWN: {
+                    canvas.rotate( 180.0f );
+                } break;
+                case RIGHT: {
+                    canvas.rotate( 90.0f );
+                } break;
+                case LEFT: {
+                    canvas.rotate( -90.0f );
+                } break;
+            }
+            
+            if ( c.getBond() == Connector.Bond.SINGLE ) {
+                p.setColor( Color.BLACK );
+                canvas.drawLine( 1, 0, 1, -r, p );
+                p.setColor( Color.BLACK );
+                canvas.drawLine( 0, 0, 0, -r, p );
+                p.setColor( Color.BLACK );
+                canvas.drawLine( -1, 0, -1, -r, p );
+            } else if ( c.getBond() == Connector.Bond.DOUBLE ) {
+                p.setColor( Color.BLACK );
+                canvas.drawLine( 3, 0, 3, -r, p );
+                canvas.drawLine( 2, 0, 2, -r, p );
+                
+                p.setColor( Color.BLACK );
+                canvas.drawLine( -2, 0, -2, -r, p );
+                canvas.drawLine( -3, 0, -3, -r, p );
+            }
+            
+            canvas.restore();
+        }
+        
+        // draw the atom circle
+        p.setColor( Color.parseColor( "#" + atom.getColor() ) );
+        int radius = r - 4;
+        p.setAntiAlias( true );
+        canvas.drawCircle( 0, 0, radius, p );
+        p.setAntiAlias( false );
+        
+        // draw the element letter
+        p.setTypeface( Typeface.DEFAULT_BOLD );
+        Rect bounds = new Rect();
+        p.getTextBounds( new char[]{ atom.getElement() }, 0, 1,
+                bounds );
+        int tx = 0 - ( ( bounds.width() / 2 ) + 1 );
+        int ty = 0 + ( bounds.height() / 2 );
+        p.setColor( Color.WHITE );
+        canvas.drawText( Character.toString( atom.getElement() ), tx, ty, p );
+        
     }
     
     /**
@@ -367,14 +406,16 @@ public class AtomicView extends View {
         
         canvas.save();
         
-        if ( dir == GameState.Direction.UP ) {
-            // nothing!
-        } else if ( dir == GameState.Direction.DOWN ) {
-            canvas.rotate( 180.0f );
-        } else if ( dir == GameState.Direction.RIGHT ) {
-            canvas.rotate( 90.0f );
-        } else if ( dir == GameState.Direction.LEFT ) {
-            canvas.rotate( -90.0f );
+        switch ( dir ) {
+            case DOWN: {
+                canvas.rotate( 180.0f );
+            } break;
+            case RIGHT: {
+                canvas.rotate( 90.0f );
+            } break;
+            case LEFT: {
+                canvas.rotate( -90.0f );
+            } break;
         }
         
         Paint paint = new Paint();
@@ -395,27 +436,35 @@ public class AtomicView extends View {
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
         int action = event.getAction();
-        int i = ( int )( event.getX() / 29.0f );
-        int j = ( int )( event.getY() / 29.0f );
-
-        // are we setting the hover pointer, or selecting a square
-        if ( ( action == MotionEvent.ACTION_DOWN ) ||
-                ( action == MotionEvent.ACTION_MOVE ) ) {
-            // is this a new hover point?
-            Point hoverPoint = GameState.getCurrent().getHoverPoint();
-            if ( ( hoverPoint == null ) || ( ! hoverPoint.equals( i, j ) ) ) {
-                GameState.getCurrent().setHoverPoint( new Point( i, j ) );
-
-                // force a redraw
-                super.postInvalidate();
+        
+        // what portion of the screen was clicked?
+        int x = ( int )event.getX();
+        int y = ( int )event.getY();
+        
+        if ( gameArea.contains( x, y ) ) {
+            int i = ( int )( ( x - offsetX ) / 29.0f );
+            int j = ( int )( ( y - offsetY ) / 29.0f );
+            //@todo ensure this works for maps larger, as well as smaller
+            
+            // are we setting the hover pointer, or selecting a square
+            if ( ( action == MotionEvent.ACTION_DOWN ) ||
+                    ( action == MotionEvent.ACTION_MOVE ) ) {
+                // is this a new hover point?
+                Point hoverPoint = GameState.getCurrent().getHoverPoint();
+                if ( ( hoverPoint == null ) ||
+                        ( ! hoverPoint.equals( i, j ) ) ) {
+                    GameState.getCurrent().setHoverPoint( new Point( i, j ) );
+                    
+                    // force a redraw
+                    super.postInvalidate();
+                }
+            } else if ( event.getAction() == MotionEvent.ACTION_UP ) {
+                Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
+                
+                // select the currently hovered square
+                touch( i, j );
             }
-        } else if ( event.getAction() == MotionEvent.ACTION_UP ) {
-            Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
-
-            // select the currently hovered square
-            touch( i, j );
         }
-
         return true;
     }
     
