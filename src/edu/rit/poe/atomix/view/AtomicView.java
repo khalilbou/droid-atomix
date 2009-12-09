@@ -71,6 +71,10 @@ public class AtomicView extends View {
     
     private float trackballSum;
     
+    private int offsetX;
+    
+    private int offsetY;
+    
     /**
      * An enumerated type to represent screen sizes of devices such as the HTC
      * Dream or Motorola Droid.
@@ -178,8 +182,6 @@ public class AtomicView extends View {
         
         int SQUARE_AREA = 11; // how many squares in the S x S board
         int size = 0; // size of a single block (s x s)
-        int offsetX = 0;
-        int offsetY = 0;
         
         Log.d( "Display Metrics: ",
                 "W: " + dm.widthPixels + " H: " + dm.heightPixels );
@@ -209,11 +211,22 @@ public class AtomicView extends View {
             offsetY = 2;
         }
         
+        // grab the board from the game state
         Square[][] board = GameState.getCurrent().getBoard();
+        int boardWidth = board[ 0 ].length;
+        int boardHeight = board.length;
+        
         Log.d( "SIZE", "Size: " + size );
         
+        // calculate centering offset
+        
+        offsetX += ( ( float )( ( SQUARE_AREA - boardWidth ) * size ) ) / 2.0f;
+        offsetY += ( ( float )( ( SQUARE_AREA - boardHeight ) * size ) ) / 2.0f;
+        //@todo account for offset when clicking
+        
         // translate to create the 1px top/left gap
-        canvas.translate( 1, 2 );
+        canvas.save();
+        canvas.translate( offsetX, offsetY );
         
         GameState.Direction dir = null;
         for ( int i = 0; i < board[ 0 ].length; i++ ) {
@@ -348,6 +361,17 @@ public class AtomicView extends View {
                 canvas.restore();
             }
         }
+        
+        int top = SQUARE_AREA * size;
+        int w = super.getWidth();
+        int h = super.getHeight() - top;
+        canvas.restore();
+        canvas.translate( 0, top );
+        
+        // set black
+        p.setColor( Color.BLACK );
+        canvas.drawRect( 1, 0, w - 1, h - 1, p );
+        
     }
     
     /**
@@ -366,6 +390,18 @@ public class AtomicView extends View {
         path.lineTo( 0, ( -r + 5 ) );
         
         canvas.save();
+        
+        switch ( dir ) {
+            case DOWN: {
+                canvas.rotate( 180.0f );
+            } break;
+            case RIGHT: {
+                canvas.rotate( 90.0f );
+            } break;
+            case LEFT: {
+                canvas.rotate( -90.0f );
+            } break;
+        }
         
         if ( dir == GameState.Direction.UP ) {
             // nothing!
@@ -395,8 +431,8 @@ public class AtomicView extends View {
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
         int action = event.getAction();
-        int i = ( int )( event.getX() / 29.0f );
-        int j = ( int )( event.getY() / 29.0f );
+        int i = ( int )( ( event.getX() + offsetX ) / 29.0f );
+        int j = ( int )( ( event.getY() + offsetY ) / 29.0f );
 
         // are we setting the hover pointer, or selecting a square
         if ( ( action == MotionEvent.ACTION_DOWN ) ||
