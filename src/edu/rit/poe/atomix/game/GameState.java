@@ -37,6 +37,8 @@ import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
 import edu.rit.poe.atomix.util.Point;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.EnumSet;
 
@@ -48,6 +50,9 @@ import java.util.EnumSet;
  * @version $Id$
  */
 public class GameState implements Serializable, Comparable<GameState> {
+    
+    public static final DateFormat DATE_FORMAT =
+            new SimpleDateFormat( "MM/dd/yyyy hh:mm a" );
     
     public static enum Direction {
         
@@ -69,7 +74,7 @@ public class GameState implements Serializable, Comparable<GameState> {
     
     Calendar lastPlayed;
     
-    private Level currentLevel;
+    private int currentLevel;
     
     private Square[][] board;
     
@@ -87,11 +92,10 @@ public class GameState implements Serializable, Comparable<GameState> {
         this.user = user;
         
         // load the initial level for game state
-        LevelManager levelManager = LevelManager.getInstance();
-        currentLevel = levelManager.getStartingLevel();
+        currentLevel = LevelManager.FIRST_LEVEL;
+        this.setLevel( currentLevel );
         
-        // make a copy of the level's board, for own own use and modification
-        board = currentLevel.copyBoard();
+        hoverPoint = new Point( 0, 0 );
         
         this.createDate = Calendar.getInstance();
     }
@@ -102,6 +106,15 @@ public class GameState implements Serializable, Comparable<GameState> {
     
     public static GameState getCurrent() {
         return current;
+    }
+    
+    public void setLevel( int levelNumber ) throws IllegalArgumentException {
+        LevelManager levelManager = LevelManager.getInstance();
+        Level level = levelManager.getLevel( levelNumber );
+        currentLevel = levelNumber;
+        
+        // make a copy of the level's board, for own own use and modification
+        board = level.copyBoard();
     }
     
     /**
@@ -156,7 +169,7 @@ public class GameState implements Serializable, Comparable<GameState> {
             // hit a board boundary?
             if ( ( nextY == board.length ) || ( nextX == board[ 0 ].length ) ) {
                 hit = true;
-            } else if ( board[ nextY ][ nextX ] == Square.WALL ) {
+            } else if ( board[ nextY ][ nextX ] instanceof Square.Wall ) {
                 hit = true;
             } else if ( board[ nextY ][ nextX ] instanceof Atom ) {
                 hit = true;
@@ -175,7 +188,10 @@ public class GameState implements Serializable, Comparable<GameState> {
         board[ endY ][ endX ] = selected;
         
         // check for win conditions
-        return currentLevel.isComplete( board );
+        // -- consult the gold standard level object
+        LevelManager levelManager = LevelManager.getInstance();
+        Level thisLevel = levelManager.getLevel( currentLevel );
+        return thisLevel.isComplete( board );
     }
     
     /**
@@ -193,25 +209,25 @@ public class GameState implements Serializable, Comparable<GameState> {
             
             // can we go left?
             if ( ( ( x - 1 ) >= 0 ) &&
-                    ( board[ y ][ x - 1 ] == Square.EMPTY ) ) {
+                    ( board[ y ][ x - 1 ] instanceof Square.Empty ) ) {
                 directions.add( Direction.LEFT );
             }
             
             // can we go right?
             if ( ( ( x + 1 ) < board[ 0 ].length ) &&
-                    ( board[ y ][ x + 1 ] == Square.EMPTY ) ) {
+                    ( board[ y ][ x + 1 ] instanceof Square.Empty ) ) {
                 directions.add( Direction.RIGHT );
             }
             
             // can we go up?
             if ( ( ( y - 1 ) >= 0 ) &&
-                    ( board[ y - 1 ][ x ] == Square.EMPTY ) ) {
+                    ( board[ y - 1 ][ x ] instanceof Square.Empty ) ) {
                 directions.add( Direction.UP );
             }
             
             // can we go down?
             if ( ( ( y + 1 ) < board.length ) &&
-                    ( board[ y + 1 ][ x ] == Square.EMPTY ) ) {
+                    ( board[ y + 1 ][ x ] instanceof Square.Empty ) ) {
                 directions.add( Direction.DOWN );
             }
         }
@@ -241,6 +257,19 @@ public class GameState implements Serializable, Comparable<GameState> {
 
     public void setHoverPoint( Point hoverPoint ) {
         this.hoverPoint = hoverPoint;
+    }
+    
+    public String getUser() {
+        return user;
+    }
+    
+    public String getLastPlayed() {
+        return DATE_FORMAT.format( lastPlayed.getTime() );
+    }
+    
+    @Override
+    public String toString() {
+        return user;
     }
     
     @Override

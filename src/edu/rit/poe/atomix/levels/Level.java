@@ -56,6 +56,8 @@ public class Level implements Serializable {
      */
     private static enum LevelFileSection {
         
+        LEVEL,
+        
         NAME,
         
         FORMULA,
@@ -85,6 +87,8 @@ public class Level implements Serializable {
         
     } // LevelFileSection
     
+    private int level;
+    
     private String name;
     
     private String formula;
@@ -99,6 +103,10 @@ public class Level implements Serializable {
      * Constructs a new <tt>Level</tt>.
      */
     private Level() {
+    }
+    
+    public int getLevel() {
+        return level;
     }
     
     public Set<Atom> getMolecules() {
@@ -143,7 +151,7 @@ public class Level implements Serializable {
                         Square boardSqr = board[ y + y0 ][ x + x0 ];
                         Square goalSqr = goal[ y0 ][ x0 ];
                         
-                        if ( ( goalSqr != Square.EMPTY ) &&
+                        if ( ( ! ( goalSqr instanceof Square.Empty ) ) &&
                                 ( boardSqr != goalSqr ) ) {
                             goalFound = false;
                         }
@@ -181,6 +189,18 @@ public class Level implements Serializable {
                     section = s;
                 } else {
                     switch ( section ) {
+                        case LEVEL: {
+                            // parse the level number
+                            try {
+                                int levelNum = Integer.parseInt( line.trim() );
+                                
+                                level.level = levelNum;
+                            } catch ( Exception e ) {
+                                Log.e( "LevelLoader",
+                                        "Error setting the level number." );
+                            }
+                        } break;
+                        
                         case NAME: {
                             level.name = line;
                         } break;
@@ -238,8 +258,7 @@ public class Level implements Serializable {
                                         connectors );
                                 
                                 ( level.molecules ).add( molecule );
-                                Log.d( "LevelLoader",
-                                        "Setting molecule " + id );
+                                
                                 atomMap.put( id, molecule );
                             } catch ( Exception e ) {
                                 //@todo handle this exception
@@ -297,10 +316,7 @@ public class Level implements Serializable {
                         } break;
                         
                         case GOAL: {
-                            Log.d( "LevelLoader", "Loading goal..." );
                             char[] row = line.toCharArray();
-                            Log.d( "LevelLoader", "Goal length: "
-                                    + row.length );
                             
                             goalY++;
                             for ( int x = 0; x < row.length; x++ ) {

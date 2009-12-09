@@ -91,10 +91,19 @@ public class AtomicActivity extends Activity {
         icicle.putSerializable( "game_state", GameState.getCurrent() );
         
         try {
+            Log.d( "DROID_ATOMIX", "Saving state: "
+                    + GameState.getCurrent().getUser() );
             GameDatabase.save( this );
         } catch ( IOException ex ) {
-            // ignore for now
+            Log.e( "DROID_ATOMIX", Log.getStackTraceString( ex ) );
         }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        
+        
     }
     
     @Override
