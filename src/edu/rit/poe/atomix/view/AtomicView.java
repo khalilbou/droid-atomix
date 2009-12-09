@@ -403,16 +403,6 @@ public class AtomicView extends View {
             } break;
         }
         
-        if ( dir == GameState.Direction.UP ) {
-            // nothing!
-        } else if ( dir == GameState.Direction.DOWN ) {
-            canvas.rotate( 180.0f );
-        } else if ( dir == GameState.Direction.RIGHT ) {
-            canvas.rotate( 90.0f );
-        } else if ( dir == GameState.Direction.LEFT ) {
-            canvas.rotate( -90.0f );
-        }
-        
         Paint paint = new Paint();
         paint.setColor( Color.GREEN );
         canvas.drawPath( path, paint );
@@ -431,8 +421,8 @@ public class AtomicView extends View {
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
         int action = event.getAction();
-        int i = ( int )( ( event.getX() + offsetX ) / 29.0f );
-        int j = ( int )( ( event.getY() + offsetY ) / 29.0f );
+        int i = ( int )( ( event.getX() - offsetX ) / 29.0f );
+        int j = ( int )( ( event.getY() - offsetY ) / 29.0f );
 
         // are we setting the hover pointer, or selecting a square
         if ( ( action == MotionEvent.ACTION_DOWN ) ||
