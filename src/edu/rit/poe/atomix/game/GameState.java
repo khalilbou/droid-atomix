@@ -30,7 +30,6 @@
 
 package edu.rit.poe.atomix.game;
 
-import android.util.Log;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
@@ -211,13 +210,9 @@ public class GameState implements Serializable, Comparable<GameState> {
         selected.setY( endY );
         board[ endY ][ endX ] = selected;
         
-        
-        Log.d( "GAME_STATE", "WIN?  " + getLevelObj().isComplete( board ) );
         // check for win conditions
         // -- consult the gold standard level object
-        LevelManager levelManager = LevelManager.getInstance();
-        Level thisLevel = levelManager.getLevel( currentLevel );
-        return thisLevel.isComplete( board );
+        return getLevelObj().isComplete( board );
     }
     
     /**
@@ -256,10 +251,6 @@ public class GameState implements Serializable, Comparable<GameState> {
                     ( board[ y + 1 ][ x ] instanceof Square.Empty ) ) {
                 directions.add( Direction.DOWN );
             }
-        }
-        Log.d( "GameState", "POSSIBLE DIRECTIONS:" );
-        for ( Direction dir : directions ) {
-            Log.d( "GameState", "  " + dir );
         }
         
         return directions;
