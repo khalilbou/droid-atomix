@@ -108,22 +108,46 @@ public class GameState implements Serializable, Comparable<GameState> {
         return current;
     }
     
+    public int getLevel() {
+        return currentLevel;
+    }
+    
     public void setLevel( int levelNumber ) throws IllegalArgumentException {
-        LevelManager levelManager = LevelManager.getInstance();
-        Level level = levelManager.getLevel( levelNumber );
         currentLevel = levelNumber;
         
         // make a copy of the level's board, for own own use and modification
-        board = level.copyBoard();
+        board = getLevelObj().copyBoard();
+    }
+    
+    /**
+     * Private helper method to access the <tt>Level</tt> object.
+     * 
+     * @return  the current level's object
+     */
+    private Level getLevelObj() {
+        LevelManager levelManager = LevelManager.getInstance();
+        return levelManager.getLevel( currentLevel );
     }
     
     /**
      * Returns the game's board.
      * 
-     * @return
+     * @return  the board's current state
      */
     public Square[][] getBoard() {
         return board;
+    }
+    
+    /**
+     * Returns the game's goal configuration.
+     * <p>
+     * This method is a pass-through to the backing <tt>Level</tt> object.
+     * 
+     * @return  the goal configuration
+     */
+    public Square[][] getGoal() {
+        // consult the gold standard level object
+        return getLevelObj().getGoal();
     }
     
     /**
@@ -187,6 +211,8 @@ public class GameState implements Serializable, Comparable<GameState> {
         selected.setY( endY );
         board[ endY ][ endX ] = selected;
         
+        
+        Log.d( "GAME_STATE", "WIN?  " + getLevelObj().isComplete( board ) );
         // check for win conditions
         // -- consult the gold standard level object
         LevelManager levelManager = LevelManager.getInstance();
