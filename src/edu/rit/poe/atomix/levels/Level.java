@@ -97,6 +97,7 @@ public class Level implements Serializable {
     
     private Square[][] goal;
     
+    @Deprecated
     private Set<Atom> molecules;
     
     /**
@@ -121,6 +122,16 @@ public class Level implements Serializable {
         }
         
         return copy;
+    }
+    
+    /**
+     * Returns this level's goal configuration.  The returned array should
+     * <b>not</b> be modified in any way.
+     * 
+     * @return  the goal configuration
+     */
+    public Square[][] getGoal() {
+        return goal;
     }
     
     /**
@@ -151,8 +162,22 @@ public class Level implements Serializable {
                         Square boardSqr = board[ y + y0 ][ x + x0 ];
                         Square goalSqr = goal[ y0 ][ x0 ];
                         
-                        if ( ( ! ( goalSqr instanceof Square.Empty ) ) &&
-                                ( boardSqr != goalSqr ) ) {
+                        // @todo fix this mess!!  now hiring: better algorithm
+                        // throwing ideas against a wall: Square.NULL isntead of
+                        // using null and use .equals() for all comparison?
+                        // could work........
+                        if ( ( boardSqr instanceof Atom ) &&
+                                ( goalSqr instanceof Atom ) ) {
+                            Atom boardAtom = ( Atom )boardSqr;
+                            Atom goalAtom = ( Atom )goalSqr;
+                            if ( boardAtom.getId() != goalAtom.getId() ) {
+                                goalFound = false;
+                            }
+                        } else if ( ( goalSqr instanceof Atom ) &&
+                                ( ! ( boardSqr instanceof Atom ) ) ) {
+                            goalFound = false;
+                        } else if ( ( boardSqr instanceof Atom ) &&
+                                ( ! ( goalSqr instanceof Atom ) ) ) {
                             goalFound = false;
                         }
                     }

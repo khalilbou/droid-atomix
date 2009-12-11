@@ -158,6 +158,8 @@ public class AtomicView extends View {
      */
     @Override
     public void onDraw( Canvas canvas ) {
+        GameState gameState = GameState.getCurrent();
+        
         int bgcolor = Color.GRAY;
         int fgcolor = Color.parseColor( "#F1E9D9" );
         int colorred = Color.parseColor( "#714444" );
@@ -214,7 +216,7 @@ public class AtomicView extends View {
         }
         
         // grab the board from the game state
-        Square[][] board = GameState.getCurrent().getBoard();
+        Square[][] board = gameState.getBoard();
         int boardWidth = board[ 0 ].length;
         int boardHeight = board.length;
         gameArea = new Rect( 0, 0, ( SQUARE_AREA * size ),
@@ -271,7 +273,7 @@ public class AtomicView extends View {
                         canvas.drawRect( sq, p );
                         
                         // draw the atom to the board
-                        drawAtom( canvas, atom, r );
+                        drawAtom( canvas, atom, r, Color.BLACK );
                     } else {
                         p.setColor( bgcolor );
                         canvas.drawRect( sq, p );
@@ -282,7 +284,7 @@ public class AtomicView extends View {
                 
                 // does this square as the hover point?
                 
-                Point hoverPoint = GameState.getCurrent().getHoverPoint();
+                Point hoverPoint = gameState.getHoverPoint();
                 if ( ( hoverPoint != null ) && hoverPoint.equals( i, j ) ) {
                     int hoverColor = Color.argb( 100, 255, 0, 0 );
                     p.setColor( hoverColor );
@@ -325,14 +327,53 @@ public class AtomicView extends View {
         p.setColor( Color.BLACK );
         canvas.drawRect( 1, 0, solutionPanelWidth, solutionPanelHeight, p );
         
-        // draw the solution
+        // === draw the solution ===
         
-        //@todo algorithm to draw the solution
         // if we can support normal-sized squares, do so, otherwise scale
+        Square[][] goal = gameState.getGoal();
+        int goalSize = size;
+        int xNeeded = goal[ 0 ].length * size;
+        int yNeeded = goal.length * size;
         
+        // scale the goal size, if necessary
+        if ( xNeeded > solutionPanelWidth ) {
+            goalSize /= ( xNeeded / solutionPanelWidth );
+        }
+        if ( yNeeded > solutionPanelHeight ) {
+            goalSize /= ( yNeeded / solutionPanelHeight );
+        }
+        
+        // draw the goal
+        // @todo handle centering the goal if it's smaller than the space
+        //canvas.translate( SOMETHING, SOMETHING );
+        
+        // move into first position
+        canvas.translate( ( goalSize / 2 ), ( goalSize / 2 ) );
+        
+        for ( int i = 0; i < goal.length; i++ ) {
+            canvas.save();
+            for ( int j = 0; j < goal[ 0 ].length; j++ ) {
+                if ( goal[ i ][ j ] instanceof Atom ) {
+                    Atom atom = ( Atom )goal[ i ][ j ];
+
+                    // draw the atom to the board
+                    drawAtom( canvas, atom, ( goalSize / 2 ), Color.WHITE );
+                } else {
+                    // @todo anything here?
+                }
+                
+                // move right one square
+                canvas.translate( goalSize, 0 );
+            }
+            canvas.restore();
+            
+            // move down one square
+            canvas.translate( 0, goalSize );
+        }
     }
     
-    private static void drawAtom( Canvas canvas, Atom atom, int r ) {
+    private static void drawAtom( Canvas canvas, Atom atom, int r,
+            int connColor ) {
         Paint p = new Paint();
         
         // draw the connectors first
@@ -351,18 +392,15 @@ public class AtomicView extends View {
             }
             
             if ( c.getBond() == Connector.Bond.SINGLE ) {
-                p.setColor( Color.BLACK );
+                p.setColor( connColor );
                 canvas.drawLine( 1, 0, 1, -r, p );
-                p.setColor( Color.BLACK );
                 canvas.drawLine( 0, 0, 0, -r, p );
-                p.setColor( Color.BLACK );
                 canvas.drawLine( -1, 0, -1, -r, p );
             } else if ( c.getBond() == Connector.Bond.DOUBLE ) {
-                p.setColor( Color.BLACK );
+                p.setColor( connColor );
                 canvas.drawLine( 3, 0, 3, -r, p );
                 canvas.drawLine( 2, 0, 2, -r, p );
                 
-                p.setColor( Color.BLACK );
                 canvas.drawLine( -2, 0, -2, -r, p );
                 canvas.drawLine( -3, 0, -3, -r, p );
             }
@@ -380,8 +418,7 @@ public class AtomicView extends View {
         // draw the element letter
         p.setTypeface( Typeface.DEFAULT_BOLD );
         Rect bounds = new Rect();
-        p.getTextBounds( new char[]{ atom.getElement() }, 0, 1,
-                bounds );
+        p.getTextBounds( new char[]{ atom.getElement() }, 0, 1, bounds );
         int tx = 0 - ( ( bounds.width() / 2 ) + 1 );
         int ty = 0 + ( bounds.height() / 2 );
         p.setColor( Color.WHITE );
@@ -585,7 +622,6 @@ public class AtomicView extends View {
             } else if ( board[ j ][ i ] instanceof Square ) {
                 
             }
-            
             
             if ( board[ j ][ i ] instanceof Atom ) {
                 try {
