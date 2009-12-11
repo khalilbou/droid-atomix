@@ -273,7 +273,7 @@ public class AtomicView extends View {
                         canvas.drawRect( sq, p );
                         
                         // draw the atom to the board
-                        drawAtom( canvas, atom, r, Color.BLACK );
+                        drawAtom( canvas, atom, r, false );
                     } else {
                         p.setColor( bgcolor );
                         canvas.drawRect( sq, p );
@@ -355,9 +355,9 @@ public class AtomicView extends View {
             for ( int j = 0; j < goal[ 0 ].length; j++ ) {
                 if ( goal[ i ][ j ] instanceof Atom ) {
                     Atom atom = ( Atom )goal[ i ][ j ];
-
+                    
                     // draw the atom to the board
-                    drawAtom( canvas, atom, ( goalSize / 2 ), Color.WHITE );
+                    drawAtom( canvas, atom, ( goalSize / 2 ), true );
                 } else {
                     // @todo anything here?
                 }
@@ -373,7 +373,7 @@ public class AtomicView extends View {
     }
     
     private static void drawAtom( Canvas canvas, Atom atom, int r,
-            int connColor ) {
+            boolean goal ) {
         Paint p = new Paint();
         
         // draw the connectors first
@@ -391,18 +391,25 @@ public class AtomicView extends View {
                 } break;
             }
             
+            int len = r;
+            int connColor = Color.BLACK;
+            if ( goal ) {
+                connColor = Color.WHITE;
+                len = ( r + 1 );
+            }
+            
             if ( c.getBond() == Connector.Bond.SINGLE ) {
                 p.setColor( connColor );
-                canvas.drawLine( 1, 0, 1, -r, p );
-                canvas.drawLine( 0, 0, 0, -r, p );
-                canvas.drawLine( -1, 0, -1, -r, p );
+                canvas.drawLine( 1, 0, 1, -len, p );
+                canvas.drawLine( 0, 0, 0, -len, p );
+                canvas.drawLine( -1, 0, -1, -len, p );
             } else if ( c.getBond() == Connector.Bond.DOUBLE ) {
                 p.setColor( connColor );
-                canvas.drawLine( 3, 0, 3, -r, p );
-                canvas.drawLine( 2, 0, 2, -r, p );
+                canvas.drawLine( 3, 0, 3, -len, p );
+                canvas.drawLine( 2, 0, 2, -len, p );
                 
-                canvas.drawLine( -2, 0, -2, -r, p );
-                canvas.drawLine( -3, 0, -3, -r, p );
+                canvas.drawLine( -2, 0, -2, -len, p );
+                canvas.drawLine( -3, 0, -3, -len, p );
             }
             
             canvas.restore();
@@ -702,7 +709,6 @@ public class AtomicView extends View {
             }
             arrowSquares.put( new Point( x, y ), dir );
         }
-        Log.d( "DROID_ATOMIX", "Arrow Squares Set: " + arrowSquares.size() );
     }
     
 } // AtomicView
