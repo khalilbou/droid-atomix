@@ -33,6 +33,8 @@ package edu.rit.poe.atomix;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Window;
@@ -47,7 +49,19 @@ import java.io.IOException;
  */
 public class AtomicActivity extends Activity {
     
+    public static final int REDRAW_VIEW = 0x1;
+    
     private AtomicView view;
+    
+    private Handler viewHandler = new Handler() {
+        @Override 
+        public void handleMessage( Message msg ) {
+            if ( msg.what == REDRAW_VIEW ) {
+                view.invalidate();
+            }
+            super.handleMessage( msg );
+        }
+    };
     
     /**
      * Called when the activity is first created.
@@ -80,6 +94,13 @@ public class AtomicActivity extends Activity {
     public boolean onTrackballEvent( MotionEvent event ) {
         // pass-through to AtomicView
         return view.onTrackballEvent( event );
+    }
+    
+    public void redrawView() {
+        Log.d( "ATOMIX_ACTIVITY", "Redraw view" );
+        Message msg = new Message();
+        msg.what = REDRAW_VIEW;
+        viewHandler.sendMessage( msg );
     }
     
     @Override
