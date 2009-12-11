@@ -31,6 +31,7 @@
 package edu.rit.poe.atomix.game;
 
 import android.content.Context;
+import android.util.Log;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -100,6 +101,8 @@ public final class GameDatabase {
             
             // save the data object to the file
             oos.writeObject( data );
+            
+            Log.d( "GameDatabase", "Saved game stated." );
             
         } catch ( Exception e ) {
             // if there is any problem SAVING the new game, fatally fail
