@@ -111,6 +111,24 @@ public class GameState implements Serializable, Comparable<GameState> {
         return currentLevel;
     }
     
+    /**
+     * Returns the formula for the current level's goal.
+     * 
+     * @return  the goal molecule's formula
+     */
+    public String getFormula() {
+        return getLevelObj().getFormula();
+    }
+    
+    /**
+     * Returns the name of the current level's molecule.
+     * 
+     * @return  the molecule name for the current level
+     */
+    public String getMoleculeName() {
+        return getLevelObj().getName();
+    }
+    
     public void setLevel( int levelNumber ) throws IllegalArgumentException {
         currentLevel = levelNumber;
         
