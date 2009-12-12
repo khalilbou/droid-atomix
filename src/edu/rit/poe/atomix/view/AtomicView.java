@@ -35,7 +35,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -413,6 +412,8 @@ public class AtomicView extends View {
         // draw the connectors first
         for ( Connector c : atom.getConnectors() ) {
             canvas.save();
+            
+            boolean cardinal = true;
             switch ( c.getDirection() ) {
                 case DOWN: {
                     canvas.rotate( 180.0f );
@@ -423,6 +424,22 @@ public class AtomicView extends View {
                 case LEFT: {
                     canvas.rotate( -90.0f );
                 } break;
+                case UPPER_RIGHT: {
+                    cardinal = false;
+                } break;
+                case UPPER_LEFT: {
+                    canvas.rotate( -90.0f );
+                    cardinal = false;
+                } break;
+                case LOWER_RIGHT: {
+                    canvas.rotate( 90.0f );
+                    cardinal = false;
+                } break;
+                case LOWER_LEFT: {
+                    canvas.rotate( 180.0f );
+                    cardinal = false;
+                } break;
+                
             }
             
             int len = r;
@@ -431,19 +448,31 @@ public class AtomicView extends View {
                 connColor = Color.WHITE;
                 len = ( r + 1 );
             }
+            p.setColor( connColor );
             
             if ( c.getBond() == Connector.Bond.SINGLE ) {
-                p.setColor( connColor );
-                canvas.drawLine( 1, 0, 1, -len, p );
-                canvas.drawLine( 0, 0, 0, -len, p );
-                canvas.drawLine( -1, 0, -1, -len, p );
+                if ( cardinal ) {
+                    canvas.drawLine( 1, 0, 1, -len, p );
+                    canvas.drawLine( 0, 0, 0, -len, p );
+                    canvas.drawLine( -1, 0, -1, -len, p );
+                } else {
+                    canvas.drawLine( 1, 0, len, -( len - 1 ), p );
+                    canvas.drawLine( 0, 0, len, -len, p );
+                    canvas.drawLine( -1, 0, ( len - 1 ), -len, p );
+                }
             } else if ( c.getBond() == Connector.Bond.DOUBLE ) {
-                p.setColor( connColor );
-                canvas.drawLine( 3, 0, 3, -len, p );
-                canvas.drawLine( 2, 0, 2, -len, p );
-                
-                canvas.drawLine( -2, 0, -2, -len, p );
-                canvas.drawLine( -3, 0, -3, -len, p );
+                if ( cardinal ) {
+                    canvas.drawLine( 3, 0, 3, -len, p );
+                    canvas.drawLine( 2, 0, 2, -len, p );
+                    
+                    canvas.drawLine( -2, 0, -2, -len, p );
+                    canvas.drawLine( -3, 0, -3, -len, p );
+                } else {
+                    // no such thing as a double-bond diagonal connector
+                    canvas.drawLine( 1, 0, len, -( len - 1 ), p );
+                    canvas.drawLine( 0, 0, len, -len, p );
+                    canvas.drawLine( -1, 0, ( len - 1 ), -len, p );
+                }
             }
             
             canvas.restore();
