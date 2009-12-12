@@ -38,6 +38,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Window;
+import android.widget.Toast;
 import edu.rit.poe.atomix.game.GameDatabase;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.view.AtomicView;
@@ -51,6 +52,8 @@ public class AtomicActivity extends Activity {
     
     public static final int REDRAW_VIEW = 0x1;
     
+    public static final int WIN_LEVEL = 0x2;
+    
     private AtomicView view;
     
     private Handler viewHandler = new Handler() {
@@ -58,6 +61,12 @@ public class AtomicActivity extends Activity {
         public void handleMessage( Message msg ) {
             if ( msg.what == REDRAW_VIEW ) {
                 view.invalidate();
+            } else if ( msg.what == WIN_LEVEL ) {
+                
+                Toast toast = Toast.makeText( AtomicActivity.this, "You win!",
+                        Toast.LENGTH_LONG );
+                toast.show();
+                // @todo handle win condition betters!
             }
             super.handleMessage( msg );
         }
@@ -100,6 +109,12 @@ public class AtomicActivity extends Activity {
         Log.d( "ATOMIX_ACTIVITY", "Redraw view" );
         Message msg = new Message();
         msg.what = REDRAW_VIEW;
+        viewHandler.sendMessage( msg );
+    }
+    
+    public void winLevel() {
+        Message msg = new Message();
+        msg.what = WIN_LEVEL;
         viewHandler.sendMessage( msg );
     }
     
