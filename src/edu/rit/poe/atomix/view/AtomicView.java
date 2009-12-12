@@ -27,6 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package edu.rit.poe.atomix.view;
 
 import android.graphics.Canvas;
@@ -39,7 +40,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,6 +76,9 @@ public class AtomicView extends View {
     private int offsetX;
     
     private int offsetY;
+    
+    // if this ISN'T null, then the animation is running
+    private SlideAnimation animation;
     
     /**
      * An enumerated type to represent screen sizes of devices such as the HTC
@@ -686,17 +689,10 @@ public class AtomicView extends View {
                     int newX = selected.getX();
                     int newY = selected.getY();
                     
-                    animation = new SlideAnimation( oldX, oldY, newX, newY );
+                    animation =
+                            new SlideAnimation( oldX, oldY, newX, newY, win );
                     animation.start();
                     
-                    if ( win ) {
-                        Log.d( "Atomix:GameState", "You win!" );
-                        // we won the level!
-                        Toast toast = Toast.makeText( atomix, "You win!",
-                                Toast.LENGTH_LONG );
-                        toast.show();
-                        // @todo handle win condition betters!
-                    }
                 } catch ( GameException e ) {
                     // no currently selected atom.  this shouldn't happen. evar.
                     assert false;
@@ -750,13 +746,19 @@ public class AtomicView extends View {
         }
     }
     
-    // if this ISN'T null, then the animation is running
-    private SlideAnimation animation;
-    
+    /**
+     * A thread to animate the movement of an atom on the board.
+     * 
+     * @author  Peter O. Erickson
+     * 
+     * @version $Id$
+     */
     private class SlideAnimation extends Thread {
         
+        /** The number of animation frames per square moved. */
         public static final int FRAMES_PER_SQR = 2;
         
+        /** The number of total frames of this animation. */
         private final int frames;
         
         /** The current X-coordinate position in units of board squares. */
@@ -765,31 +767,47 @@ public class AtomicView extends View {
         /** The current Y-coordinate position in units of board squares. */
         private float currentY;
         
+        /** The number of squares to offset every frame on the X axis. */
         private final float offsetX;
         
+        /** The number of squares to offset every frame on the Y axis. */
         private final float offsetY;
         
-        private SlideAnimation( int startX, int startY, int endX, int endY ) {
+        /** Whether this move will cause a win at the end of the animation. */
+        private boolean win;
+        
+        /**
+         * Constructs a new <tt>SlideAnimation</tt> with the given variables.
+         * 
+         * @param   startX  the initial X-coordinate of the selected atom
+         * @param   startY  the initial Y-coordinate of the selected atom
+         * @param   endX    the ending X-coordinate of the selected atom
+         * @param   endY    the ending Y-coordinate of the selected atom
+         * @param   win     whether this move causes a win
+         */
+        private SlideAnimation( int startX, int startY, int endX, int endY,
+                boolean win ) {
+            this.win = win;
             currentX = startX;
             currentY = startY;
-            //end = new Point( endX, endY );
             
             int dX = ( endX - startX );
             int dY = ( endY - startY );
             
             // one of these are 0 (has to be), so take the easy answer!
             frames = Math.abs( ( dX + dY ) * FRAMES_PER_SQR );
-            Log.d( "ANIMATION", "Frames: " + frames );
             
             // find the amount by which to offset each frame
-            
             offsetX = ( float )dX / ( float )frames;
             offsetY = ( float )dY / ( float )frames;
         }
         
+        /**
+         * Runs the animation to slide the selected atom from its initial
+         * position to the ending position.
+         */
         @Override
         public void run() {
-            
             // loop over all frames
             for ( int frame = 0; frame < frames; frame++ ) {
                 Log.d( "ANIMATION", "DRAW" );
@@ -803,7 +821,7 @@ public class AtomicView extends View {
                 try {
                     Thread.sleep( 50 );
                 } catch ( InterruptedException e ) {
-                    // ignore for now
+                    Log.e( "SlideAnimation", "Animation thread interrupted." );
                 }
             }
             
@@ -812,6 +830,13 @@ public class AtomicView extends View {
             
             // last redraw in position
             atomix.redrawView();
+            
+            // animation is over -- handle winning!
+            if ( win ) {
+                Log.d( "Atomix:GameState", "You win!" );
+                // we won the level!
+                atomix.winLevel();
+            }
         }
         
     } // SlideAnimation
