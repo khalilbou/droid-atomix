@@ -27,6 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package edu.rit.poe.atomix.view;
 
 import android.graphics.Canvas;
@@ -39,7 +40,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,6 +76,9 @@ public class AtomicView extends View {
     private int offsetX;
     
     private int offsetY;
+    
+    // if this ISN'T null, then the animation is running
+    private SlideAnimation animation;
     
     /**
      * An enumerated type to represent screen sizes of devices such as the HTC
@@ -214,6 +217,8 @@ public class AtomicView extends View {
             offsetX = 1;
             offsetY = 2;
         }
+        // calculate the atom radius
+        int r = ( int )Math.floor( ( double )size / 2.0d );
         
         // grab the board from the game state
         Square[][] board = gameState.getBoard();
@@ -239,7 +244,6 @@ public class AtomicView extends View {
             for ( int j = 0; j < board.length; j++ ) {
                 int left = i * size;
                 int top = j * size;
-                int r = ( int )Math.floor( ( double )size / 2.0d );
                 
                 // translate to this square area
                 canvas.save();
@@ -260,7 +264,10 @@ public class AtomicView extends View {
                             p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
                             
-                            drawArrow( canvas, dir, r );
+                            // don't draw arrows until animation has finished
+                            if ( animation == null ) {
+                                drawArrow( canvas, dir, r );
+                            }
                         } else {
                             p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
@@ -272,8 +279,12 @@ public class AtomicView extends View {
                         p.setColor( fgcolor );
                         canvas.drawRect( sq, p );
                         
-                        // draw the atom to the board
-                        drawAtom( canvas, atom, r, false );
+                        // don't draw the selected atom during an animation
+                        if ( ( animation == null ) ||
+                                ( gameState.getSelected() != atom ) ) {
+                            // draw the atom to the board
+                            drawAtom( canvas, atom, r, false );
+                        }
                     } else {
                         p.setColor( bgcolor );
                         canvas.drawRect( sq, p );
@@ -283,9 +294,10 @@ public class AtomicView extends View {
                 }
                 
                 // does this square as the hover point?
-                
+                // also!  don't draw the hover point if the animation is running
                 Point hoverPoint = gameState.getHoverPoint();
-                if ( ( hoverPoint != null ) && hoverPoint.equals( i, j ) ) {
+                if ( ( hoverPoint != null ) && hoverPoint.equals( i, j ) &&
+                        ( animation == null ) ) {
                     int hoverColor = Color.argb( 100, 255, 0, 0 );
                     p.setColor( hoverColor );
                     
@@ -317,10 +329,30 @@ public class AtomicView extends View {
             }
         }
         
+        // if we're animating, then draw the sliding atom
+        if ( animation != null ) {
+            Atom atom = gameState.getSelected();
+            canvas.save();
+            
+            // offset to the right location
+            int x = ( int )( animation.currentX * size );
+            int y = ( int )( animation.currentY * size );
+            canvas.translate( x, y );
+            
+            // draw the atom at the offset located
+            canvas.save();
+            canvas.translate( r, r );
+            drawAtom( canvas, atom, r, false );
+            canvas.restore();
+            
+            canvas.restore();
+        }
+        
+        canvas.restore();
+        
         int t = SQUARE_AREA * size;
         int solutionPanelWidth = super.getWidth() - 2;
         int solutionPanelHeight = super.getHeight() - t - 2;
-        canvas.restore();
         canvas.translate( 0, t );
         
         // set black background for solution area
@@ -493,7 +525,6 @@ public class AtomicView extends View {
         int ty = 0 + ( bounds.height() / 2 );
         p.setColor( Color.WHITE );
         canvas.drawText( Character.toString( atom.getElement() ), tx, ty, p );
-        
     }
     
     /**
@@ -682,10 +713,13 @@ public class AtomicView extends View {
     }
 
     private void touch( int i, int j ) {
+        GameState state = GameState.getCurrent();
+        Square[][] board = state.getBoard();
+        Atom selected = state.getSelected();
         boolean ItsGoingToBeOkay = true;
         GameState.Direction d = null;
+        
         try {
-            Square[][] board = GameState.getCurrent().getBoard();
             
             if ( board[ j ][ i ] instanceof Atom ) {
                 
@@ -695,7 +729,7 @@ public class AtomicView extends View {
             
             if ( board[ j ][ i ] instanceof Atom ) {
                 try {
-                    GameState.getCurrent().select( i, j );
+                    state.select( i, j );
                 } catch ( GameException e ) {
                     // this shouldn't ever happen, we checked beforehand
                     assert false;
@@ -709,34 +743,35 @@ public class AtomicView extends View {
                 Log.d( "Atomix:TouchEvent", "Touched an arrow: " + d );
                 
                 try {
-                    if ( GameState.getCurrent().moveSelected( d ) ) {
-                        Log.d( "Atomix:GameState", "You win!" );
-                        // we won the level!
-                        Toast toast = Toast.makeText( atomix, "You win!",
-                                Toast.LENGTH_LONG );
-                        toast.show();
-                        //@todo handle this betters!
-                    }
+                    // @todo animation work starts here
+                    int oldX = selected.getX();
+                    int oldY = selected.getY();
+                    
+                    boolean win = state.moveSelected( d );
+                    
+                    int newX = selected.getX();
+                    int newY = selected.getY();
+                    
+                    animation =
+                            new SlideAnimation( oldX, oldY, newX, newY, win );
+                    animation.start();
+                    
                 } catch ( GameException e ) {
                     // no currently selected atom.  this shouldn't happen. evar.
                     assert false;
                 }
                 
                 // move the hover point to the new location of the Atom
-                Atom selected = GameState.getCurrent().getSelected();
-                
-                Point hoverPoint = GameState.getCurrent().getHoverPoint();
+                Point hoverPoint = state.getHoverPoint();
                 hoverPoint.set( selected.getX(), selected.getY() );
 
                 // set the squares were arrows should be drawn
                 this.setArrowSquares();
-                
             }
             
             //hoverPoint = null;
             
-            // if only forgetting were
-            // this easy for me.
+            // if only forgetting were this easy for me.
             assert ItsGoingToBeOkay;
             
             // force a redraw
@@ -773,5 +808,100 @@ public class AtomicView extends View {
             arrowSquares.put( new Point( x, y ), dir );
         }
     }
+    
+    /**
+     * A thread to animate the movement of an atom on the board.
+     * 
+     * @author  Peter O. Erickson
+     * 
+     * @version $Id$
+     */
+    private class SlideAnimation extends Thread {
+        
+        /** The number of animation frames per square moved. */
+        public static final int FRAMES_PER_SQR = 2;
+        
+        /** The number of total frames of this animation. */
+        private final int frames;
+        
+        /** The current X-coordinate position in units of board squares. */
+        private float currentX;
+        
+        /** The current Y-coordinate position in units of board squares. */
+        private float currentY;
+        
+        /** The number of squares to offset every frame on the X axis. */
+        private final float offsetX;
+        
+        /** The number of squares to offset every frame on the Y axis. */
+        private final float offsetY;
+        
+        /** Whether this move will cause a win at the end of the animation. */
+        private boolean win;
+        
+        /**
+         * Constructs a new <tt>SlideAnimation</tt> with the given variables.
+         * 
+         * @param   startX  the initial X-coordinate of the selected atom
+         * @param   startY  the initial Y-coordinate of the selected atom
+         * @param   endX    the ending X-coordinate of the selected atom
+         * @param   endY    the ending Y-coordinate of the selected atom
+         * @param   win     whether this move causes a win
+         */
+        private SlideAnimation( int startX, int startY, int endX, int endY,
+                boolean win ) {
+            this.win = win;
+            currentX = startX;
+            currentY = startY;
+            
+            int dX = ( endX - startX );
+            int dY = ( endY - startY );
+            
+            // one of these are 0 (has to be), so take the easy answer!
+            frames = Math.abs( ( dX + dY ) * FRAMES_PER_SQR );
+            
+            // find the amount by which to offset each frame
+            offsetX = ( float )dX / ( float )frames;
+            offsetY = ( float )dY / ( float )frames;
+        }
+        
+        /**
+         * Runs the animation to slide the selected atom from its initial
+         * position to the ending position.
+         */
+        @Override
+        public void run() {
+            // loop over all frames
+            for ( int frame = 0; frame < frames; frame++ ) {
+                Log.d( "ANIMATION", "DRAW" );
+                currentX += offsetX;
+                currentY += offsetY;
+                
+                // draw the position of the atom
+                atomix.redrawView();
+                
+                // sleep until the next frame
+                try {
+                    Thread.sleep( 50 );
+                } catch ( InterruptedException e ) {
+                    Log.e( "SlideAnimation", "Animation thread interrupted." );
+                }
+            }
+            
+            // at the end of the run, let this object commit suicide
+            animation = null;
+            
+            // last redraw in position
+            atomix.redrawView();
+            
+            // animation is over -- handle winning!
+            if ( win ) {
+                Log.d( "Atomix:GameState", "You win!" );
+                // we won the level!
+                atomix.winLevel();
+            }
+        }
+        
+    } // SlideAnimation
     
 } // AtomicView
