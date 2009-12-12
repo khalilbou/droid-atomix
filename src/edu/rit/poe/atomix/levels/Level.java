@@ -114,6 +114,14 @@ public class Level implements Serializable {
         return molecules;
     }
     
+    public String getName() {
+        return name;
+    }
+    
+    public String getFormula() {
+        return formula;
+    }
+    
     public Square[][] copyBoard() {
         // make a full copy of the baord
         Square[][] copy = new Square[ board.length ][ board[ 0 ].length ];

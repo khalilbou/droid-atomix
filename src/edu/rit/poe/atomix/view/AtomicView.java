@@ -35,6 +35,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -334,18 +335,51 @@ public class AtomicView extends View {
         int goalSize = size;
         int xNeeded = goal[ 0 ].length * size;
         int yNeeded = goal.length * size;
+        int goalOffsetX = 0;
+        int goalOffsetY = 0;
         
         // scale the goal size, if necessary
         if ( xNeeded > solutionPanelWidth ) {
             goalSize /= ( xNeeded / solutionPanelWidth );
+        } else {
+            goalOffsetX = ( solutionPanelWidth - xNeeded ) / 2;
         }
         if ( yNeeded > solutionPanelHeight ) {
             goalSize /= ( yNeeded / solutionPanelHeight );
+        } else {
+            goalOffsetY = ( solutionPanelHeight - yNeeded ) / 2;
+        }
+        
+        // draw the level and the molecule
+        p.setTypeface( Typeface.DEFAULT_BOLD );
+        Rect bounds = new Rect();
+        p.setColor( Color.WHITE );
+        String str = "Level " + gameState.getLevel() + " - "
+                + gameState.getMoleculeName();
+        p.getTextBounds( str, 0, 1, bounds );
+        int tx = 5;
+        int ty = bounds.height() + 5;
+        canvas.drawText( str, tx, ty, p );
+        
+        String formula = gameState.getFormula();
+        int mx = solutionPanelWidth - 5;
+        for ( int i = ( formula.length() - 1 ); i >= 0; i-- ) {
+            char c = formula.charAt( i );
+            
+            p.getTextBounds( new char[]{ c }, 0, 1, bounds );
+            mx -= bounds.width();
+            
+            int y = ty;
+            if ( ( i != 0 ) && ( formula.charAt( i - 1 ) == '_' ) ) {
+                y += 5;
+                i--; // increment over the _ element
+            }
+            canvas.drawText( Character.toString( c ), mx, y, p );
+            mx -= 3;
         }
         
         // draw the goal
-        // @todo handle centering the goal if it's smaller than the space
-        //canvas.translate( SOMETHING, SOMETHING );
+        canvas.translate( goalOffsetX, goalOffsetY );
         
         // move into first position
         canvas.translate( ( goalSize / 2 ), ( goalSize / 2 ) );
