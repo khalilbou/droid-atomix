@@ -1,0 +1,21 @@
+POSSIBLE DB SCHEMAS:
+
+
+USER
+id            - bigint
+username      - varchar
+current_level - integer
+saved_game_id - bigint
+
+SCORE
+id       - bigint
+user_id  - bigint
+level    - integer
+score    - varchar(64)
+
+SAVED_GAME
+id      - bigint
+game    - varchar(256)
+
+
+
