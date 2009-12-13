@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : continue_dialog.xml
+    Created on : November 23rd, 2009, 11:08 PM
+    Author     : poe9514
+    Description:
+        Purpose of the document follows.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/continue_dialog"
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:padding="10dip">
+                  
+    <ListView android:id="@+id/saved_games_list" 
+              android:layout_width="fill_parent" 
+              android:layout_height="fill_parent"/>
+    
+</LinearLayout>

@@ -1,0 +1,25 @@
+burndown list
+=============
+
+-- MOVE the hover point to the GameState, for onSaveInstanceState()/onRestore...() usage (or decide to save it separately)
+
+- enlarge game area to 11x11 (max board size is 13x13 -- use the sides as walls)
+
+- 6x5 area for goal -- smaller than board (clickable, launch in dialog to view at full size)
+
+- main menu
+    DROID ATOMIX
+    
+    -[CONTINUE] -
+    - NEW  GAME -
+    -  OPTIONS  -
+    -   HELP    -
+    -   ABOUT   -
+    -   EXIT    -
+
+
+- splash screen? Android bot + atoms?
+
+- saved game state (users+games+scores)
+
+- level files
