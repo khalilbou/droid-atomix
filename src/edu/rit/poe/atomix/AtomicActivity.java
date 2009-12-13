@@ -116,6 +116,15 @@ public class AtomicActivity extends Activity {
         Message msg = new Message();
         msg.what = WIN_LEVEL;
         viewHandler.sendMessage( msg );
+        
+        
+        // for NOW, switch the game state
+        GameState gameState = GameState.getCurrent();
+        
+        int nextLevel = gameState.getLevel() + 1;
+        gameState.setLevel( nextLevel );
+        
+        redrawView();
     }
     
     @Override
