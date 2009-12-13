@@ -97,9 +97,6 @@ public class Level implements Serializable {
     
     private Square[][] goal;
     
-    @Deprecated
-    private Set<Atom> molecules;
-    
     /**
      * Constructs a new <tt>Level</tt>.
      */
@@ -108,10 +105,6 @@ public class Level implements Serializable {
     
     public int getLevel() {
         return level;
-    }
-    
-    public Set<Atom> getMolecules() {
-        return molecules;
     }
     
     public String getName() {
@@ -199,8 +192,6 @@ public class Level implements Serializable {
     public static final Level loadLevel( InputStream is )
             throws FileNotFoundException {
         Level level = new Level();
-        level.molecules = new HashSet<Atom>();
-        
         BufferedReader in = new BufferedReader( new InputStreamReader( is ) );
         
         String line = null;
@@ -290,8 +281,6 @@ public class Level implements Serializable {
                                 Atom molecule = new Atom( id, color, element,
                                         connectors );
                                 
-                                ( level.molecules ).add( molecule );
-                                
                                 atomMap.put( id, molecule );
                             } catch ( Exception e ) {
                                 //@todo handle this exception
@@ -346,10 +335,13 @@ public class Level implements Serializable {
                             char[] row = line.toCharArray();
                             
                             goalY++;
-                            for ( int x = 0; x < row.length; x++ ) {
+                            for ( int x = 0; x < ( level.goal[ goalY ].length );
+                                    x++ ) {
                                 Square sqr = null;
-                                
-                                if ( Character.isDigit( row[ x ] ) ) {
+                                if ( ( x >= row.length ) ||
+                                        ( row[ x ] == ' ' ) ) {
+                                    sqr = Square.EMPTY;
+                                } else if ( Character.isDigit( row[ x ] ) ) {
                                     short id = -1;
                                     try {
                                         id = Short.parseShort( "" + row[ x ] );
@@ -358,8 +350,6 @@ public class Level implements Serializable {
                                         Log.e( "LevelLoader",
                                                 Log.getStackTraceString( e ) );
                                     }
-                                } else if ( row[ x ] == ' ' ) {
-                                    sqr = Square.EMPTY;
                                 }
                                 
                                 level.goal[ goalY ][ x ] = sqr;
