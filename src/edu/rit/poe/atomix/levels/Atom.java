@@ -54,12 +54,6 @@ public final class Atom extends Square {
     /** The connectors associated with this atom. */
     private Set<Connector> connectors;
     
-    /** The X coordinate of this atom. */
-    private int x;
-    
-    /** The Y coordinate of this atom. */
-    private int y;
-    
     /**
      * Constructs a new <tt>Atom</tt>.
      * 
@@ -90,22 +84,6 @@ public final class Atom extends Square {
     
     public Set<Connector> getConnectors() {
         return connectors;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX( int x ) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY( int y ) {
-        this.y = y;
     }
     
     /**

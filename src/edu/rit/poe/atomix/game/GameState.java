@@ -77,7 +77,7 @@ public class GameState implements Serializable, Comparable<GameState> {
     
     private Square[][] board;
     
-    private Atom selected;
+    private Point selected;
     
     /** The point that is currently being hovered over, or <tt>null</tt>. */
     private Point hoverPoint;
@@ -182,8 +182,8 @@ public class GameState implements Serializable, Comparable<GameState> {
         if ( selected == null ) {
             throw new GameException( "No currently selected atom." );
         }
-        int endX = selected.getX();
-        int endY = selected.getY();
+        int endX = selected.x;
+        int endY = selected.y;
         
         // perform an iterative search for the furthest distance the atom can
         // travel in the given direction
@@ -220,13 +220,10 @@ public class GameState implements Serializable, Comparable<GameState> {
             }
         }
         
-        // clear the original position
-        board[ selected.getY() ][ selected.getX() ] = Square.EMPTY;
-        
-        // enter the final position
-        selected.setX( endX );
-        selected.setY( endY );
-        board[ endY ][ endX ] = selected;
+        //move the atom
+        board[ endY ][ endX ] = board[ selected.y ][ selected.x ];
+        board[ selected.y ][ selected.x ] = Square.EMPTY;
+        selected.set( endX, endY );
         
         // check for win conditions
         // -- consult the gold standard level object
@@ -243,8 +240,8 @@ public class GameState implements Serializable, Comparable<GameState> {
         EnumSet<Direction> directions = EnumSet.noneOf( Direction.class );
         
         if ( selected != null ) {
-            int x = selected.getX();
-            int y = selected.getY();
+            int x = selected.x;
+            int y = selected.y;
             
             // can we go left?
             if ( ( ( x - 1 ) >= 0 ) &&
@@ -275,14 +272,14 @@ public class GameState implements Serializable, Comparable<GameState> {
     }
     
     public void select( int x, int y ) throws GameException {
-        try {
-            selected = ( Atom )board[ y ][ x ];
-        } catch ( ClassCastException e ) {
+        if ( board[ y ][ x ] instanceof Atom ) {
+            selected = new Point( x, y );
+        } else {
             throw new GameException( "No atom at specified location." );
         }
     }
     
-    public Atom getSelected() {
+    public Point getSelected() {
         return selected;
     }
 

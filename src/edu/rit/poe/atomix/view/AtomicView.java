@@ -281,7 +281,7 @@ public class AtomicView extends View {
                         
                         // don't draw the selected atom during an animation
                         if ( ( animation == null ) ||
-                                ( gameState.getSelected() != atom ) ) {
+                                ( ! gameState.getSelected().equals( i, j ) ) ) {
                             // draw the atom to the board
                             drawAtom( canvas, atom, r, false );
                         }
@@ -331,7 +331,7 @@ public class AtomicView extends View {
         
         // if we're animating, then draw the sliding atom
         if ( animation != null ) {
-            Atom atom = gameState.getSelected();
+            Atom atom = animation.atom;
             canvas.save();
             
             // offset to the right location
@@ -715,7 +715,7 @@ public class AtomicView extends View {
     private void touch( int i, int j ) {
         GameState state = GameState.getCurrent();
         Square[][] board = state.getBoard();
-        Atom selected = state.getSelected();
+        Point selected = state.getSelected();
         boolean ItsGoingToBeOkay = true;
         GameState.Direction d = null;
         
@@ -744,16 +744,17 @@ public class AtomicView extends View {
                 
                 try {
                     // @todo animation work starts here
-                    int oldX = selected.getX();
-                    int oldY = selected.getY();
+                    int oldX = selected.x;
+                    int oldY = selected.y;
+                    Atom atom = ( Atom )board[ oldY ][ oldX ];
                     
                     boolean win = state.moveSelected( d );
                     
-                    int newX = selected.getX();
-                    int newY = selected.getY();
+                    int newX = selected.x;
+                    int newY = selected.y;
                     
-                    animation =
-                            new SlideAnimation( oldX, oldY, newX, newY, win );
+                    animation = new SlideAnimation( atom, oldX, oldY, newX,
+                            newY, win );
                     animation.start();
                     
                 } catch ( GameException e ) {
@@ -763,8 +764,8 @@ public class AtomicView extends View {
                 
                 // move the hover point to the new location of the Atom
                 Point hoverPoint = state.getHoverPoint();
-                hoverPoint.set( selected.getX(), selected.getY() );
-
+                hoverPoint.set( selected.x, selected.y );
+                
                 // set the squares were arrows should be drawn
                 this.setArrowSquares();
             }
@@ -783,14 +784,16 @@ public class AtomicView extends View {
     }
     
     private void setArrowSquares() {
+        GameState state = GameState.getCurrent();
+        
         // identify and store all Direction flags to be drawn
         EnumSet<GameState.Direction> directions =
                 GameState.getCurrent().getPossibleDirections();
         
         arrowSquares.clear();
         for ( GameState.Direction dir : directions ) {
-            int x = GameState.getCurrent().getSelected().getX();
-            int y = GameState.getCurrent().getSelected().getY();
+            int x = state.getSelected().x;
+            int y = state.getSelected().y;
             switch ( dir ) {
                 case UP: {
                     y--;
@@ -821,6 +824,9 @@ public class AtomicView extends View {
         /** The number of animation frames per square moved. */
         public static final int FRAMES_PER_SQR = 2;
         
+        /** The atom being slid. */
+        private final Atom atom;
+        
         /** The number of total frames of this animation. */
         private final int frames;
         
@@ -842,14 +848,16 @@ public class AtomicView extends View {
         /**
          * Constructs a new <tt>SlideAnimation</tt> with the given variables.
          * 
+         * @param   atom    the atom being slid
          * @param   startX  the initial X-coordinate of the selected atom
          * @param   startY  the initial Y-coordinate of the selected atom
          * @param   endX    the ending X-coordinate of the selected atom
          * @param   endY    the ending Y-coordinate of the selected atom
          * @param   win     whether this move causes a win
          */
-        private SlideAnimation( int startX, int startY, int endX, int endY,
-                boolean win ) {
+        private SlideAnimation( Atom atom, int startX, int startY, int endX,
+                int endY, boolean win ) {
+            this.atom = atom;
             this.win = win;
             currentX = startX;
             currentY = startY;

@@ -315,13 +315,7 @@ public class Level implements Serializable {
                                     short id = -1;
                                     try {
                                         id = Short.parseShort( "" + row[ x ] );
-                                        Atom atom = atomMap.get( id );
-                                        
-                                        // assign the X, Y of the Atom
-                                        atom.setX( x );
-                                        atom.setY( y );
-                                        
-                                        sqr = atom;
+                                        sqr = atomMap.get( id );
                                     } catch ( Exception e ) {
                                         Log.e( "LevelLoader",
                                                 Log.getStackTraceString( e ) );
