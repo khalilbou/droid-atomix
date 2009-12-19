@@ -28,10 +28,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import edu.rit.poe.atomix.levels.Connector;
-import edu.rit.poe.atomix.levels.Level;
-import edu.rit.poe.atomix.levels.Atom;
-import java.io.FileInputStream;
+import java.util.Calendar;
 import junit.framework.TestCase;
 
 /**
@@ -42,20 +39,13 @@ import junit.framework.TestCase;
  */
 public class Test extends TestCase {
     
-    public void testLoad() throws Exception {
+    public void testSeconds() {
         
-        FileInputStream is = new FileInputStream( "level1.level" );
+        Calendar now = Calendar.getInstance();
+        long sec = now.get( Calendar.SECOND );
         
-        Level level1 = Level.loadLevel( is );
+        System.out.println( "Time in seconds: " + sec );
         
-        for ( Atom molecule : level1.getMolecules() ) {
-            System.out.println( "Molecule: " + molecule.getElement() );
-            System.out.println( "Connectors:" );
-            for ( Connector connector : molecule.getConnectors() ) {
-                System.out.println( " Direction: " + connector.getDirection() );
-                System.out.println( " Bond: " + connector.getBond() );
-            }
-        }
     }
     
 } // Test

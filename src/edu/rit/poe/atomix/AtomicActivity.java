@@ -32,21 +32,27 @@ package edu.rit.poe.atomix;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
-import edu.rit.poe.atomix.game.GameDatabase;
+import edu.rit.poe.atomix.db.AtomixDbAdapter;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.view.AtomicView;
-import java.io.IOException;
 
 /**
- *
- * @author poe9514
+ * This class is the main <tt>Activity</tt> for managing the Atomix gameplay.
+ * All persistence operations for game state are handled by this class.
+ * 
+ * @author  Peter O. Erickson
+ * 
+ * @version $Id$
  */
 public class AtomicActivity extends Activity {
     
@@ -55,6 +61,10 @@ public class AtomicActivity extends Activity {
     public static final int WIN_LEVEL = 0x2;
     
     private AtomicView view;
+    
+    private AtomixDbAdapter db;
+    
+    private GameState gameState;
     
     private Handler viewHandler = new Handler() {
         @Override 
@@ -80,15 +90,24 @@ public class AtomicActivity extends Activity {
     @Override
     public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
+        Log.d( "DROID_ATOMIX", "AtomixActivity.onCreate() was called." );
         
-        super.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
+        // @todo allow holding the phone horizontally?
+        //super.setRequestedOrientation(
+        //        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
         
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
         
-        view = new AtomicView( this );
+        // create the database
+        db = new AtomixDbAdapter( this );
+        db.open();
         
+        // get the "extras" bundle with the GameState
+        Bundle extras = super.getIntent().getExtras();
+        gameState = ( GameState )extras.getSerializable( "game_state" );
+        
+        view = new AtomicView( this, gameState );
         super.setContentView( view );
     }
     
@@ -116,6 +135,28 @@ public class AtomicActivity extends Activity {
         Message msg = new Message();
         msg.what = WIN_LEVEL;
         viewHandler.sendMessage( msg );
+        
+        // @todo switch level now!!
+        
+    }
+    
+    @Override
+    public void onConfigurationChanged( Configuration conf ) {
+        super.onConfigurationChanged( conf );
+        
+        Log.d( "DROID_ATOMIX",
+                "AtomicActivity.onConfigurationChanged() called" );
+        
+        // if we're sideways, go fullscreen
+        if ( conf.orientation == Configuration.ORIENTATION_LANDSCAPE ) {
+            this.getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
+        } else {
+            this.getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, 
+                    WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN );
+        }
     }
     
     @Override
@@ -124,22 +165,31 @@ public class AtomicActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onSaveInstanceState() called" );
         
         // save the game state
-        icicle.putSerializable( "game_state", GameState.getCurrent() );
+        icicle.putSerializable( "game_state", gameState );
         
-        try {
-            Log.d( "DROID_ATOMIX", "Saving state: "
-                    + GameState.getCurrent().getUser() );
-            GameDatabase.save( this );
-        } catch ( IOException ex ) {
-            Log.e( "DROID_ATOMIX", Log.getStackTraceString( ex ) );
-        }
+        db.update( gameState.getUser() );
+        db.update( gameState.getGame() );
     }
     
     @Override
     public void onPause() {
         super.onPause();
+        Log.d( "DROID_ATOMIX", "onPause() called" );
         
+        db.update( gameState.getUser() );
+        db.update( gameState.getGame() );
         
+        // close the connection to the database
+        db.close();
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d( "DROID_ATOMIX", "AtomixActivity.onResume() was called." );
+        
+        // make sure the view has the right GameState
+        view.setGameState( gameState );
     }
     
     @Override
@@ -148,8 +198,7 @@ public class AtomicActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called" );
         
         // restore game state
-        GameState.setCurrent(
-                ( GameState )icicle.getSerializable( "game_state" ) );
+        gameState = ( GameState )icicle.getSerializable( "game_state" );
     }
     
 } // AtomicActivity
