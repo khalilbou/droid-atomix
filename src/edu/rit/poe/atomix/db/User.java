@@ -30,19 +30,24 @@
 
 package edu.rit.poe.atomix.db;
 
+import java.io.Serializable;
+
 /**
- *
+ * This class represents a single user that is playing the Atomix game.  Each
+ * user is linked to a single currently active <tt>Game</tt> and <tt>n</tt>
+ * finished <tt>Game</tt>s to represents the statistics of a completed level.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
-public class User {
+public class User implements Serializable {
     
-    public static final String ID = "user_id";
+    public static final String ID_KEY = "id";
     
     public static final String USERNAME_KEY = "username";
     
-    public static final String SAVED_GAME_ID = "saved_game_id";
+    public static final String SAVED_GAME_ID_KEY = "saved_game_id";
     
     private long id;
     

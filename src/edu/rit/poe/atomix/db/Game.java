@@ -30,22 +30,28 @@
 
 package edu.rit.poe.atomix.db;
 
-import android.graphics.Point;
+import edu.rit.poe.atomix.util.Point;
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * This class represents the game state of a single level.  This class is a
+ * transfer object of the <tt>GAME</tt> database table.  One game exists per
+ * <tt>User</tt> in the active (<tt>finished = false</tt>) state, while
+ * <tt>n</tt> instances of finished games may exist per user, to represents the
+ * game state of a level that has been completed by a user.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
-public class Game {
+public class Game implements Serializable {
     
-    public static final String ID = "game_id";
+    public static final String ID_KEY = "id";
     
-    public static final String USER_ID = "user_id";
+    public static final String USER_ID_KEY = "user_id";
     
     public static final String CREATED_KEY = "created";
     
@@ -59,13 +65,13 @@ public class Game {
     
     public static final String FINISHED_KEY = "finished";
     
-    public static final String ATOM_GAME_ID = "game_id";
+    public static final String ATOM_GAME_ID_KEY = "game_id";
     
-    public static final String ATOM_MARKER_KEY = "atom_marker_id";
+    public static final String ATOM_MARKER_KEY = "atom_marker";
     
-    public static final String ATOM_X = "x";
+    public static final String ATOM_X_KEY = "x";
     
-    public static final String ATOM_Y = "y";
+    public static final String ATOM_Y_KEY = "y";
     
     private long id;
     
@@ -83,13 +89,13 @@ public class Game {
     
     private boolean finished;
     
-    private Map<Integer, Point> atoms;
+    private Map<Short, Point> atoms;
     
     /**
      * Constructs a new <tt>Game</tt>.
      */
     public Game() {
-        atoms = new HashMap<Integer, Point>();
+        atoms = new HashMap<Short, Point>();
     }
 
     public Calendar getCreated() {
@@ -156,7 +162,7 @@ public class Game {
         this.user = user;
     }
     
-    public Map<Integer, Point> getAtoms() {
+    public Map<Short, Point> getAtoms() {
         return atoms;
     }
     

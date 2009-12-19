@@ -30,6 +30,8 @@
 
 package edu.rit.poe.atomix.game;
 
+import edu.rit.poe.atomix.db.Game;
+import edu.rit.poe.atomix.db.User;
 import edu.rit.poe.atomix.levels.Atom;
 import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
@@ -38,17 +40,17 @@ import edu.rit.poe.atomix.util.Point;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.EnumSet;
+import java.util.Map;
 
 /**
- * A Java Bean style class to hold and persist game state for a single user.
+ * This class represents all in-game state.  It wraps the <tt>User</tt> and
+ * <tt>Game</tt> objects that are queried from and persisted to the database.
  * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
-public class GameState implements Serializable, Comparable<GameState> {
+public class GameState implements Serializable {
     
     public static final DateFormat DATE_FORMAT =
             new SimpleDateFormat( "MM/dd/yyyy hh:mm a" );
@@ -65,50 +67,73 @@ public class GameState implements Serializable, Comparable<GameState> {
         
     } // Direction
     
-    private static GameState current;
+    User user;
     
-    private String user;
+    Game game;
     
-    private Calendar createDate;
+    Square[][] board;
     
-    Calendar lastPlayed;
-    
-    private int currentLevel;
-    
-    private Square[][] board;
-    
-    private Point selected;
+    /** The (x,y) location of the currently selected atom. */
+    Point selected;
     
     /** The point that is currently being hovered over, or <tt>null</tt>. */
-    private Point hoverPoint;
+    Point hoverPoint;
     
     /**
-     * Constructs a new <tt>GameState</tt>.
      * 
-     * @param   user    the user that this game state exists for
+     * @param user
+     * @param game
      */
-    GameState( String user ) {
+    public GameState( User user, Game game ) {
         this.user = user;
+        this.game = game;
         
-        // load the initial level for game state
-        currentLevel = LevelManager.FIRST_LEVEL;
-        this.setLevel( currentLevel );
-        
+        // initialize a default hover point
         hoverPoint = new Point( 0, 0 );
         
-        this.createDate = Calendar.getInstance();
+        // make a copy of the level's board, for own own use and modification
+        board = getLevelObj().copyBoard();
+        
+        // remove atoms from the board (we'll place atoms from the game object)
+        for ( int i = 0; i < board.length; i++ ) {
+            for ( int j = 0; j < board[ 0 ].length; j++ ) {
+                if ( board[ i ][ j ] instanceof Atom ) {
+                    board[ i ][ j ] = Square.EMPTY;
+                }
+            }
+        }
+        
+        // set the atom locations from the game object
+        for ( Map.Entry<Short, Point> entry : game.getAtoms().entrySet() ) {
+            Atom atom = getLevelObj().getAtom( entry.getKey() );
+            Point point = entry.getValue();
+            
+            board[ point.y ][ point.x ] = atom;
+        }
     }
     
-    public static void setCurrent( GameState current ) {
-        GameState.current = current;
+    // Simple Accesors/Mutators
+    
+    /**
+     * Private helper method to access the <tt>Level</tt> object.
+     * 
+     * @return  the current level's object
+     */
+    Level getLevelObj() {
+        LevelManager levelManager = LevelManager.getInstance();
+        return levelManager.getLevel( game.getLevel() );
     }
     
-    public static GameState getCurrent() {
-        return current;
+    public User getUser() {
+        return user;
+    }
+    
+    public Game getGame() {
+        return game;
     }
     
     public int getLevel() {
-        return currentLevel;
+        return game.getLevel();
     }
     
     /**
@@ -127,23 +152,6 @@ public class GameState implements Serializable, Comparable<GameState> {
      */
     public String getMoleculeName() {
         return getLevelObj().getName();
-    }
-    
-    public void setLevel( int levelNumber ) throws IllegalArgumentException {
-        currentLevel = levelNumber;
-        
-        // make a copy of the level's board, for own own use and modification
-        board = getLevelObj().copyBoard();
-    }
-    
-    /**
-     * Private helper method to access the <tt>Level</tt> object.
-     * 
-     * @return  the current level's object
-     */
-    private Level getLevelObj() {
-        LevelManager levelManager = LevelManager.getInstance();
-        return levelManager.getLevel( currentLevel );
     }
     
     /**
@@ -167,173 +175,16 @@ public class GameState implements Serializable, Comparable<GameState> {
         return getLevelObj().getGoal();
     }
     
-    /**
-     * Moves the currently selected atom in the specified direction until an
-     * obstacle is hit.
-     * 
-     * @param   direction       the direction to move the selected atom in
-     * 
-     * @return                  <tt>true</tt> if this move entered the board
-     *                          into a goal state
-     * 
-     * @throws  GameException   if there is no currently selected atom
-     */
-    public boolean moveSelected( Direction direction ) throws GameException {
-        if ( selected == null ) {
-            throw new GameException( "No currently selected atom." );
-        }
-        int endX = selected.x;
-        int endY = selected.y;
-        
-        // perform an iterative search for the furthest distance the atom can
-        // travel in the given direction
-        int nextX = endX;
-        int nextY = endY;
-        boolean hit = false;
-        while ( ! hit ) {
-            // is next move in given direction a wall/end of board?
-            switch ( direction ) {
-                case RIGHT: {
-                    nextX++;
-                } break;
-                case LEFT: {
-                    nextX--;
-                } break;
-                case DOWN: {
-                    nextY++;
-                } break;
-                case UP: {
-                    nextY--;
-                } break;
-            }
-            
-            // hit a board boundary?
-            if ( ( nextY == board.length ) || ( nextX == board[ 0 ].length ) ) {
-                hit = true;
-            } else if ( board[ nextY ][ nextX ] instanceof Square.Wall ) {
-                hit = true;
-            } else if ( board[ nextY ][ nextX ] instanceof Atom ) {
-                hit = true;
-            } else {
-                endX = nextX;
-                endY = nextY;
-            }
-        }
-        
-        //move the atom
-        board[ endY ][ endX ] = board[ selected.y ][ selected.x ];
-        board[ selected.y ][ selected.x ] = Square.EMPTY;
-        selected.set( endX, endY );
-        
-        // check for win conditions
-        // -- consult the gold standard level object
-        return getLevelObj().isComplete( board );
-    }
-    
-    /**
-     * Returns the possible directions that the currently selected atom can
-     * move.
-     * 
-     * @return  a set of directions that the selected atom can move
-     */
-    public EnumSet<Direction> getPossibleDirections() {
-        EnumSet<Direction> directions = EnumSet.noneOf( Direction.class );
-        
-        if ( selected != null ) {
-            int x = selected.x;
-            int y = selected.y;
-            
-            // can we go left?
-            if ( ( ( x - 1 ) >= 0 ) &&
-                    ( board[ y ][ x - 1 ] instanceof Square.Empty ) ) {
-                directions.add( Direction.LEFT );
-            }
-            
-            // can we go right?
-            if ( ( ( x + 1 ) < board[ 0 ].length ) &&
-                    ( board[ y ][ x + 1 ] instanceof Square.Empty ) ) {
-                directions.add( Direction.RIGHT );
-            }
-            
-            // can we go up?
-            if ( ( ( y - 1 ) >= 0 ) &&
-                    ( board[ y - 1 ][ x ] instanceof Square.Empty ) ) {
-                directions.add( Direction.UP );
-            }
-            
-            // can we go down?
-            if ( ( ( y + 1 ) < board.length ) &&
-                    ( board[ y + 1 ][ x ] instanceof Square.Empty ) ) {
-                directions.add( Direction.DOWN );
-            }
-        }
-        
-        return directions;
-    }
-    
-    public void select( int x, int y ) throws GameException {
-        if ( board[ y ][ x ] instanceof Atom ) {
-            selected = new Point( x, y );
-        } else {
-            throw new GameException( "No atom at specified location." );
-        }
-    }
-    
     public Point getSelected() {
         return selected;
     }
-
+    
     public Point getHoverPoint() {
         return hoverPoint;
     }
-
+    
     public void setHoverPoint( Point hoverPoint ) {
         this.hoverPoint = hoverPoint;
-    }
-    
-    public String getUser() {
-        return user;
-    }
-    
-    public String getLastPlayed() {
-        return DATE_FORMAT.format( lastPlayed.getTime() );
-    }
-    
-    @Override
-    public String toString() {
-        return user;
-    }
-    
-    @Override
-    public int hashCode() {
-        return user.hashCode() + createDate.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object o ) {
-        boolean retVal = false;
-        if ( ( o != null ) && ( o instanceof GameState ) ) {
-            GameState gs = ( GameState )o;
-            
-            if ( this.hashCode() == gs.hashCode() ) {
-                retVal = true;
-            }
-        }
-        return retVal;
-    }
-    
-    /**
-     * Compares this game state object to the specified game state object.
-     * Game states are ranked by their last-played date.
-     * 
-     * @param   state   the state to be compared with this one
-     * 
-     * @return          a positive value if this state has been played more
-     *                  recently than the specified state, otherwise a negative
-     *                  value
-     */
-    public int compareTo( GameState state ) {
-        return lastPlayed.compareTo( state.lastPlayed );
     }
     
 } // GameState

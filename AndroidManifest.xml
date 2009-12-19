@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-     package="edu.rit.poe.atomix" android:versionCode="1" android:versionName="1.0.0">
+     package="edu.rit.poe.atomix" android:versionCode="1"
+     android:versionName="1.0.0">
     <application>
          <activity android:name=".MenuActivity" android:label="DroidAtomix"
                 android:icon="@drawable/atomix_icon"
@@ -10,7 +11,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-         <activity android:name=".AtomicActivity"/>
+         <activity android:name=".AtomicActivity"
+                android:configChanges="orientation"/>
     </application>
     <supports-screen android:smallScreens="false" android:normalScreens="true"
             android:largeScreens="true" android:anyDensity="true"/>

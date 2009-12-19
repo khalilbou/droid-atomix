@@ -1,5 +1,5 @@
 /*
- * Atomix.java
+ * LevelFileFormatException.java
  *
  * Version:
  *      $Id$
@@ -28,36 +28,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package edu.rit.poe.atomix;
+package edu.rit.poe.atomix.levels;
 
 /**
- * Singleton controller for the application that stores all global state that is
- * unnecessary to load at every pause/restore state event.
+ * This exception is meant for format problems with Atomix level files.
  * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
-public class Atomix {
+public class LevelFileFormatException extends IllegalArgumentException {
     
-    private volatile static Atomix instance;
-    
-    public static Atomix getAtomix() {
-        // doubled-checked locking anti-pattern is avoided using volatile
-        if ( instance == null ) {
-            synchronized ( Atomix.class ) {
-                if ( instance == null ) {
-                    instance = new Atomix();
-                }
-            }
-        }
-        return instance;
-    }
+    /** The header for all errors this class represents. */
+    private static final String HEADER = "Level File Format Exception: ";
     
     /**
-     * Constructs a new <tt>Atomix</tt>.
+     * Constructs a new <tt>LevelFileFormatException</t> with the specified
+     * error message.
+     * 
+     * @param   msg     the exception's error message
      */
-    private Atomix() {
+    public LevelFileFormatException( String msg ) {
+        super( HEADER + msg );
     }
     
-} // Atomix
+} // LevelFileFormatException

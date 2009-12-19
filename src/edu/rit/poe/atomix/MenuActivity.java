@@ -33,6 +33,8 @@ package edu.rit.poe.atomix;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.SQLException;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
@@ -42,21 +44,20 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
-import edu.rit.poe.atomix.game.GameDatabase;
+import edu.rit.poe.atomix.db.AtomixDbAdapter;
+import edu.rit.poe.atomix.db.Game;
+import edu.rit.poe.atomix.db.User;
+import edu.rit.poe.atomix.game.GameController;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.levels.LevelManager;
-import java.io.IOException;
-import java.util.List;
 
 /**
  *
@@ -65,6 +66,9 @@ import java.util.List;
  * @version $Id$
  */
 public class MenuActivity extends Activity {
+    
+    /**  */
+    private AtomixDbAdapter db;
     
     /**  */
     private AlertDialog newGameDialog;
@@ -109,39 +113,29 @@ public class MenuActivity extends Activity {
         
         // load the game database
         try {
-            // don't load database twice
-            if ( ! GameDatabase.isLoaded() ) {
-                GameDatabase.load( this );
-                Log.d( "DROID_ATOMIX", "Loaded game database." );
-            }
-        } catch ( Exception e ) {
+            db = new AtomixDbAdapter( this );
+            db.open();
+        } catch ( SQLException e ) {
             Log.e( "DROID_ATOMIX", "Error loading game database: "
                     + Log.getStackTraceString( e ) );
         }
         
-        // load all saved active games
-        final List<GameState> states = GameDatabase.getActive();
+        // load all saved users/games
+        final Cursor saved = db.getSavedUsers();
+        super.startManagingCursor( saved );
         
-        // print some debugging messages
-        Log.d( "DROID_ATOMIX", "SAVED ACTIVE GAMES:" );
-        for ( GameState state : states ) {
-            Log.d( "DROID_ATOMIX", "GAME: " + state.getUser() );
-        }
-        if ( GameDatabase.getLast() != null ) {
-            Log.d( "DROID_ATOMIX",
-                    "Last game: " + GameDatabase.getLast().getUser() );
-        }
+        Log.d( "DROID_ATOMIX", "Saved games: " + saved.getCount() );
         
         // setup the Continue button
         LinearLayout menu =
                 ( LinearLayout )findViewById( R.id.main_button_list );
         Button resume = ( Button )findViewById( R.id.continue_button );
-        if ( ! states.isEmpty() ) {
+        if ( saved.getCount() > 0 ) {
             Log.d( "DROID_ATOMIX", "Display CONTINUE button." );
             
             // create the dialog that lists games to be continued
             if ( continueGameDialog == null ) {
-                createContinueDialog();
+                createContinueDialog( saved );
             }
             
             // setup button callbacks
@@ -149,9 +143,18 @@ public class MenuActivity extends Activity {
                 public void onClick( View view ) {
 
                     // if there's only one game, start it!
-                    if ( states.size() == 1 ) {
+                    if ( saved.getCount() == 1 ) {
                         // start the one previously saved game
-                        startGame( GameDatabase.getLast() );
+                        
+                        // get the only user id
+                        saved.moveToFirst();
+                        long userId = saved.getLong(
+                                saved.getColumnIndex( "_id" ) );
+                        
+                        // query the selected user and load the saved game state
+                        User user = db.getUser( userId );
+                        
+                        startGame( user, user.getSavedGame() );
                     } else {
                         // show the continue game dialog to choose which game
                         continueGameDialog.show();
@@ -193,13 +196,7 @@ public class MenuActivity extends Activity {
         Button quit = ( Button )findViewById( R.id.quit_button );
         quit.setOnClickListener( new View.OnClickListener() {
             public void onClick( View view ) {
-                // save game state and exit
-                try {
-                    GameDatabase.save( MenuActivity.this );
-                } catch ( IOException e ) {
-                    Log.e( "DROID_ATOMIX", "Error saving game database: "
-                            + Log.getStackTraceString( e ) );
-                }
+                // just exit -- no reason to save here
                 MenuActivity.super.finish();
             }
         } );
@@ -207,30 +204,22 @@ public class MenuActivity extends Activity {
     }
     
     /**
-     * Starts the DroidAtomix game with the given state.
-     * 
-     * @param   gameState   the game state to use for the game once started
+     * Starts the DroidAtomix game!
      */
-    private void startGame( GameState gameState ) {
-        Log.d( "DROID_ATOMIX", "Starting game: " + gameState.getUser() );
-        GameState.setCurrent( gameState );
+    private void startGame( User user, Game game ) {
+        // create the intent for the game
+        GameState gameState = new GameState( user, game );
+        Intent intent = new Intent( this, AtomicActivity.class );
+        Bundle extras = new Bundle();
+        extras.putSerializable( "game_state", gameState );
+        intent.putExtras( extras );
         
         // start the game!
-        Intent intent = new Intent( this, AtomicActivity.class );
         super.startActivity( intent );
-        
-        // save the game!
-        try {
-            GameDatabase.save( this );
-        } catch ( IOException e ) {
-            Log.e( "DROID_ATOMIX", "Error saving game database: "
-                    + Log.getStackTraceString( e ) );
-        }
         
         // do not return to the home screen
         MenuActivity.super.finish();
     }
-    
     
     private void createNewGameDialog() {
         blankNameMessage = Toast.makeText( this, "Name cannot be blank",
@@ -254,12 +243,22 @@ public class MenuActivity extends Activity {
                 if ( newName.getText().toString().equals( "" ) ) {
                     blankNameMessage.show();
                 } else {
-                    // create a new game
+                    // create a new user
                     String username = newName.getText().toString();
-                    GameState game = GameDatabase.newGame( username );
+                    User user = GameController.newUser( username );
                     
-                    // set the current game state and start playing
-                    startGame( game );
+                    // create a new game and set it to active
+                    Game game = GameController.newLevel( user,
+                            LevelManager.FIRST_LEVEL );
+                    user.setSavedGame( game );
+                    
+                    // save the game for the first time
+                    db.insert( user );
+                    db.insert( game );
+                    db.update( user );
+                    
+                    // start playing!
+                    startGame( user, game );
                 }
             }
         } );
@@ -267,7 +266,7 @@ public class MenuActivity extends Activity {
         newGameDialog = ad.create();
     }
     
-    private void createContinueDialog() {
+    private void createContinueDialog( Cursor savedUsers ) {
         final LayoutInflater layoutInflater = LayoutInflater.from( this );
         View view = layoutInflater.inflate( R.layout.continue_dialog, null );
         
@@ -276,30 +275,14 @@ public class MenuActivity extends Activity {
         ad.setView( view );
         ad.setIcon( android.R.drawable.ic_menu_more );
         
-        List<GameState> savedGames = GameDatabase.getActive();
         ListView savedList =
                 ( ListView )view.findViewById( R.id.saved_games_list );
-        final ArrayAdapter<GameState> listAdapter = new ArrayAdapter<GameState>(
-                this, android.R.layout.simple_list_item_1, savedGames ) {
-            @Override
-            public View getView( int pos, View convertView, ViewGroup parent ) {
-                View view = layoutInflater.inflate(
-                        android.R.layout.simple_list_item_2, parent, false );
-                
-                TextView gameName =
-                        ( TextView )view.findViewById( android.R.id.text1 );
-                TextView gameDate =
-                        ( TextView )view.findViewById( android.R.id.text2 );
-                
-                // set the game player's name and the last played date
-                gameName.setText( getItem( pos ).toString() );
-                gameDate.setText( "Last played "
-                        + getItem( pos ).getLastPlayed() );
-                
-                return view;
-            }
-        };
-        savedList.setAdapter( listAdapter );
+        String[] from = new String[]{ User.USERNAME_KEY, Game.SAVED_KEY };
+        int[] to = new int[]{ android.R.id.text1, android.R.id.text2 };
+        
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter( this,
+                android.R.layout.simple_list_item_2, savedUsers, from, to );
+        savedList.setAdapter( adapter );
         
         savedList.setOnCreateContextMenuListener(
                 new View.OnCreateContextMenuListener() {
@@ -315,13 +298,15 @@ public class MenuActivity extends Activity {
                 new AdapterView.OnItemClickListener() {
             public void onItemClick( AdapterView<?> parent, View view,
                     int position, long id ) {
-                GameState gameState = listAdapter.getItem( position );
+                
+                // query the selected user and load the saved game state
+                User user = db.getUser( id );
                 
                 // close this dialog
                 continueGameDialog.dismiss();
                 
                 // start the selected game!
-                startGame( gameState );
+                startGame( user, user.getSavedGame() );
             }
         } );
         
@@ -341,6 +326,21 @@ public class MenuActivity extends Activity {
     public void onPause() {
         super.onPause();
         Log.d( "DROID_ATOMIX", "onPause() called." );
+        
+        // close the connection to the database
+        db.close();
+        
+        if ( newGameDialog.isShowing() ) {
+            newGameDialog.dismiss();
+        }
+    }
+    
+    @Override
+    public void onStop() {
+        super.onStop();
+        
+        // close the connection to the database
+        db.close();
         
         if ( newGameDialog.isShowing() ) {
             newGameDialog.dismiss();

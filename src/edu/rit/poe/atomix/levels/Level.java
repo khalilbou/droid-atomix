@@ -97,8 +97,7 @@ public class Level implements Serializable {
     
     private Square[][] goal;
     
-    @Deprecated
-    private Set<Atom> molecules;
+    private Map<Short, Atom> atoms;
     
     /**
      * Constructs a new <tt>Level</tt>.
@@ -108,10 +107,6 @@ public class Level implements Serializable {
     
     public int getLevel() {
         return level;
-    }
-    
-    public Set<Atom> getMolecules() {
-        return molecules;
     }
     
     public String getName() {
@@ -130,6 +125,27 @@ public class Level implements Serializable {
         }
         
         return copy;
+    }
+    
+    /**
+     * Returns the level's board.  This should be treated as immutable -- never
+     * change this!
+     * 
+     * @return  the level's underlying board
+     */
+    public Square[][] getBoard() {
+        return board;
+    }
+    
+    /**
+     * Retrieves an <tt>Atom</tt> by its ID.
+     * 
+     * @param   id  the <tt>short</tt> ID of the atom to be returned
+     * 
+     * @return      the atom associated with the specified ID
+     */
+    public Atom getAtom( Short id ) {
+        return atoms.get( id );
     }
     
     /**
@@ -197,15 +213,14 @@ public class Level implements Serializable {
     }
     
     public static final Level loadLevel( InputStream is )
-            throws FileNotFoundException {
+            throws FileNotFoundException, LevelFileFormatException {
         Level level = new Level();
-        level.molecules = new HashSet<Atom>();
         
         BufferedReader in = new BufferedReader( new InputStreamReader( is ) );
         
         String line = null;
         LevelFileSection section = null;
-        Map<Short, Atom> atomMap = new HashMap<Short, Atom>();
+        level.atoms = new HashMap<Short, Atom>();
         int y = -1;
         int goalY = -1;
         try {
@@ -229,7 +244,7 @@ public class Level implements Serializable {
                                 
                                 level.level = levelNum;
                             } catch ( Exception e ) {
-                                Log.e( "LevelLoader",
+                                throw new LevelFileFormatException(
                                         "Error setting the level number." );
                             }
                         } break;
@@ -252,8 +267,8 @@ public class Level implements Serializable {
                                 
                                 level.board = new Square[ height ][ width ];
                             } catch ( Exception e ) {
-                                // error creating level map!
-                                //@todo handle this exception
+                                throw new LevelFileFormatException(
+                                        "Invalid board size." );
                             }
                         } break;
                         
@@ -290,11 +305,10 @@ public class Level implements Serializable {
                                 Atom molecule = new Atom( id, color, element,
                                         connectors );
                                 
-                                ( level.molecules ).add( molecule );
-                                
-                                atomMap.put( id, molecule );
+                                level.atoms.put( id, molecule );
                             } catch ( Exception e ) {
-                                //@todo handle this exception
+                                throw new LevelFileFormatException(
+                                        "Error with atom formats." );
                             }
                         } break;
                         
@@ -315,7 +329,7 @@ public class Level implements Serializable {
                                     short id = -1;
                                     try {
                                         id = Short.parseShort( "" + row[ x ] );
-                                        sqr = atomMap.get( id );
+                                        sqr = level.getAtom( id );
                                     } catch ( Exception e ) {
                                         Log.e( "LevelLoader",
                                                 Log.getStackTraceString( e ) );
@@ -337,7 +351,7 @@ public class Level implements Serializable {
                                 
                                 level.goal = new Square[ height ][ width ];
                             } catch ( Exception e ) {
-                                Log.e( "LevelLoader",
+                                throw new LevelFileFormatException(
                                         "Error setting new goal array" );
                             }
                         } break;
@@ -353,10 +367,11 @@ public class Level implements Serializable {
                                     short id = -1;
                                     try {
                                         id = Short.parseShort( "" + row[ x ] );
-                                        sqr = atomMap.get( id );
+                                        sqr = level.getAtom( id );
                                     } catch ( Exception e ) {
-                                        Log.e( "LevelLoader",
-                                                Log.getStackTraceString( e ) );
+                                        throw new LevelFileFormatException(
+                                                "Error setting goal " +
+                                                "configuration." );
                                     }
                                 } else if ( row[ x ] == ' ' ) {
                                     sqr = Square.EMPTY;
@@ -369,7 +384,8 @@ public class Level implements Serializable {
                 }
             }
         } catch ( Exception e ) {
-            // ignore for now
+            throw new LevelFileFormatException( "Error reading level file:"
+                    + Log.getStackTraceString( e ) );
         }
         
         return level;
