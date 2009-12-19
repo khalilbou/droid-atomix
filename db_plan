@@ -1,21 +1,118 @@
 POSSIBLE DB SCHEMAS:
-
+====================
 
 USER
-id            - bigint
+user_id       - bigint
 username      - varchar
-current_level - integer
 saved_game_id - bigint
 
-SCORE
-id       - bigint
-user_id  - bigint
-level    - integer
-score    - varchar(64)
+CREATE TABLE USER ( id INTEGER PRIMARY KEY, saved_game_id INTEGER, username TEXT );
 
-SAVED_GAME
-id      - bigint
-game    - varchar(256)
+GAME
+game_id       - bigint
+user_id       - bigint
+created       - date
+saved         - date
+level         - integer
+moves         - integer
+seconds       - integer
+finished      - boolean
+
+CREATE TABLE GAME ( id INTEGER PRIMARY KEY, created INTEGER, finished INTEGER, level INTEGER, moves INTEGER, saved INTEGER, seconds INTEGER, user_id INTEGER );
+
+ATOM
+game_id       - bigint
+atom_marker   - integer
+x             - integer
+y             - integer
+
+CREATE TABLE ATOM ( atom_marker INTEGER, game_id INTEGER, x INTEGER, y INTEGER );
+
+
+ANTITIPCATED QUERIES:
+=====================
+
+SELECT
+- get all active users + their saved game + game atom locations
+- get all games for a user
+
+
+ANTICIPATED COMMITS
+===================
+
+INSERT
+  - initial commit of user, new game set to active, and new atom locations
+  - new level:
+      - new game, new atom locations
+
+UPDATE
+  - application closing/losing focus:
+      - save Game and Atom locations
+  - new level update:
+      - set user "current game"
+      
+DELETE
+  - delete user and all associated games/atom locations
+  - new level:
+      - delete old atom locations
+
+
+
+
+ADDITIONAL NOTES
+================
+
+NEW GAME ==
+
+1   MenuActivity creates a new User
+2   new User is passed to GameState
+3   GameState creates a new Game for *LEVEL 1*
+4   new Game is populated by GameState, atom locations are filled
+
+
+
+GAMESTATE
+
+clear() -- clears all game state
+initialize( Game game ) -- sets all game state from the specified Game object
+
+
+
+NEW CLASS:  GameManager -- replaces GameDatabase -- it is the Atomix CONTROLLER in MVC
+
+-start a new game with a new User:
+newUser( String user ) : User
+    - creates a new User
+    
+newGame( User user, int level ) : Game
+    - creates a new Game from the specified level
+    - sets User.savedGame to the new Game
+    - return the new Game
+
+-continue a saved game:
+loadGameState( User user ) : GameState
+    - sets up a new GameState from the user's savedGame information
+    - blank board from level
+    - atom locations from savedGame
+    - 
+
+-new level:
+startNewLevel
+
+
+
+
+
+
+=====================================================================================
+
+Get all users/game for the initial menu:
+    SELECT USER.id AS '_id', USER.username AS 'username', GAME.saved AS 'saved' FROM USER, GAME WHERE USER.id = GAME.user_id AND GAME.finished = 0;
+    
+    SELECT USER.id AS '_id', USER.username AS 'username', ( 'Level: ' || Game.level || ', Last played: ' || strftime( '%m/%d/%Y %H:%M', Game.SAVED, 'unixepoch', 'localtime' ) ) AS 'saved' FROM USER, GAME WHERE USER.id = GAME.user_id AND GAME.finished = 0;
+
+
+
 
 
 
