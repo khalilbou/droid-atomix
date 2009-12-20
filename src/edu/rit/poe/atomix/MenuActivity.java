@@ -67,6 +67,12 @@ import edu.rit.poe.atomix.levels.LevelManager;
  */
 public class MenuActivity extends Activity {
     
+    public static final int GAME_REQUEST_CODE = 0x00;
+    
+    public static final int GAME_RESULT_QUIT = 0x01;
+    
+    public static final int GAME_RESULT_MAIN_MENU = 0x42;
+    
     /**  */
     private AtomixDbAdapter db;
     
@@ -141,7 +147,7 @@ public class MenuActivity extends Activity {
             // setup button callbacks
             resume.setOnClickListener( new View.OnClickListener() {
                 public void onClick( View view ) {
-
+                    
                     // if there's only one game, start it!
                     if ( saved.getCount() == 1 ) {
                         // start the one previously saved game
@@ -214,11 +220,28 @@ public class MenuActivity extends Activity {
         extras.putSerializable( "game_state", gameState );
         intent.putExtras( extras );
         
-        // start the game!
-        super.startActivity( intent );
-        
-        // do not return to the home screen
-        MenuActivity.super.finish();
+        // start the game, and wait for a result
+        super.startActivityForResult( intent, GAME_REQUEST_CODE );
+    }
+    
+    @Override
+    protected void onActivityResult( int requestCode, int resultCode,
+            Intent data ) {
+        if ( requestCode == GAME_REQUEST_CODE ) {
+            if ( resultCode == GAME_RESULT_MAIN_MENU ) {
+                // keep the main menu activity running
+                
+                // restore the continue menu with new values
+                db = new AtomixDbAdapter( this ).open();
+                final Cursor saved = db.getSavedUsers();
+                super.startManagingCursor( saved );
+                createContinueDialog( saved );
+                
+                
+            } else {
+                MenuActivity.super.finish();
+            }
+        }
     }
     
     private void createNewGameDialog() {
@@ -319,7 +342,10 @@ public class MenuActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onSaveInstanceState() called." );
         
         Bundle dialogBundle = newGameDialog.onSaveInstanceState();
-        icicle.putBundle( "dialog-bundle", dialogBundle );
+        icicle.putBundle( "new-game-dialog", dialogBundle );
+        
+        Bundle continueBundle = continueGameDialog.onSaveInstanceState();
+        icicle.putBundle( "continue-dialog", continueBundle );
     }
     
     @Override
@@ -328,10 +354,17 @@ public class MenuActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onPause() called." );
         
         // close the connection to the database
-        db.close();
+        if ( db != null ) {
+            db.close();
+            db = null;
+        }
         
         if ( newGameDialog.isShowing() ) {
             newGameDialog.dismiss();
+        }
+        
+        if ( continueGameDialog.isShowing() ) {
+            continueGameDialog.dismiss();
         }
     }
     
@@ -340,10 +373,17 @@ public class MenuActivity extends Activity {
         super.onStop();
         
         // close the connection to the database
-        db.close();
+        if ( db != null ) {
+            db.close();
+            db = null;
+        }
         
         if ( newGameDialog.isShowing() ) {
             newGameDialog.dismiss();
+        }
+        
+        if ( continueGameDialog.isShowing() ) {
+            continueGameDialog.dismiss();
         }
     }
     
@@ -352,9 +392,14 @@ public class MenuActivity extends Activity {
         super.onRestoreInstanceState( icicle );
         Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called." );
         
-        Bundle dialogBundle = icicle.getBundle( "dialog-bundle" );
+        Bundle dialogBundle = icicle.getBundle( "new-game-dialog" );
         if ( dialogBundle != null ) {
             newGameDialog.onRestoreInstanceState( dialogBundle );
+        }
+        
+        Bundle continueBundle = icicle.getBundle( "continue-dialog" );
+        if ( continueBundle != null ) {
+            continueGameDialog.onRestoreInstanceState( continueBundle );
         }
     }
     

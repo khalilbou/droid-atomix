@@ -31,13 +31,13 @@
 package edu.rit.poe.atomix;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.Display;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
@@ -59,6 +59,16 @@ public class AtomicActivity extends Activity {
     public static final int REDRAW_VIEW = 0x1;
     
     public static final int WIN_LEVEL = 0x2;
+    
+    public static final int MENU_ITEM_GOAL = 0x00;
+    
+    public static final int MENU_ITEM_LEVELS = 0x01;
+    
+    public static final int MENU_ITEM_USER_INFO = 0x02;
+    
+    public static final int MENU_ITEM_MAIN_MENU = 0x03;
+    
+    public static final int MENU_ITEM_QUIT = 0x04;
     
     private AtomicView view;
     
@@ -140,6 +150,79 @@ public class AtomicActivity extends Activity {
         
     }
     
+    /**
+     * Create the options menu.
+     * 
+     * @param   menu    the application menu to add options to
+     * 
+     * @return          whether to display the menu on Menu press
+     */
+    @Override
+    public boolean onCreateOptionsMenu( Menu menu ) {
+        // add the menu items!
+        MenuItem item = menu.add( Menu.NONE, MENU_ITEM_GOAL, Menu.NONE,
+                "Goal Molecule" );
+        item.setIcon( android.R.drawable.ic_menu_zoom );
+        
+        item = menu.add( Menu.NONE, MENU_ITEM_LEVELS, Menu.NONE, "Levels" );
+        item.setIcon( android.R.drawable.ic_menu_compass );
+        
+        item = menu.add( Menu.NONE, MENU_ITEM_USER_INFO, Menu.NONE,
+                "User Info" );
+        item.setIcon( android.R.drawable.ic_menu_info_details );
+        
+        item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
+                "Main Menu" );
+        item.setIcon( android.R.drawable.ic_menu_more );
+        
+        item = menu.add( Menu.NONE, MENU_ITEM_QUIT, Menu.NONE, "Quit" );
+        item.setIcon( android.R.drawable.ic_menu_close_clear_cancel );
+        
+        return true;
+    }
+    
+    @Override
+    public boolean onPrepareOptionsMenu( Menu menu ) {
+        // @todo nothing to do here, pretty sure...
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected( MenuItem item ) {
+        // switch on the selected menu item
+        switch ( item.getItemId() ) {
+            
+            case MENU_ITEM_GOAL: {
+                
+            } break;
+            
+            case MENU_ITEM_LEVELS: {
+                
+            } break;
+            
+            case MENU_ITEM_USER_INFO: {
+                
+            } break;
+            
+            case MENU_ITEM_MAIN_MENU: {
+                // go back to the main menu after saving
+                // @todo save here?
+                super.setResult( MenuActivity.GAME_RESULT_MAIN_MENU );
+                super.finish();
+            } break;
+            
+            case MENU_ITEM_QUIT: {
+                // quit the game entirely after saving
+                // @todo save here?
+                super.setResult( MenuActivity.GAME_RESULT_QUIT );
+                super.finish();
+            } break;
+            
+        }
+        
+        return true;
+    }
+    
     @Override
     public void onConfigurationChanged( Configuration conf ) {
         super.onConfigurationChanged( conf );
@@ -167,6 +250,10 @@ public class AtomicActivity extends Activity {
         // save the game state
         icicle.putSerializable( "game_state", gameState );
         
+        if ( db == null ) {
+            db = new AtomixDbAdapter( this ).open();
+        }
+        
         db.update( gameState.getUser() );
         db.update( gameState.getGame() );
     }
@@ -176,11 +263,16 @@ public class AtomicActivity extends Activity {
         super.onPause();
         Log.d( "DROID_ATOMIX", "onPause() called" );
         
+        if ( db == null ) {
+            db = new AtomixDbAdapter( this ).open();
+        }
+        
         db.update( gameState.getUser() );
         db.update( gameState.getGame() );
         
         // close the connection to the database
         db.close();
+        db = null;
     }
     
     @Override
