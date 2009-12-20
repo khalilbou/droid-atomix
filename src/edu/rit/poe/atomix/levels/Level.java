@@ -98,7 +98,6 @@ public class Level implements Serializable {
     private Square[][] goal;
     
     private Map<Short, Atom> atoms;
-    
     /**
      * Constructs a new <tt>Level</tt>.
      */
@@ -215,7 +214,6 @@ public class Level implements Serializable {
     public static final Level loadLevel( InputStream is )
             throws FileNotFoundException, LevelFileFormatException {
         Level level = new Level();
-        
         BufferedReader in = new BufferedReader( new InputStreamReader( is ) );
         
         String line = null;
@@ -360,10 +358,13 @@ public class Level implements Serializable {
                             char[] row = line.toCharArray();
                             
                             goalY++;
-                            for ( int x = 0; x < row.length; x++ ) {
+                            for ( int x = 0; x < ( level.goal[ goalY ].length );
+                                    x++ ) {
                                 Square sqr = null;
-                                
-                                if ( Character.isDigit( row[ x ] ) ) {
+                                if ( ( x >= row.length ) ||
+                                        ( row[ x ] == ' ' ) ) {
+                                    sqr = Square.EMPTY;
+                                } else if ( Character.isDigit( row[ x ] ) ) {
                                     short id = -1;
                                     try {
                                         id = Short.parseShort( "" + row[ x ] );
@@ -373,8 +374,6 @@ public class Level implements Serializable {
                                                 "Error setting goal " +
                                                 "configuration." );
                                     }
-                                } else if ( row[ x ] == ' ' ) {
-                                    sqr = Square.EMPTY;
                                 }
                                 
                                 level.goal[ goalY ][ x ] = sqr;
