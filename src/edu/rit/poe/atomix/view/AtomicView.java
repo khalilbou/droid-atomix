@@ -122,6 +122,8 @@ public class AtomicView extends View {
         /**
          * Returns <tt>true</tt> if this <tt>ScreenSize</tt> has an identical
          * size to the specified <tt>DisplayMetrics</tt>.
+         * <p>
+         * This method will text both portrait and landscape mode.
          * 
          * @param   dm  the <tt>DisplayMetrics</tt> to compare this screen to
          * 
@@ -129,8 +131,23 @@ public class AtomicView extends View {
          *              <tt>false</tt>
          */
         public boolean equals( DisplayMetrics dm ) {
-            return ( ( dm.widthPixels == this.width ) &&
-                    ( dm.heightPixels == this.height  ) );
+            return ( ( ( dm.widthPixels == this.width ) &&
+                    ( dm.heightPixels == this.height  ) ) ||
+                    ( ( dm.heightPixels == this.width ) &&
+                    ( dm.widthPixels == this.height  ) ) );
+        }
+        
+        /**
+         * Simple static methods to determine is the width is larger than the
+         * height, indicative of a landscape display mode.
+         * 
+         * @param   dm  the display metrics to check for landscape mode
+         * 
+         * @return      <tt>true</tt> if the display metrics are in landscape
+         *              mode, otherwise <tt>false</tt>
+         */
+        public static boolean isLandscape( DisplayMetrics dm ) {
+            return ( dm.widthPixels > dm.heightPixels );
         }
         
     } // ScreenSize
@@ -224,7 +241,7 @@ public class AtomicView extends View {
         } else {
             Log.d( "DROID_ATOMIX", "Resorting to HTC Dream display size." );
             
-            size = 28;
+            size = 29;
             offsetX = 1;
             offsetY = 2;
         }
@@ -360,16 +377,26 @@ public class AtomicView extends View {
         
         canvas.restore();
         
+        // === draw the solution ===
+        
+        // where are we translating to?
         int t = SQUARE_AREA * size;
+        int solutionOffsetX = 0;
+        int solutionOffsetY = t;
         int solutionPanelWidth = super.getWidth() - 2;
         int solutionPanelHeight = super.getHeight() - t - 2;
-        canvas.translate( 0, t );
+        // if we're landscape, the goal is off to the side
+        if ( ScreenSize.isLandscape( dm ) ) {
+            solutionOffsetX = t;
+            solutionOffsetY = 2;
+            solutionPanelWidth = super.getWidth() - t - 2;
+            solutionPanelHeight = super.getHeight() - 3;
+        }
+        canvas.translate( solutionOffsetX, solutionOffsetY );
         
         // set black background for solution area
         p.setColor( Color.BLACK );
         canvas.drawRect( 1, 0, solutionPanelWidth, solutionPanelHeight, p );
-        
-        // === draw the solution ===
         
         // if we can support normal-sized squares, do so, otherwise scale
         Square[][] goal = gameState.getGoal();
