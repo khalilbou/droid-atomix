@@ -32,6 +32,7 @@ package edu.rit.poe.atomix;
 
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -102,14 +103,19 @@ public class AtomicActivity extends Activity {
         super.onCreate( icicle );
         Log.d( "DROID_ATOMIX", "AtomixActivity.onCreate() was called." );
         
-        // @todo allow holding the phone horizontally?
-        //super.setRequestedOrientation(
-        //        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
+        // if phone is landscape, make fullscreen!!!
+        Resources resources = super.getResources();
+        Configuration conf = resources.getConfiguration();
+        if ( conf.orientation == Configuration.ORIENTATION_LANDSCAPE ) {
+            this.getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
+        }
         
         // remove the titlebar (it's not needed)
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
         
-        // create the database
+        // create the database connector
         db = new AtomixDbAdapter( this );
         db.open();
         
@@ -236,9 +242,8 @@ public class AtomicActivity extends Activity {
                     WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                     WindowManager.LayoutParams.FLAG_FULLSCREEN );
         } else {
-            this.getWindow().setFlags(
-                    WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, 
-                    WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN );
+            this.getWindow().clearFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
         }
     }
     
