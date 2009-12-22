@@ -53,7 +53,7 @@ public class User implements Serializable {
     
     private String username;
     
-    private Game savedGame;
+    private Game currentGame;
     
     /**
      * Constructs a new <tt>User</tt>.
@@ -69,12 +69,12 @@ public class User implements Serializable {
         this.id = id;
     }
 
-    public Game getSavedGame() {
-        return savedGame;
+    public Game getCurrentGame() {
+        return currentGame;
     }
 
-    public void setSavedGame( Game savedGame ) {
-        this.savedGame = savedGame;
+    public void setCurrentGame( Game currentGame ) {
+        this.currentGame = currentGame;
     }
 
     public String getUsername() {
