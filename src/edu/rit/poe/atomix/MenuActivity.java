@@ -306,7 +306,8 @@ public class MenuActivity extends Activity {
             blankNameMessage = Toast.makeText( this, "Name cannot be blank",
                     Toast.LENGTH_LONG );
             
-            View view = layoutInflater.inflate( R.layout.game_dialog, null );
+            final View view =
+                    layoutInflater.inflate( R.layout.game_dialog, null );
             
             AlertDialog.Builder ad = new AlertDialog.Builder( this );
             ad.setTitle( "Start A New Game" );
@@ -316,7 +317,7 @@ public class MenuActivity extends Activity {
             // set the start game button
             Button startGame = ( Button )view.findViewById( R.id.play_button );
             startGame.setOnClickListener( new View.OnClickListener() {
-                public void onClick( View view ) {
+                public void onClick( View v ) {
                     // check to ensure that the name isn't blank
                     EditText newName =
                             ( EditText )view.findViewById( R.id.new_name );
