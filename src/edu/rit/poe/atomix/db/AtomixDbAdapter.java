@@ -37,13 +37,12 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
-import android.util.Log;
 import edu.rit.poe.atomix.util.Point;
 import java.util.Calendar;
 import java.util.Map;
 
 /**
- * 
+ * The Atomix database adapter.
  * 
  * @author  Peter O. Erickson
  * 
@@ -121,7 +120,7 @@ public class AtomixDbAdapter {
         values.put( User.USERNAME_KEY, user.getUsername() );
         
         // only save the game ID if it's valid
-        Game game = user.getSavedGame();
+        Game game = user.getCurrentGame();
         if ( ( game != null ) && ( game.getId() != -1 ) ) {
             values.put( User.SAVED_GAME_ID_KEY, game.getId() );
         }
@@ -239,9 +238,6 @@ public class AtomixDbAdapter {
             values.put( Game.ATOM_X_KEY, atom.getValue().x );
             values.put( Game.ATOM_Y_KEY, atom.getValue().y );
             
-            Log.d( "DATABASE", "Atom being saved: " + atom.getValue().x + ", "
-                    + atom.getValue().y );
-            
             where = Game.ATOM_GAME_ID_KEY + "=" + game.getId() + " AND "
                     + Game.ATOM_MARKER_KEY + "=" + atom.getKey();
             if ( database.update(
@@ -275,16 +271,11 @@ public class AtomixDbAdapter {
         Cursor gameCursor = null;
         where = Game.ID_KEY + "=" + cursor.getLong(
                 cursor.getColumnIndex( User.SAVED_GAME_ID_KEY ) );
-        Log.d( "DATABASE", "Query game: " + where );
-        gameCursor = database.query( GAME_TABLE_NAME,
-                new String[] { Game.ID_KEY, Game.CREATED_KEY, Game.SAVED_KEY,
-                Game.LEVEL_KEY, Game.MOVES_KEY, Game.SECONDS_KEY,
-                Game.FINISHED_KEY }, where, null, null, null, null );
+        gameCursor = getGames( user );
         
         // if we don't have any elements, set the game to null
         if ( gameCursor.getCount() > 0 ) {
             gameCursor.moveToNext();
-            Log.d( "DATABASE", "We found the game!" );
             
             // create a new game and populate it
             Game game = new Game();
@@ -341,11 +332,11 @@ public class AtomixDbAdapter {
                 assert false;
             }
             // set the game
-            user.setSavedGame( game );
+            user.setCurrentGame( game );
             
             atomCursor.close();
         } else {
-            user.setSavedGame( null );
+            user.setCurrentGame( null );
         }
         
         // close everything you open!
@@ -353,6 +344,26 @@ public class AtomixDbAdapter {
         cursor.close();
         
         return user;
+    }
+    
+    public Cursor getGames( User user ) {
+        return getGames( user.getId() );
+    }
+    
+    public Cursor getGames( long userId ) {
+        return getGames( Game.USER_ID_KEY + "=" + userId );
+    }
+    
+    public Cursor getFinishedGames( long userId ) {
+        return getGames( Game.USER_ID_KEY + "=" + userId + " AND "
+                + Game.FINISHED_KEY + "=" + 1 );
+    }
+    
+    private Cursor getGames( String where ) {
+        return database.query( GAME_TABLE_NAME, new String[] { Game.ID_KEY,
+                Game.CREATED_KEY, Game.SAVED_KEY, Game.LEVEL_KEY,
+                Game.MOVES_KEY, Game.SECONDS_KEY, Game.FINISHED_KEY }, where,
+                null, null, null, null );
     }
     
     public Cursor getSavedUsers() {
@@ -366,15 +377,33 @@ public class AtomixDbAdapter {
         return database.rawQuery( sql, null );
     }
     
-    // @todo load all saved finished games for a user
-    
-    // @todo delete a user and all associated saved games
-    
-    /*
-    public boolean deleteNote(long rowId) {
-        return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
+    public void deleteUser( long userId ) {
+        // delete the user first
+        String where = User.ID_KEY + "=" + userId;
+        database.delete( USER_TABLE_NAME, where, null );
+        
+        // delete all games and atoms
+        Cursor games = getGames( userId );
+        
+        for ( int i = 0; i < games.getCount(); i++ ) {
+            games.moveToNext();
+            
+            // get the game ID
+            long gameId = games.getLong( games.getColumnIndex( Game.ID_KEY ) );
+            
+            // delete the game
+            where = Game.ID_KEY + "=" + gameId;
+            database.delete( GAME_TABLE_NAME, where, null );
+            
+            // delete all associated atoms (if any)
+            deleteAtoms( gameId );
+        }
     }
-    */
+    
+    public void deleteAtoms( long gameId ) {
+        String where = Game.ATOM_GAME_ID_KEY + "=" + gameId;
+        database.delete( ATOM_TABLE_NAME, where, null );
+    }
     
     /**
      * 

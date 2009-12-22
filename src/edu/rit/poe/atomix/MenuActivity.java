@@ -32,9 +32,9 @@ package edu.rit.poe.atomix;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
@@ -43,12 +43,16 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
@@ -60,30 +64,38 @@ import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.levels.LevelManager;
 
 /**
- *
+ * The Main Menu activity of the Atomix game.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
 public class MenuActivity extends Activity {
     
-    public static final int GAME_REQUEST_CODE = 0x00;
+    public static final String LOG_TAG = "MENU_ACTIVITY";
     
-    public static final int GAME_RESULT_QUIT = 0x01;
+    /** The subactivity request code. */
+    public static final int GAME_REQUEST_CODE = 0x0;
     
+    /** The subactivity result code for quitting the application. */
+    public static final int GAME_RESULT_QUIT = 0x1;
+    
+    /** The subactivity result code for returning to the main menu. */
     public static final int GAME_RESULT_MAIN_MENU = 0x42;
     
-    /**  */
+    private static final int NEW_USER_DIALOG = 0x0;
+    
+    private static final int CONTINUE_DIALOG = 0x1;
+    
+    private static final int CONTEXT_MENU_DELETE = 0x0;
+    
+    /** The activity's database adapter. */
     private AtomixDbAdapter db;
     
-    /**  */
-    private AlertDialog newGameDialog;
-    
-    private AlertDialog continueGameDialog;
-    
-    private EditText newName;
-    
+    /** The error message for a blank name in the new game dialog. */
     private Toast blankNameMessage;
+    
+    private ListAdapter continueListAdapter;
     
     /**
      * Called when the activity is first created.  This method initializes home
@@ -93,10 +105,9 @@ public class MenuActivity extends Activity {
      * @param   icicle  the bundle of saved state information
      */
     @Override
-    public void onCreate( final Bundle icicle ) {
+    public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
-        
-        Log.d( "MenuActivity", "onCreate() called." );
+        Log.d( LOG_TAG, "onCreate()" );
         
         //super.setRequestedOrientation(
         //        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
@@ -118,52 +129,42 @@ public class MenuActivity extends Activity {
         lm.init( this );
         
         // load the game database
-        try {
-            db = new AtomixDbAdapter( this );
-            db.open();
-        } catch ( SQLException e ) {
-            Log.e( "DROID_ATOMIX", "Error loading game database: "
-                    + Log.getStackTraceString( e ) );
-        }
+        db = new AtomixDbAdapter( this );
+        db.open();
         
         // load all saved users/games
-        final Cursor saved = db.getSavedUsers();
-        super.startManagingCursor( saved );
+        final Cursor savedUsers = db.getSavedUsers();
+        super.startManagingCursor( savedUsers );
         
-        Log.d( "DROID_ATOMIX", "Saved games: " + saved.getCount() );
+        Log.d( LOG_TAG, "Saved games: " + savedUsers.getCount() );
         
         // setup the Continue button
         LinearLayout menu =
                 ( LinearLayout )findViewById( R.id.main_button_list );
         Button resume = ( Button )findViewById( R.id.continue_button );
-        if ( saved.getCount() > 0 ) {
-            Log.d( "DROID_ATOMIX", "Display CONTINUE button." );
-            
-            // create the dialog that lists games to be continued
-            if ( continueGameDialog == null ) {
-                createContinueDialog( saved );
-            }
+        if ( savedUsers.getCount() > 0 ) {
+            Log.d( LOG_TAG, "Display CONTINUE button." );
             
             // setup button callbacks
             resume.setOnClickListener( new View.OnClickListener() {
                 public void onClick( View view ) {
                     
                     // if there's only one game, start it!
-                    if ( saved.getCount() == 1 ) {
+                    if ( savedUsers.getCount() == 1 ) {
                         // start the one previously saved game
                         
                         // get the only user id
-                        saved.moveToFirst();
-                        long userId = saved.getLong(
-                                saved.getColumnIndex( "_id" ) );
+                        savedUsers.moveToFirst();
+                        long userId = savedUsers.getLong(
+                                savedUsers.getColumnIndex( "_id" ) );
                         
                         // query the selected user and load the saved game state
                         User user = db.getUser( userId );
                         
-                        startGame( user, user.getSavedGame() );
+                        startGame( user );
                     } else {
                         // show the continue game dialog to choose which game
-                        continueGameDialog.show();
+                        MenuActivity.this.showDialog( CONTINUE_DIALOG );
                     }
                 }
             } );
@@ -175,16 +176,10 @@ public class MenuActivity extends Activity {
         // setup the new game button
         Button newGame = ( Button )findViewById( R.id.new_game_button );
         // create the dialog to enter a name for a new game
-        if ( newGameDialog == null ) {
-            createNewGameDialog();
-        }
         newGame.setOnClickListener( new View.OnClickListener() {
             public void onClick( View view ) {
                 // show the new name dialog
-                if ( newName != null ) {
-                    newName.setText( "" );
-                }
-                newGameDialog.show();
+                MenuActivity.this.showDialog( NEW_USER_DIALOG );
             }
         } );
         
@@ -209,12 +204,72 @@ public class MenuActivity extends Activity {
         
     }
     
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d( LOG_TAG, "onStart()" );
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d( LOG_TAG, "onResume()" );
+        
+        // connect to the database here
+        if ( db == null ) {
+            db = new AtomixDbAdapter( this );
+            db.open();
+        }
+    }
+    
+     @Override
+    public void onPause() {
+        super.onPause();
+        Log.d( LOG_TAG, "onPause()" );
+        
+        // close the connection to the database
+        db.close();
+        db = null;
+        
+        try {
+            this.dismissDialog( NEW_USER_DIALOG );
+        } catch ( Exception e ) {
+            // ignore!
+        }
+        
+        try {
+            this.dismissDialog( CONTINUE_DIALOG );
+        } catch ( Exception e ) {
+            // ignore!
+        }
+    }
+    
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d( LOG_TAG, "onStop()" );
+    }
+    
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        Log.d( LOG_TAG, "onRestart()" );
+    }
+    
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d( LOG_TAG, "DroidAtomix is now closing." );
+    }
+    
     /**
      * Starts the DroidAtomix game!
+     * 
+     * @param   user    the user that this game will be run under
      */
-    private void startGame( User user, Game game ) {
+    private void startGame( User user ) {
         // create the intent for the game
-        GameState gameState = new GameState( user, game );
+        GameState gameState = new GameState( user, user.getCurrentGame() );
         Intent intent = new Intent( this, AtomicActivity.class );
         Bundle extras = new Bundle();
         extras.putSerializable( "game_state", gameState );
@@ -231,175 +286,154 @@ public class MenuActivity extends Activity {
             if ( resultCode == GAME_RESULT_MAIN_MENU ) {
                 // keep the main menu activity running
                 
-                // restore the continue menu with new values
-                db = new AtomixDbAdapter( this ).open();
-                final Cursor saved = db.getSavedUsers();
-                super.startManagingCursor( saved );
-                createContinueDialog( saved );
-                
-                
             } else {
+                // end everything!
                 MenuActivity.super.finish();
             }
         }
     }
     
-    private void createNewGameDialog() {
-        blankNameMessage = Toast.makeText( this, "Name cannot be blank",
-                Toast.LENGTH_LONG );
+    // ==== Dialog Methods ====
+    
+    @Override
+    protected Dialog onCreateDialog( int id ) {
+        Dialog dialog = null;
         
-        LayoutInflater layoutInflator = LayoutInflater.from( this );
-        View view = layoutInflator.inflate( R.layout.game_dialog, null );
-        
-        AlertDialog.Builder ad = new AlertDialog.Builder( this );
-        ad.setTitle( "Start A New Game" );
-        ad.setView( view );
-        ad.setIcon( android.R.drawable.ic_menu_more );
-        
-        newName = ( EditText )view.findViewById( R.id.new_name );
-        
-        // set the start game button
-        Button startGame = ( Button )view.findViewById( R.id.play_button );
-        startGame.setOnClickListener( new View.OnClickListener() {
-            public void onClick( View view ) {
-                // check to ensure that the name isn't blank
-                if ( newName.getText().toString().equals( "" ) ) {
-                    blankNameMessage.show();
-                } else {
-                    // create a new user
-                    String username = newName.getText().toString();
-                    User user = GameController.newUser( username );
-                    
-                    // create a new game and set it to active
-                    Game game = GameController.newLevel( user,
-                            LevelManager.FIRST_LEVEL );
-                    user.setSavedGame( game );
-                    
-                    // save the game for the first time
-                    db.insert( user );
-                    db.insert( game );
-                    db.update( user );
-                    
-                    // start playing!
-                    startGame( user, game );
+        LayoutInflater layoutInflater = LayoutInflater.from( this );
+        if ( id == NEW_USER_DIALOG ) {
+            // CREATE THE NEW USER DIALOG
+            
+            blankNameMessage = Toast.makeText( this, "Name cannot be blank",
+                    Toast.LENGTH_LONG );
+            
+            View view = layoutInflater.inflate( R.layout.game_dialog, null );
+            
+            AlertDialog.Builder ad = new AlertDialog.Builder( this );
+            ad.setTitle( "Start A New Game" );
+            ad.setView( view );
+            //ad.setIcon( android.R.drawable.ic_menu_more );
+            
+            // set the start game button
+            Button startGame = ( Button )view.findViewById( R.id.play_button );
+            startGame.setOnClickListener( new View.OnClickListener() {
+                public void onClick( View view ) {
+                    // check to ensure that the name isn't blank
+                    EditText newName =
+                            ( EditText )view.findViewById( R.id.new_name );
+                    if ( newName.getText().toString().equals( "" ) ) {
+                        blankNameMessage.show();
+                    } else {
+                        // create a new user
+                        String username = newName.getText().toString();
+                        User user = GameController.newUser( username );
+                        
+                        // create a new game and set it to active
+                        Game game = GameController.newLevel( user,
+                                LevelManager.FIRST_LEVEL );
+                        user.setCurrentGame( game );
+                        
+                        // save the game for the first time
+                        db.insert( user );
+                        db.insert( game );
+                        db.update( user );
+                        
+                        // start playing!
+                        startGame( user );
+                    }
                 }
-            }
-        } );
-        
-        newGameDialog = ad.create();
-    }
-    
-    private void createContinueDialog( Cursor savedUsers ) {
-        final LayoutInflater layoutInflater = LayoutInflater.from( this );
-        View view = layoutInflater.inflate( R.layout.continue_dialog, null );
-        
-        AlertDialog.Builder ad = new AlertDialog.Builder( this );
-        ad.setTitle( "Continue a Saved Game" );
-        ad.setView( view );
-        ad.setIcon( android.R.drawable.ic_menu_more );
-        
-        ListView savedList =
-                ( ListView )view.findViewById( R.id.saved_games_list );
-        String[] from = new String[]{ User.USERNAME_KEY, Game.SAVED_KEY };
-        int[] to = new int[]{ android.R.id.text1, android.R.id.text2 };
-        
-        SimpleCursorAdapter adapter = new SimpleCursorAdapter( this,
-                android.R.layout.simple_list_item_2, savedUsers, from, to );
-        savedList.setAdapter( adapter );
-        
-        savedList.setOnCreateContextMenuListener(
-                new View.OnCreateContextMenuListener() {
-            public void onCreateContextMenu( ContextMenu menu, View view,
-                    ContextMenuInfo menuInfo ) {
-                menu.setHeaderTitle( "Edit Saved Game" );
-                
-                //@todo delete game?
-            }
-        } );
-        
-        savedList.setOnItemClickListener(
-                new AdapterView.OnItemClickListener() {
-            public void onItemClick( AdapterView<?> parent, View view,
-                    int position, long id ) {
-                
-                // query the selected user and load the saved game state
-                User user = db.getUser( id );
-                
-                // close this dialog
-                continueGameDialog.dismiss();
-                
-                // start the selected game!
-                startGame( user, user.getSavedGame() );
-            }
-        } );
-        
-        continueGameDialog = ad.create();
-    }
-    
-    @Override
-    protected void onSaveInstanceState( Bundle icicle ) {
-        super.onSaveInstanceState( icicle );
-        Log.d( "DROID_ATOMIX", "onSaveInstanceState() called." );
-        
-        Bundle dialogBundle = newGameDialog.onSaveInstanceState();
-        icicle.putBundle( "new-game-dialog", dialogBundle );
-        
-        Bundle continueBundle = continueGameDialog.onSaveInstanceState();
-        icicle.putBundle( "continue-dialog", continueBundle );
-    }
-    
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d( "DROID_ATOMIX", "onPause() called." );
-        
-        // close the connection to the database
-        if ( db != null ) {
-            db.close();
-            db = null;
+            } );
+            
+            dialog = ad.create();
+            
+        } else if ( id == CONTINUE_DIALOG ) {
+            // CREATE THE CONTINUE GAME DIALOG
+            View view =
+                    layoutInflater.inflate( R.layout.continue_dialog, null );
+            
+            AlertDialog.Builder ad = new AlertDialog.Builder( this );
+            ad.setTitle( "Continue a Saved Game" );
+            ad.setView( view );
+            ad.setIcon( android.R.drawable.ic_menu_more );
+            
+            ListView savedList =
+                    ( ListView )view.findViewById( R.id.saved_games_list );
+            savedList.setOnCreateContextMenuListener(
+                    new View.OnCreateContextMenuListener() {
+                public void onCreateContextMenu( ContextMenu menu, View view,
+                        ContextMenuInfo menuInfo ) {
+                    menu.setHeaderTitle( "Edit Saved Game" );
+                    
+                    MenuItem item = menu.add( Menu.NONE, CONTEXT_MENU_DELETE,
+                            Menu.NONE, "Delete this user" );
+                    
+                    item.setOnMenuItemClickListener(
+                            new MenuItem.OnMenuItemClickListener() {
+                        public boolean onMenuItemClick( MenuItem item ) {
+                            Log.d( LOG_TAG, "CLICKED" );
+                            AdapterContextMenuInfo info =
+                                    ( AdapterContextMenuInfo )
+                                    item.getMenuInfo();
+                            long id = continueListAdapter.getItemId(
+                                    info.position );
+                            
+                            db.deleteUser( id );
+                            
+                            Toast toast = Toast.makeText( MenuActivity.this,
+                                    "User deleted",
+                                    Toast.LENGTH_LONG );
+                            toast.show();
+                            
+                            MenuActivity.this.showDialog( CONTINUE_DIALOG );
+                            
+                            return true;
+                        }
+                    } );
+                    
+                    //@todo delete game?
+                }
+            } );
+            savedList.setOnItemClickListener(
+                    new AdapterView.OnItemClickListener() {
+                public void onItemClick( AdapterView<?> parent, View view,
+                        int position, long id ) {
+                    
+                    // query the selected user and load the saved game state
+                    User user = db.getUser( id );
+                    
+                    // start the selected game!
+                    startGame( user );
+                }
+            } );
+            
+            dialog = ad.create();
+        } else {
+            // nothing?
         }
         
-        if ( newGameDialog.isShowing() ) {
-            newGameDialog.dismiss();
-        }
-        
-        if ( continueGameDialog.isShowing() ) {
-            continueGameDialog.dismiss();
-        }
+        return dialog;
     }
     
     @Override
-    public void onStop() {
-        super.onStop();
+    protected void onPrepareDialog( int id, Dialog dialog ) {
+        super.onPrepareDialog( id, dialog );
         
-        // close the connection to the database
-        if ( db != null ) {
-            db.close();
-            db = null;
-        }
+        if ( id == NEW_USER_DIALOG ) {
+            // clear the new name field
+            EditText newName = ( EditText )dialog.findViewById( R.id.new_name );
+            newName.setText( "" );
         
-        if ( newGameDialog.isShowing() ) {
-            newGameDialog.dismiss();
-        }
-        
-        if ( continueGameDialog.isShowing() ) {
-            continueGameDialog.dismiss();
-        }
-    }
-    
-    @Override
-    protected void onRestoreInstanceState( Bundle icicle ) {
-        super.onRestoreInstanceState( icicle );
-        Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called." );
-        
-        Bundle dialogBundle = icicle.getBundle( "new-game-dialog" );
-        if ( dialogBundle != null ) {
-            newGameDialog.onRestoreInstanceState( dialogBundle );
-        }
-        
-        Bundle continueBundle = icicle.getBundle( "continue-dialog" );
-        if ( continueBundle != null ) {
-            continueGameDialog.onRestoreInstanceState( continueBundle );
+        } else if ( id == CONTINUE_DIALOG ) {
+            String[] from = new String[]{ User.USERNAME_KEY, Game.SAVED_KEY };
+            int[] to = new int[]{ android.R.id.text1, android.R.id.text2 };
+            
+            ListView savedList =
+                    ( ListView )dialog.findViewById( R.id.saved_games_list );
+            
+            Cursor savedUsers = db.getSavedUsers();
+            super.startManagingCursor( savedUsers );
+            continueListAdapter = new SimpleCursorAdapter( this,
+                    android.R.layout.simple_list_item_2, savedUsers, from, to );
+            savedList.setAdapter( continueListAdapter );
         }
     }
     
