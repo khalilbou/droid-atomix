@@ -31,6 +31,7 @@
 package edu.rit.poe.atomix;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -203,6 +204,8 @@ public class AtomicActivity extends Activity {
             } break;
             
             case MENU_ITEM_LEVELS: {
+                Intent i = new Intent( this, LevelListActivity.class );
+                super.startActivity( i );
                 
             } break;
             

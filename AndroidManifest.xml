@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
      package="edu.rit.poe.atomix" android:versionCode="1"
      android:versionName="1.0.0">
-    <application>
-         <activity android:name=".MenuActivity" android:label="DroidAtomix"
-                android:icon="@drawable/atomix_icon"
+    <application android:icon="@drawable/atomix_icon"
+            android:label="DroidAtomix">
+         <activity android:name=".MenuActivity"
                 android:configChanges="orientation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -13,6 +13,7 @@
         </activity>
          <activity android:name=".AtomicActivity"
                 android:configChanges="orientation"/>
+         <activity android:name=".LevelListActivity"/>
     </application>
     <supports-screen android:smallScreens="false" android:normalScreens="true"
             android:largeScreens="true" android:anyDensity="true"/>
