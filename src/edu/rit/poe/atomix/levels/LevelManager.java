@@ -32,6 +32,8 @@ package edu.rit.poe.atomix.levels;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.util.Log;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -103,6 +105,24 @@ public class LevelManager {
                     "Level " + levelNumber + " does not exist." );
         }
         return level;
+    }
+    
+    public Cursor getLevels() {
+        MatrixCursor cursor =
+                new MatrixCursor( new String[] { "_id", "level", "name" } );
+        
+        for ( Map.Entry<Integer, Level> entry : levelMap.entrySet() ) {
+            int level = entry.getKey();
+            
+            Object[] row = new Object[ 3 ];
+            row[ 0 ] = level;
+            row[ 1 ] = "Level " + level;
+            row[ 2 ] = entry.getValue().getName();
+            
+            cursor.addRow( row );
+        }
+        
+        return cursor;
     }
     
 } // LevelManager
