@@ -122,7 +122,8 @@ public class AtomicActivity extends Activity {
         
         // get the "extras" bundle with the GameState
         Bundle extras = super.getIntent().getExtras();
-        gameState = ( GameState )extras.getSerializable( "game_state" );
+        gameState =
+                ( GameState )extras.getSerializable( GameState.GAME_STATE_KEY );
         
         view = new AtomicView( this, gameState );
         super.setContentView( view );
@@ -205,6 +206,9 @@ public class AtomicActivity extends Activity {
             
             case MENU_ITEM_LEVELS: {
                 Intent i = new Intent( this, LevelListActivity.class );
+                Bundle extras = new Bundle();
+                extras.putSerializable( GameState.GAME_STATE_KEY, gameState );
+                i.putExtras( extras );
                 super.startActivity( i );
                 
             } break;
@@ -256,7 +260,7 @@ public class AtomicActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onSaveInstanceState() called" );
         
         // save the game state
-        icicle.putSerializable( "game_state", gameState );
+        icicle.putSerializable( GameState.GAME_STATE_KEY, gameState );
         
         if ( db == null ) {
             db = new AtomixDbAdapter( this ).open();
@@ -298,7 +302,8 @@ public class AtomicActivity extends Activity {
         Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called" );
         
         // restore game state
-        gameState = ( GameState )icicle.getSerializable( "game_state" );
+        gameState =
+                ( GameState )icicle.getSerializable( GameState.GAME_STATE_KEY );
     }
     
 } // AtomicActivity

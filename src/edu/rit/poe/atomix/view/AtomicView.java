@@ -377,99 +377,37 @@ public class AtomicView extends View {
         
         canvas.restore();
         
-        // === draw the solution ===
+        // === draw the solution panel ===
         
         // where are we translating to?
         int t = SQUARE_AREA * size;
         int solutionOffsetX = 0;
         int solutionOffsetY = t;
-        int solutionPanelWidth = super.getWidth() - 2;
-        int solutionPanelHeight = super.getHeight() - t - 2;
+        int solutionWidth = super.getWidth() - 2;
+        int solutionHeight = super.getHeight() - t - 2;
         // if we're landscape, the goal is off to the side
         if ( ScreenSize.isLandscape( dm ) ) {
             solutionOffsetX = t;
             solutionOffsetY = 2;
-            solutionPanelWidth = super.getWidth() - t - 2;
-            solutionPanelHeight = super.getHeight() - 3;
+            solutionWidth = super.getWidth() - t - 2;
+            solutionHeight = super.getHeight() - 3;
         }
         canvas.translate( solutionOffsetX, solutionOffsetY );
         
         // set black background for solution area
         p.setColor( Color.BLACK );
-        canvas.drawRect( 1, 0, solutionPanelWidth, solutionPanelHeight, p );
+        canvas.drawRect( 1, 0, solutionWidth, solutionHeight, p );
         
         // if we can support normal-sized squares, do so, otherwise scale
         Square[][] goal = gameState.getGoal();
-        int goalSize = size;
-        int xNeeded = goal[ 0 ].length * size;
-        int yNeeded = goal.length * size;
-        int goalOffsetX = 0;
-        int goalOffsetY = 0;
         
-        // scale the goal size, if necessary
-        if ( xNeeded > solutionPanelWidth ) {
-            goalSize /= ( xNeeded / solutionPanelWidth );
-        } else {
-            goalOffsetX = ( solutionPanelWidth - xNeeded ) / 2;
-        }
-        if ( yNeeded > solutionPanelHeight ) {
-            goalSize /= ( yNeeded / solutionPanelHeight );
-        } else {
-            goalOffsetY = ( solutionPanelHeight - yNeeded ) / 2;
-        }
+        // draw the actual goal
+        drawSolution( canvas, goal, size, solutionWidth, solutionHeight );
         
-        // draw the level and the molecule
-        p.setTypeface( Typeface.DEFAULT_BOLD );
-        Rect bounds = new Rect();
-        p.setColor( Color.WHITE );
-        String str = "Level " + gameState.getLevel() + " - "
-                + gameState.getMoleculeName();
-        p.getTextBounds( str, 0, 1, bounds );
-        int tx = 5;
-        int ty = bounds.height() + 5;
-        canvas.drawText( str, tx, ty, p );
-        
-        String formula = gameState.getFormula();
-        int mx = solutionPanelWidth - 5;
-        for ( int i = ( formula.length() - 1 ); i >= 0; i-- ) {
-            char c = formula.charAt( i );
-            
-            p.getTextBounds( new char[]{ c }, 0, 1, bounds );
-            mx -= bounds.width();
-            
-            int y = ty;
-            if ( ( i != 0 ) && ( formula.charAt( i - 1 ) == '_' ) ) {
-                y += 5;
-                i--; // increment over the _ element
-            }
-            canvas.drawText( Character.toString( c ), mx, y, p );
-            mx -= 3;
-        }
-        
-        // draw the goal
-        canvas.translate( goalOffsetX, goalOffsetY );
-        
-        // move into first position
-        canvas.translate( ( goalSize / 2 ), ( goalSize / 2 ) );
-        
-        for ( int i = 0; i < goal.length; i++ ) {
-            canvas.save();
-            for ( int j = 0; j < goal[ 0 ].length; j++ ) {
-                if ( goal[ i ][ j ] instanceof Atom ) {
-                    Atom atom = ( Atom )goal[ i ][ j ];
-                    
-                    // draw the atom to the board
-                    drawAtom( canvas, atom, ( goalSize / 2 ), true );
-                }
-                
-                // move right one square
-                canvas.translate( goalSize, 0 );
-            }
-            canvas.restore();
-            
-            // move down one square
-            canvas.translate( 0, goalSize );
-        }
+        // draw the strings
+        drawSolutionInfo( canvas, gameState.getLevel(),
+                gameState.getMoleculeName(), gameState.getFormula(),
+                solutionWidth, solutionHeight );
     }
     
     private static void drawAtom( Canvas canvas, Atom atom, int r,
@@ -560,6 +498,88 @@ public class AtomicView extends View {
         int ty = 0 + ( bounds.height() / 2 );
         p.setColor( Color.WHITE );
         canvas.drawText( Character.toString( atom.getElement() ), tx, ty, p );
+    }
+    
+    public static void drawSolution( Canvas canvas, Square[][] goal,
+            int size, int w, int h ) {
+        int goalSize = size;
+        int xNeeded = goal[ 0 ].length * size;
+        int yNeeded = goal.length * size;
+        int goalOffsetX = 0;
+        int goalOffsetY = 0;
+        
+        // scale the goal size, if necessary
+        if ( xNeeded > w ) {
+            goalSize /= ( xNeeded / w );
+        } else {
+            goalOffsetX = ( w - xNeeded ) / 2;
+        }
+        if ( yNeeded > h ) {
+            goalSize /= ( yNeeded / h );
+        } else {
+            goalOffsetY = ( h - yNeeded ) / 2;
+        }
+        
+        // draw the goal
+        canvas.save();
+        canvas.translate( goalOffsetX, goalOffsetY );
+        
+        // move into first position
+        canvas.translate( ( goalSize / 2 ), ( goalSize / 2 ) );
+        
+        for ( int i = 0; i < goal.length; i++ ) {
+            canvas.save();
+            for ( int j = 0; j < goal[ 0 ].length; j++ ) {
+                if ( goal[ i ][ j ] instanceof Atom ) {
+                    Atom atom = ( Atom )goal[ i ][ j ];
+                    
+                    // draw the atom to the board
+                    drawAtom( canvas, atom, ( goalSize / 2 ), true );
+                }
+                
+                // move right one square
+                canvas.translate( goalSize, 0 );
+            }
+            canvas.restore();
+            
+            // move down one square
+            canvas.translate( 0, goalSize );
+        }
+        
+        canvas.restore();
+    }
+    
+    private static void drawSolutionInfo( Canvas canvas, int level, String name,
+            String formula, int w, int h ) {
+        Log.d( "Goal area", "w: " + w + " h: " + h );
+        // draw the level and the molecule
+        Paint p = new Paint();
+        p.setTypeface( Typeface.DEFAULT_BOLD );
+        p.setColor( Color.WHITE );
+        
+        Rect bounds = new Rect();
+        String str = "Level " + level + " - " + name;
+        p.getTextBounds( str, 0, 1, bounds );
+        int tx = 5;
+        int ty = bounds.height() + 5;
+        canvas.drawText( str, tx, ty, p );
+        
+        ty += ( h - 25 );
+        int mx = w - 5;
+        for ( int i = ( formula.length() - 1 ); i >= 0; i-- ) {
+            char c = formula.charAt( i );
+            
+            p.getTextBounds( new char[]{ c }, 0, 1, bounds );
+            mx -= bounds.width();
+            
+            int y = ty;
+            if ( ( i != 0 ) && ( formula.charAt( i - 1 ) == '_' ) ) {
+                y += 5;
+                i--; // increment over the _ element
+            }
+            canvas.drawText( Character.toString( c ), mx, y, p );
+            mx -= 3;
+        }
     }
     
     /**
