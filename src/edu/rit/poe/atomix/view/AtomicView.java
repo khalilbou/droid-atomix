@@ -410,6 +410,16 @@ public class AtomicView extends View {
                 solutionWidth, solutionHeight );
     }
     
+    /**
+     * Draws the specified atom onto the canvas with its respective connectors.
+     * <p>
+     * The canvas should be translated to the center-point of the atom.
+     * 
+     * @param   canvas  the canvas to be drawn to
+     * @param   atom    the atom to be drawn
+     * @param   r       the radius of the square to draw the atom inside
+     * @param   goal    whether this is a goal drawing
+     */
     private static void drawAtom( Canvas canvas, Atom atom, int r,
             boolean goal ) {
         Paint p = new Paint();
@@ -455,6 +465,8 @@ public class AtomicView extends View {
             }
             p.setColor( connColor );
             
+            // current only supports lines for G1-sized devices
+            // @todo Droid connector support?
             if ( c.getBond() == Connector.Bond.SINGLE ) {
                 if ( cardinal ) {
                     canvas.drawLine( 1, 0, 1, -len, p );
@@ -500,6 +512,19 @@ public class AtomicView extends View {
         canvas.drawText( Character.toString( atom.getElement() ), tx, ty, p );
     }
     
+    /**
+     * Draws the specified solution configuration to the specified canvas.
+     * <p>
+     * The canvas should be translated to the top left corner of the solution
+     * panel.
+     * 
+     * @param   canvas  the canvas to be drawn to
+     * @param   goal    the goal configuration
+     * @param   size    the size of each square on the board (default size for
+     *                  this device)
+     * @param   w       the width of the solution panel
+     * @param   h       the height of the solution panel
+     */
     public static void drawSolution( Canvas canvas, Square[][] goal,
             int size, int w, int h ) {
         int goalSize = size;
@@ -549,6 +574,19 @@ public class AtomicView extends View {
         canvas.restore();
     }
     
+    /**
+     * Draws the solution information to the solution panel.
+     * <p>
+     * The canvas should be translated to the top left corner of the solution
+     * panel.
+     * 
+     * @param   canvas      the canvas to be drawn to
+     * @param   level       the level number
+     * @param   name        the name of the goal molecule
+     * @param   formula     the goal molecule chemical formula
+     * @param   w           the width of the solution panel
+     * @param   h           the height of the solution panel
+     */
     private static void drawSolutionInfo( Canvas canvas, int level, String name,
             String formula, int w, int h ) {
         Log.d( "Goal area", "w: " + w + " h: " + h );
@@ -565,7 +603,7 @@ public class AtomicView extends View {
         canvas.drawText( str, tx, ty, p );
         
         ty += ( h - 25 );
-        int mx = w - 5;
+        int mx = w - 7;
         for ( int i = ( formula.length() - 1 ); i >= 0; i-- ) {
             char c = formula.charAt( i );
             
@@ -628,37 +666,48 @@ public class AtomicView extends View {
      */
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
-        int action = event.getAction();
+        Square[][] board = gameState.getBoard();
         
         // what portion of the screen was clicked?
         int x = ( int )event.getX();
         int y = ( int )event.getY();
         
+        // don't trigger a click outside the game area
         if ( gameArea.contains( x, y ) ) {
             int i = ( int )( ( x - offsetX ) / 29.0f );
             int j = ( int )( ( y - offsetY ) / 29.0f );
             //@todo ensure this works for maps larger, as well as smaller
             
-            // are we setting the hover pointer, or selecting a square
-            if ( ( action == MotionEvent.ACTION_DOWN ) ||
-                    ( action == MotionEvent.ACTION_MOVE ) ) {
-                // is this a new hover point?
-                Point hoverPoint = gameState.getHoverPoint();
-                if ( ( hoverPoint == null ) ||
-                        ( ! hoverPoint.equals( i, j ) ) ) {
-                    gameState.setHoverPoint( new Point( i, j ) );
-                    
-                    // force a redraw
-                    super.postInvalidate();
-                }
-            } else if ( event.getAction() == MotionEvent.ACTION_UP ) {
-                Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
+            // don't hover or click blank boxes
+            if ( board[ j ][ i ] != null ) {
+                // try to set as hoverpoint first and foremost
+                setHoverpoint( i, j );
                 
-                // select the currently hovered square
-                touch( i, j );
+                if ( event.getAction() == MotionEvent.ACTION_UP ) {
+                    Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
+                    
+                    // select the currently hovered square
+                    touch( i, j );
+                }
             }
         }
         return true;
+    }
+    
+    private void setHoverpoint( int i, int j ) {
+        Log.d( "TOUCH EVENT", "========" );
+        Log.d( "TOUCH EVENT", "HOVER POINT at " + i + ", " + j );
+        Log.d( "TOUCH EVENT", "========" );
+        
+        // is this a NEW hover point?
+        Point hoverPoint = gameState.getHoverPoint();
+        if ( ( hoverPoint == null ) ||
+                ( ! hoverPoint.equals( i, j ) ) ) {
+            gameState.setHoverPoint( new Point( i, j ) );
+
+            // force a redraw
+            super.postInvalidate();
+        }
     }
     
     /**
@@ -816,8 +865,8 @@ public class AtomicView extends View {
                 }
                 
                 // move the hover point to the new location of the Atom
-                Point hoverPoint = gameState.getHoverPoint();
-                hoverPoint.set( selected.x, selected.y );
+                //Point hoverPoint = gameState.getHoverPoint();
+                //hoverPoint.set( selected.x, selected.y );
                 
                 // set the squares were arrows should be drawn
                 this.setArrowSquares();
