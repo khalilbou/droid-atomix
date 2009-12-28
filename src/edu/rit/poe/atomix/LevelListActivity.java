@@ -32,6 +32,7 @@ package edu.rit.poe.atomix;
 
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
@@ -39,6 +40,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.levels.LevelManager;
 
 /**
@@ -63,6 +65,12 @@ public class LevelListActivity extends ListActivity {
         super.onCreate( icicle );
         
         super.setTitle( "DroidAtomix Levels" );
+        
+        // get the game state from the intent's extras
+        Intent intent = super.getIntent();
+        Bundle extras = intent.getExtras();
+        GameState gameState =
+                ( GameState )extras.getSerializable( GameState.GAME_STATE_KEY );
         
         LevelManager levelManager = LevelManager.getInstance();
         levelCursor = levelManager.getLevels();

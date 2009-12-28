@@ -52,6 +52,8 @@ import java.util.Map;
  */
 public class GameState implements Serializable {
     
+    public static final String GAME_STATE_KEY = "game_state";
+    
     public static final DateFormat DATE_FORMAT =
             new SimpleDateFormat( "MM/dd/yyyy hh:mm a" );
     

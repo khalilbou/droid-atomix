@@ -16,5 +16,5 @@
          <activity android:name=".LevelListActivity"/>
     </application>
     <supports-screen android:smallScreens="false" android:normalScreens="true"
-            android:largeScreens="true" android:anyDensity="true"/>
+            android:largeScreens="false" android:anyDensity="true"/>
 </manifest>
