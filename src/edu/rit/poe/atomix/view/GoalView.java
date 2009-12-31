@@ -1,5 +1,5 @@
 /*
- * GoalDialog.java
+ * GoalView.java
  *
  * Version:
  *      $Id$
@@ -30,12 +30,9 @@
 
 package edu.rit.poe.atomix.view;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Canvas;
 import android.view.View;
+import edu.rit.poe.atomix.levels.Square;
 
 /**
  *
@@ -43,43 +40,19 @@ import android.view.View;
  *
  * @version $Id$
  */
-public class GoalDialog {
+public class GoalView extends View {
     
-    
-    public static Dialog getDialog( Activity activity ) {
-        AlertDialog.Builder builder = null;
+    /**
+     * Constructs a new <tt>GoalView</tt>.
+     */
+    public GoalView( Context context, Square[][] goal, int size, int width,
+            int height ) {
+        super( context );
         
-        Dialog d = builder.create();
         
-        return d;
+        
     }
     
-    public static void prepareDialog( Activity activity ) {
-        
-    }
     
-    // @todo make a separate class that can be called statically for drawing
-    // the solution panel into the game window
-    public static class SolutionView extends View {
-        
-        public SolutionView( Context context ) {
-            super( context );
-            
-            
-            
-        }
-        
-        @Override
-        public void onDraw( Canvas canvas ) {
-            
-            
-            
-        }
-        
-        public static void drawGoal( Canvas canvas ) {
-            
-        }
-        
-    } // SolutionView
     
-} // GoalDialog
+} // GoalView

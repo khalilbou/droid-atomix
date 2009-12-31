@@ -101,6 +101,10 @@ public class LevelListActivity extends ListActivity {
     
     @Override
     public void onListItemClick( ListView lv, View v, int position, long id ) {
+        AtomicActivity atomix = ( AtomicActivity )super.getParent();
+        
+        atomix.winLevel();
+        
         
         // @todo COMPLETE
         

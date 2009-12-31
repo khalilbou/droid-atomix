@@ -30,6 +30,9 @@
 
 package edu.rit.poe.atomix.view;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -44,6 +47,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import edu.rit.poe.atomix.AtomicActivity;
+import edu.rit.poe.atomix.R;
 import edu.rit.poe.atomix.game.GameController;
 import edu.rit.poe.atomix.game.GameException;
 import edu.rit.poe.atomix.game.GameState;
@@ -282,8 +286,16 @@ public class AtomicView extends View {
                 
                 try {
                     if ( board[ j ][ i ] instanceof Square.Wall ) {
-                        p.setColor( colorred );
-                        canvas.drawRect( sq, p );
+                        //p.setColor( colorred );
+                        //canvas.drawRect( sq, p );
+                        
+                        // draw a wall
+                        Resources res = atomix.getResources();
+                        Bitmap b = BitmapFactory.decodeResource( res,
+                                R.drawable.wall_single );
+                        
+                        canvas.drawBitmap( b, null, sq, null );
+                        
                     } else if ( board[ j ][ i ] instanceof Square.Empty ) {
                         // check whether this square should represent an arrow
                         if ( ( dir = arrowSquares.get( new Point( i, j ) ) ) !=
@@ -681,7 +693,7 @@ public class AtomicView extends View {
             // don't hover or click blank boxes
             if ( board[ j ][ i ] != null ) {
                 // try to set as hoverpoint first and foremost
-                setHoverpoint( i, j );
+                setHoverpoint( i, j, true );
                 
                 if ( event.getAction() == MotionEvent.ACTION_UP ) {
                     Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
@@ -694,7 +706,7 @@ public class AtomicView extends View {
         return true;
     }
     
-    private void setHoverpoint( int i, int j ) {
+    private void setHoverpoint( int i, int j, boolean redraw ) {
         Log.d( "TOUCH EVENT", "========" );
         Log.d( "TOUCH EVENT", "HOVER POINT at " + i + ", " + j );
         Log.d( "TOUCH EVENT", "========" );
@@ -706,7 +718,9 @@ public class AtomicView extends View {
             gameState.setHoverPoint( new Point( i, j ) );
 
             // force a redraw
-            super.postInvalidate();
+            if ( redraw ) {
+                super.postInvalidate();
+            }
         }
     }
     
@@ -799,6 +813,8 @@ public class AtomicView extends View {
         return true;
     }
     
+    // move this to the GameController!!
+    @Deprecated
     private boolean canMove( Point p, int dx, int dy ) {
         boolean retVal = true;
         
@@ -865,8 +881,7 @@ public class AtomicView extends View {
                 }
                 
                 // move the hover point to the new location of the Atom
-                //Point hoverPoint = gameState.getHoverPoint();
-                //hoverPoint.set( selected.x, selected.y );
+                setHoverpoint( selected.x, selected.y, false );
                 
                 // set the squares were arrows should be drawn
                 this.setArrowSquares();

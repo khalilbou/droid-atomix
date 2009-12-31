@@ -45,6 +45,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 import edu.rit.poe.atomix.db.AtomixDbAdapter;
+import edu.rit.poe.atomix.db.Game;
+import edu.rit.poe.atomix.game.GameController;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.view.AtomicView;
 
@@ -155,7 +157,17 @@ public class AtomicActivity extends Activity {
         viewHandler.sendMessage( msg );
         
         // @todo switch level now!!
+        Game newLevel = GameController.newLevel( gameState.getUser(), 2 );
+        GameState newGameState = new GameState( gameState.getUser(), newLevel );
         
+        // if we won the previous level, save it and move the game pointer in
+        // the database
+        
+        gameState = newGameState;
+        
+        view.setGameState( gameState );
+        
+        redrawView();
     }
     
     /**
