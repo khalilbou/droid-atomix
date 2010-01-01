@@ -65,6 +65,32 @@ import edu.rit.poe.atomix.util.Point;
  */
 public class AtomicView extends View {
     
+    private static final int SQUARE_AREA = 11;
+    
+    private static final float TRACKBALL_MOVE_SUM = 0.50f;
+    
+    private static final int[] wallId;
+    
+    static {
+        wallId = new int[ 15 ];
+        
+        wallId[ 0 ] = R.drawable.wall_single;
+        wallId[ 1 ] = R.drawable.wall_horizontal_right_end;
+        wallId[ 2 ] = R.drawable.wall_horizontal_left_end;
+        wallId[ 3 ] = R.drawable.wall_horizontal;
+        wallId[ 4 ] = R.drawable.wall_vertical_top_end;
+        wallId[ 5 ] = R.drawable.wall_top_right;
+        wallId[ 6 ] = R.drawable.wall_top_left;
+        wallId[ 7 ] = R.drawable.wall_horizontal_bottomx;
+        wallId[ 8 ] = R.drawable.wall_vertical_bottom_end;
+        wallId[ 9 ] = R.drawable.wall_bottom_right;
+        wallId[ 10 ] = R.drawable.wall_bottom_left;
+        wallId[ 11 ] = R.drawable.wall_horizontal_topx;
+        wallId[ 12 ] = R.drawable.wall_vertical;
+        wallId[ 13 ] = R.drawable.wall_vertical_leftx;
+        wallId[ 14 ] = R.drawable.wall_vertical_rightx;
+    }
+    
     /** The controller of the application. */
     private AtomicActivity atomix;
     
@@ -84,8 +110,16 @@ public class AtomicView extends View {
     
     private int offsetY;
     
+    private int r;
+    
+    private int size;
+    
     // if this ISN'T null, then the animation is running
     private SlideAnimation animation;
+    
+    private final Bitmap[] wallMap;
+    
+    private byte[][] walls;
     
     /**
      * An enumerated type to represent screen sizes of devices such as the HTC
@@ -170,6 +204,13 @@ public class AtomicView extends View {
         this.setGameState( gameState );
         
         trackballTime = 0L;
+        
+        // load all wall bitmaps
+        Resources res = atomix.getResources();
+        wallMap = new Bitmap[ wallId.length ];
+        for ( int i = 0; i < wallId.length; i++ ) {
+            wallMap[ i ] = BitmapFactory.decodeResource( res, wallId[ i ] );
+        }
     }
     
     /**
@@ -184,26 +225,8 @@ public class AtomicView extends View {
         arrowSquares = new HashMap<Point, GameState.Direction>();
         // if this is being re-instated, set the arrow squares
         this.setArrowSquares();
-    }
-    
-    /**
-     * Draw the Atomix view.  This is the centerpiece of the View portion of the
-     * application; everything drawn to the screen is done so inside this
-     * method.
-     * 
-     * @param   canvas  the canvas to draw to
-     */
-    @Override
-    public void onDraw( Canvas canvas ) {
-        int bgcolor = Color.GRAY;
-        int fgcolor = Color.parseColor( "#F1E9D9" );
-        int colorred = Color.parseColor( "#714444" );
         
-        Paint p = new Paint();
-        p.setColor( bgcolor );
-        
-        Rect rect = new Rect( 0, 0, canvas.getWidth(), canvas.getHeight() );
-        canvas.drawRect( rect, p );
+        // stuff that got moved from onDraw() ==================================
         
         //
         // DISPLAY SETTINGS:
@@ -219,8 +242,7 @@ public class AtomicView extends View {
         DisplayMetrics dm = new DisplayMetrics();
         atomix.getWindowManager().getDefaultDisplay().getMetrics( dm );
         
-        int SQUARE_AREA = 11; // how many squares in the S x S board
-        int size = 0; // size of a single block (s x s)
+        size = 0; // size of a single block (s x s)
         
         Log.d( "Display Metrics: ",
                 "W: " + dm.widthPixels + " H: " + dm.heightPixels );
@@ -249,22 +271,79 @@ public class AtomicView extends View {
             offsetX = 1;
             offsetY = 2;
         }
+        Log.d( "SIZE", "Size: " + size );
+        
         // calculate the atom radius
-        int r = ( int )Math.floor( ( double )size / 2.0d );
+        r = ( int )Math.floor( ( double )size / 2.0d );
+        
         
         // grab the board from the game state
         Square[][] board = gameState.getBoard();
         int boardWidth = board[ 0 ].length;
         int boardHeight = board.length;
+        
         gameArea = new Rect( 0, 0, ( SQUARE_AREA * size ),
                 ( SQUARE_AREA * size ) );
         
-        Log.d( "SIZE", "Size: " + size );
         
         // calculate centering offset
         
         offsetX += ( ( float )( ( SQUARE_AREA - boardWidth ) * size ) ) / 2.0f;
         offsetY += ( ( float )( ( SQUARE_AREA - boardHeight ) * size ) ) / 2.0f;
+        
+        
+        // setup the map of wall types
+        walls = new byte[ board.length ][ board[ 0 ].length ];
+        for ( int i = 0; i < board[ 0 ].length; i++ ) {
+            for ( int j = 0; j < board.length; j++ ) {
+                if ( board [ j ][ i ] instanceof Square.Wall ) {
+                    boolean up = ( ( j != 0 ) &&
+                            ( board[ j - 1 ][ i ] instanceof Square.Wall ) );
+                    
+                    boolean down = ( ( j < ( board.length - 1 ) ) &&
+                            ( board[ j + 1 ][ i ] instanceof Square.Wall ) );
+                    
+                    boolean right = ( ( i < ( board[ 0 ].length - 1 ) ) &&
+                            ( board[ j ][ i + 1 ] instanceof Square.Wall ) );
+                    
+                    boolean left = ( ( i != 0 ) &&
+                            ( board[ j ][ i - 1 ] instanceof Square.Wall ) );
+                    
+                    // set the bits for the wall id
+                    byte val = 0;
+                    val |= ( ( left  ? 1 : 0 ) << 0 );
+                    val |= ( ( right ? 1 : 0 ) << 1 );
+                    val |= ( ( down  ? 1 : 0 ) << 2 );
+                    val |= ( ( up    ? 1 : 0 ) << 3 );
+                    
+                    walls[ j ][ i ] = val;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Draw the Atomix view.  This is the centerpiece of the View portion of the
+     * application; everything drawn to the screen is done so inside this
+     * method.
+     * 
+     * @param   canvas  the canvas to draw to
+     */
+    @Override
+    public void onDraw( Canvas canvas ) {
+        int bgcolor = Color.GRAY;
+        int fgcolor = Color.parseColor( "#F1E9D9" );
+        int colorred = Color.parseColor( "#714444" );
+        
+        Paint p = new Paint();
+        p.setColor( bgcolor );
+        
+        Rect rect = new Rect( 0, 0, canvas.getWidth(), canvas.getHeight() );
+        canvas.drawRect( rect, p );
+        
+        
+        // grab the board from the game state
+        Square[][] board = gameState.getBoard();
         
         // translate to create the 1px top/left gap
         canvas.save();
@@ -290,9 +369,7 @@ public class AtomicView extends View {
                         //canvas.drawRect( sq, p );
                         
                         // draw a wall
-                        Resources res = atomix.getResources();
-                        Bitmap b = BitmapFactory.decodeResource( res,
-                                R.drawable.wall_single );
+                        Bitmap b = wallMap[ walls[ j ][ i ] ];
                         
                         canvas.drawBitmap( b, null, sq, null );
                         
@@ -398,6 +475,8 @@ public class AtomicView extends View {
         int solutionWidth = super.getWidth() - 2;
         int solutionHeight = super.getHeight() - t - 2;
         // if we're landscape, the goal is off to the side
+        DisplayMetrics dm = new DisplayMetrics();
+        atomix.getWindowManager().getDefaultDisplay().getMetrics( dm );
         if ( ScreenSize.isLandscape( dm ) ) {
             solutionOffsetX = t;
             solutionOffsetY = 2;
@@ -691,16 +770,20 @@ public class AtomicView extends View {
             //@todo ensure this works for maps larger, as well as smaller
             
             // don't hover or click blank boxes
-            if ( board[ j ][ i ] != null ) {
-                // try to set as hoverpoint first and foremost
-                setHoverpoint( i, j, true );
-                
-                if ( event.getAction() == MotionEvent.ACTION_UP ) {
-                    Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
+            try {
+                if ( board[ j ][ i ] != null ) {
+                    // try to set as hoverpoint first and foremost
+                    setHoverpoint( i, j, true );
                     
-                    // select the currently hovered square
-                    touch( i, j );
+                    if ( event.getAction() == MotionEvent.ACTION_UP ) {
+                        Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
+                        
+                        // select the currently hovered square
+                        touch( i, j );
+                    }
                 }
+            } catch ( ArrayIndexOutOfBoundsException e ) {
+                // ignore -- this _can_ get thrown sometimes, in special places
             }
         }
         return true;
@@ -776,29 +859,33 @@ public class AtomicView extends View {
             }
             trackballSum += sum;
             
-            if ( Math.abs( trackballSum ) > .50 ) {
+            if ( Math.abs( trackballSum ) > TRACKBALL_MOVE_SUM ) {
                 Log.d( "TRACKBALL", "TRIGGERED!" );
                 Point hoverPoint = gameState.getHoverPoint();
 
                 // set the track point
                 switch ( trackballDir ) {
                     case UP: {
-                        if ( canMove( hoverPoint, 0, -1 ) ) {
+                        if ( isHoverable( hoverPoint.x,
+                                ( hoverPoint.y - 1 ) ) ) {
                             hoverPoint.offset( 0, -1 );
                         }
                     } break;
                     case DOWN: {
-                        if ( canMove( hoverPoint, 0, 1 ) ) {
+                        if ( isHoverable( hoverPoint.x,
+                                ( hoverPoint.y + 1 ) ) ) {
                             hoverPoint.offset( 0, 1 );
                         }
                     } break;
                     case RIGHT: {
-                        if ( canMove( hoverPoint, 1, 0 ) ) {
+                        if ( isHoverable( ( hoverPoint.x + 1 ),
+                                hoverPoint.y ) ) {
                             hoverPoint.offset( 1, 0 );
                         }
                     } break;
                     case LEFT: {
-                        if ( canMove( hoverPoint, -1, 0 ) ) {
+                        if ( isHoverable( ( hoverPoint.x - 1 ),
+                                hoverPoint.y ) ) {
                             hoverPoint.offset( -1, 0 );
                         }
                     } break;
@@ -813,19 +900,23 @@ public class AtomicView extends View {
         return true;
     }
     
-    // move this to the GameController!!
-    @Deprecated
-    private boolean canMove( Point p, int dx, int dy ) {
+    /**
+     * Determines whether the specified location is hoverable.
+     * 
+     * @param   x   the X coordinate
+     * @param   y   the Y coordinate
+     * 
+     * @return      <tt>true</tt> is hovering on this point is allowed,
+     *              otherwise <tt>false</tt>
+     */
+    private boolean isHoverable( int x, int y ) {
         boolean retVal = true;
         
-        int nx = p.x + dx;
-        int ny = p.y + dy;
-        
         Square[][] board = gameState.getBoard();
-        if ( ( nx >= board[ 0 ].length ) || ( nx < 0 ) ||
-                ( ny >= board.length ) || ( ny < 0 ) ) {
+        if ( ( x >= board[ 0 ].length ) || ( x < 0 ) ||
+                ( y >= board.length ) || ( y < 0 ) ) {
             retVal = false;
-        } else if ( board[ ny ][ nx ] == null ) {
+        } else if ( board[ y ][ x ] == null ) {
             retVal = false;
         }
         
@@ -958,6 +1049,8 @@ public class AtomicView extends View {
         /** The number of squares to offset every frame on the Y axis. */
         private final float offsetY;
         
+        private char orientation;
+        
         /** Whether this move will cause a win at the end of the animation. */
         private boolean win;
         
@@ -981,7 +1074,9 @@ public class AtomicView extends View {
             int dX = ( endX - startX );
             int dY = ( endY - startY );
             
-            // one of these are 0 (has to be), so take the easy answer!
+            orientation = ( dX == 0 ) ? 'y' : 'x';
+            
+            // one of these is 0 (has to be), so take the easy answer!
             frames = Math.abs( ( dX + dY ) * FRAMES_PER_SQR );
             
             // find the amount by which to offset each frame
@@ -998,11 +1093,36 @@ public class AtomicView extends View {
             // loop over all frames
             for ( int frame = 0; frame < frames; frame++ ) {
                 Log.d( "ANIMATION", "DRAW" );
-                currentX += offsetX;
-                currentY += offsetY;
                 
                 // draw the position of the atom
-                atomix.redrawView();
+                
+                // @todo FIGURE OUT THIS MESS!!
+                // invalidate only the old and new drawing areas
+                int x0 = ( int )( currentX * size );
+                int y0 = ( int )( currentY * size );
+                currentX += offsetX;
+                currentY += offsetY;
+                int x1 = ( int )( currentX * size );
+                int y1 = ( int )( currentY * size );
+                
+                Rect rect;
+                if ( orientation == 'y' ) {
+                    if ( y1 > y0 ) {
+                        rect = new Rect( x0, y0, x1 + size, y1 + size );
+                    } else {
+                        rect = new Rect( x1, y1, x0 + size, y0 + size );
+                    }
+                } else {
+                    if ( x1 > x0 ) {
+                        rect = new Rect( x0, y0, x1 + size, y1 + size );
+                    } else {
+                        rect = new Rect( x1, y1, x0 + size, y0 + size );
+                    }
+                }
+                
+                
+                // draw the position of the atom
+                atomix.redrawView( null );
                 
                 // sleep until the next frame
                 try {
@@ -1016,7 +1136,7 @@ public class AtomicView extends View {
             animation = null;
             
             // last redraw in position
-            atomix.redrawView();
+            atomix.redrawView( null );
             
             // animation is over -- handle winning!
             if ( win ) {
