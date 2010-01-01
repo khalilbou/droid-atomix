@@ -1,0 +1,16 @@
+ID  IMAGE                           UDRL
+0   wall_single.png                 0000
+1   wall_horizontal_right_end.png   0001
+2   wall_horizontal_left_end.png    0010
+3   wall_horizontal.png             0011
+4   wall_vertical_top_end.png       0100
+5   wall_top_right.png              0101
+6   wall_top_left.png               0110
+7   wall_horizontal_bottomx.png     0111
+8   wall_vertical_bottom_end.png    1000
+9   wall_bottom_right.png           1001
+10  wall_bottom_left.png            1010
+11  wall_horizontal_topx.png        1011
+12  wall_vertical.png               1100
+13  wall_vertical_leftx.png         1101
+14  wall_vertical_rightx.png        1110

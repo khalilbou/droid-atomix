@@ -34,6 +34,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -84,7 +85,13 @@ public class AtomicActivity extends Activity {
         @Override 
         public void handleMessage( Message msg ) {
             if ( msg.what == REDRAW_VIEW ) {
-                view.invalidate();
+                
+                if ( msg.obj != null ) {
+                    Rect rect = ( Rect )msg.obj;
+                    view.invalidate( rect );
+                } else {
+                    view.invalidate();
+                }
             } else if ( msg.what == WIN_LEVEL ) {
                 
                 Toast toast = Toast.makeText( AtomicActivity.this, "You win!",
@@ -144,10 +151,11 @@ public class AtomicActivity extends Activity {
         return view.onTrackballEvent( event );
     }
     
-    public void redrawView() {
+    public void redrawView( Rect rect ) {
         Log.d( "ATOMIX_ACTIVITY", "Redraw view" );
         Message msg = new Message();
         msg.what = REDRAW_VIEW;
+        msg.obj = rect;
         viewHandler.sendMessage( msg );
     }
     
@@ -167,7 +175,7 @@ public class AtomicActivity extends Activity {
         
         view.setGameState( gameState );
         
-        redrawView();
+        redrawView( null );
     }
     
     /**
