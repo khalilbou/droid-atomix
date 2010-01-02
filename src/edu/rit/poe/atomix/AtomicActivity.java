@@ -62,7 +62,7 @@ public class AtomicActivity extends Activity {
     
     public static final int MENU_ITEM_LEVELS = 0x01;
     
-    public static final int MENU_ITEM_USER_INFO = 0x02;
+    public static final int MENU_ITEM_UNDO = 0x02;
     
     public static final int MENU_ITEM_MAIN_MENU = 0x03;
     
@@ -186,15 +186,15 @@ public class AtomicActivity extends Activity {
         item.setIcon( android.R.drawable.ic_menu_zoom );
         
         item = menu.add( Menu.NONE, MENU_ITEM_LEVELS, Menu.NONE, "Levels" );
-        item.setIcon( android.R.drawable.ic_menu_compass );
+        item.setIcon( R.drawable.levels_cclicense );
         
-        item = menu.add( Menu.NONE, MENU_ITEM_USER_INFO, Menu.NONE,
-                "User Info" );
-        item.setIcon( android.R.drawable.ic_menu_info_details );
+        item = menu.add( Menu.NONE, MENU_ITEM_UNDO, Menu.NONE,
+                "Undo" );
+        item.setIcon( R.drawable.undo );
         
         item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
                 "Main Menu" );
-        item.setIcon( android.R.drawable.ic_menu_more );
+        item.setIcon( R.drawable.options );
         
         item = menu.add( Menu.NONE, MENU_ITEM_QUIT, Menu.NONE, "Quit" );
         item.setIcon( android.R.drawable.ic_menu_close_clear_cancel );
@@ -226,7 +226,7 @@ public class AtomicActivity extends Activity {
                 
             } break;
             
-            case MENU_ITEM_USER_INFO: {
+            case MENU_ITEM_UNDO: {
                 
             } break;
             
