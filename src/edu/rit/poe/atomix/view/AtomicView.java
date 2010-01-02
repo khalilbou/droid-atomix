@@ -235,9 +235,9 @@ public class AtomicView extends View {
         //     28x28 squares, with 1px on each side
         //     TOTAL game area:  320x320
         //
-        // MOTOROLA DROID (400x800 phones):
+        // MOTOROLA DROID (854x480 phones):
         //     35x35 squares, with 1px on each side (and 2px left, 1px right)
-        //     TOTAL game area: 400x400
+        //     TOTAL game area: 480x480
         //
         DisplayMetrics dm = new DisplayMetrics();
         atomix.getWindowManager().getDefaultDisplay().getMetrics( dm );
