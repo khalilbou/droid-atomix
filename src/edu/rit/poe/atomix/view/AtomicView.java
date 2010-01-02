@@ -6,26 +6,19 @@
  *
  * Copyright (c) 2009 Peter O. Erickson
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without major
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, and/or distribute copies of, but
- * under no circumstances sublicense and/or sell, the Software,
- * and to permit persons to whom the Software is furnished to do
- * so, subject to the following conditions:
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package edu.rit.poe.atomix.view;
@@ -595,6 +588,7 @@ public class AtomicView extends View {
         
         // draw the element letter
         p.setTypeface( Typeface.DEFAULT_BOLD );
+        // @todo figure out text size for the Droid
         Rect bounds = new Rect();
         p.getTextBounds( new char[]{ atom.getElement() }, 0, 1, bounds );
         int tx = 0 - ( ( bounds.width() / 2 ) + 1 );

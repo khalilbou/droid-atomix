@@ -1,20 +1,14 @@
 burndown list
 =============
 
-- FIX HOME SCREEN MENU SCREEN ORIENTATION BUG (MenuActivity)
-
 ** splash screen? Android bot + atoms?
 
 - level files
     - functionality of winning a level, going to the next
-
-- change screen orientation
 
 - context menu in-game
     - see goal LARGER
     - levels
         - start a new level
         - see old scores
-    - return to main menu
-    - save & exit
-    
+    - undo
