@@ -27,14 +27,19 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import edu.rit.poe.atomix.db.AtomixDbAdapter;
+import edu.rit.poe.atomix.db.Game;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.levels.LevelManager;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -45,8 +50,6 @@ import edu.rit.poe.atomix.levels.LevelManager;
 public class LevelListActivity extends ListActivity {
     
     private Cursor levelCursor;
-    
-    static int i = 0;
     
     /**
      * Called when the activity is first created.
@@ -65,10 +68,29 @@ public class LevelListActivity extends ListActivity {
         GameState gameState =
                 ( GameState )extras.getSerializable( GameState.GAME_STATE_KEY );
         
+        // load the current users games in a cursor
+        AtomixDbAdapter db = new AtomixDbAdapter( this );
+        db.open();
+        Cursor games = db.getFinishedGames( gameState.getUser().getId() );
+        // load all finished levels' time into a map
+        final Map<Integer, Integer> finished = new HashMap<Integer, Integer>();
+        
+        for ( int i = 0; i < games.getCount(); i++ ) {
+            games.moveToNext();
+            
+            int level = games.getInt( games.getColumnIndex( Game.LEVEL_KEY ) );
+            int seconds =
+                    games.getInt( games.getColumnIndex( Game.SECONDS_KEY ) );
+            // @todo perhaps load the entire game objects?
+            // and show both time and moves in the level list?
+            int moves = games.getInt( games.getColumnIndex( Game.MOVES_KEY ) );
+            finished.put( level, seconds );
+        }
+        
         LevelManager levelManager = LevelManager.getInstance();
         levelCursor = levelManager.getLevels();
         
-        String[] from = new String[]{ "level", "name" };
+        String[] from = new String[]{ Game.LEVEL_KEY, "name" };
         int[] to = new int[]{ R.id.level_number, R.id.level_name };
         
         final SimpleCursorAdapter adapter = new SimpleCursorAdapter( this,
@@ -81,8 +103,12 @@ public class LevelListActivity extends ListActivity {
                 TextView levelCompleted =
                         ( TextView )view.findViewById( R.id.level_completed );
                 
-                if ( ( ( i++ ) % 2 ) == 0 ) {
-                    levelCompleted.setText( "Completed" );
+                // @todo see SimpleCursorAdapter for how it accesses the data
+                // in the cursor per row
+                if ( finished.containsKey( pos + 1 ) ) {
+                    int seconds = finished.get( pos + 1 );
+                    levelCompleted.setText( seconds + " seconds" );
+                    levelCompleted.setTextColor( Color.GREEN );
                 }
                 
                 return view;

@@ -326,14 +326,12 @@ public class AtomicView extends View {
     public void onDraw( Canvas canvas ) {
         int bgcolor = Color.GRAY;
         int fgcolor = Color.parseColor( "#F1E9D9" );
-        int colorred = Color.parseColor( "#714444" );
         
         Paint p = new Paint();
         p.setColor( bgcolor );
         
         Rect rect = new Rect( 0, 0, canvas.getWidth(), canvas.getHeight() );
         canvas.drawRect( rect, p );
-        
         
         // grab the board from the game state
         Square[][] board = gameState.getBoard();
@@ -345,6 +343,7 @@ public class AtomicView extends View {
         GameState.Direction dir = null;
         for ( int i = 0; i < board[ 0 ].length; i++ ) {
             for ( int j = 0; j < board.length; j++ ) {
+                Square sqr = board[ j ][ i ];
                 int left = i * size;
                 int top = j * size;
                 
@@ -357,7 +356,7 @@ public class AtomicView extends View {
                 canvas.drawRect( sq, p );
                 
                 try {
-                    if ( board[ j ][ i ] instanceof Square.Wall ) {
+                    if ( sqr instanceof Square.Wall ) {
                         //p.setColor( colorred );
                         //canvas.drawRect( sq, p );
                         
@@ -366,7 +365,7 @@ public class AtomicView extends View {
                         
                         canvas.drawBitmap( b, null, sq, null );
                         
-                    } else if ( board[ j ][ i ] instanceof Square.Empty ) {
+                    } else if ( sqr instanceof Square.Empty ) {
                         // check whether this square should represent an arrow
                         if ( ( dir = arrowSquares.get( new Point( i, j ) ) ) !=
                                 null ) {
@@ -381,8 +380,8 @@ public class AtomicView extends View {
                             p.setColor( fgcolor );
                             canvas.drawRect( sq, p );
                         }
-                    } else if ( board[ j ][ i ] instanceof Atom ) {
-                        Atom atom = ( Atom )board[ j ][ i ];
+                    } else if ( sqr instanceof Atom ) {
+                        Atom atom = ( Atom )sqr;
                         
                         // draw the square background
                         p.setColor( fgcolor );

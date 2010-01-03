@@ -331,6 +331,9 @@ public class MenuActivity extends Activity {
                         db.insert( game );
                         db.update( user );
                         
+                        // close this dialog
+                        dismissDialog( NEW_USER_DIALOG );
+                        
                         // start playing!
                         startGame( user );
                     }
@@ -363,7 +366,6 @@ public class MenuActivity extends Activity {
                     item.setOnMenuItemClickListener(
                             new MenuItem.OnMenuItemClickListener() {
                         public boolean onMenuItemClick( MenuItem item ) {
-                            Log.d( LOG_TAG, "CLICKED" );
                             AdapterContextMenuInfo info =
                                     ( AdapterContextMenuInfo )
                                     item.getMenuInfo();
@@ -373,11 +375,10 @@ public class MenuActivity extends Activity {
                             db.deleteUser( id );
                             
                             Toast toast = Toast.makeText( MenuActivity.this,
-                                    "User deleted",
-                                    Toast.LENGTH_LONG );
+                                    "User deleted", Toast.LENGTH_LONG );
                             toast.show();
                             
-                            MenuActivity.this.showDialog( CONTINUE_DIALOG );
+                            showDialog( CONTINUE_DIALOG );
                             
                             return true;
                         }
@@ -394,7 +395,10 @@ public class MenuActivity extends Activity {
                     // query the selected user and load the saved game state
                     User user = db.getUser( id );
                     
-                    // start the selected game!
+                    // close this dialog
+                    dismissDialog( CONTINUE_DIALOG );
+                    
+                    // start playing!
                     startGame( user );
                 }
             } );

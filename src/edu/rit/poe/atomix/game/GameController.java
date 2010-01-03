@@ -216,4 +216,14 @@ public final class GameController {
         }
     }
     
+    public static boolean canUndo( GameState gameState ) {
+        // @todo check to see if we have a move to undo in the GameState
+        return false;
+    }
+    
+    public static void undo( GameState gameState ) {
+        // @todo write the undo mechanism
+        // maybe check canUndo first?
+    }
+    
 } // GameManager
