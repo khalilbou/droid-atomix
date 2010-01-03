@@ -264,7 +264,7 @@ public class AtomixDbAdapter {
         Cursor gameCursor = null;
         where = Game.ID_KEY + "=" + cursor.getLong(
                 cursor.getColumnIndex( User.SAVED_GAME_ID_KEY ) );
-        gameCursor = getGames( user );
+        gameCursor = getGames( where );
         
         // if we don't have any elements, set the game to null
         if ( gameCursor.getCount() > 0 ) {
@@ -339,10 +339,6 @@ public class AtomixDbAdapter {
         return user;
     }
     
-    public Cursor getGames( User user ) {
-        return getGames( user.getId() );
-    }
-    
     public Cursor getGames( long userId ) {
         return getGames( Game.USER_ID_KEY + "=" + userId );
     }
@@ -364,8 +360,8 @@ public class AtomixDbAdapter {
                 User.USERNAME_KEY + "', ( 'Level: ' || Game.level || ', " +
                 "Last played: ' || strftime( '%m/%d/%Y %H:%M', Game.SAVED, " +
                 "'unixepoch', 'localtime' ) ) AS '" + Game.SAVED_KEY +
-                "' FROM USER, GAME WHERE USER.id = GAME.user_id AND " +
-                "GAME.finished = 0 ORDER BY GAME.saved DESC;";
+                "' FROM USER, GAME WHERE USER." + User.SAVED_GAME_ID_KEY +
+                " = GAME." + Game.ID_KEY + " ORDER BY GAME.saved DESC;";
         
         return database.rawQuery( sql, null );
     }

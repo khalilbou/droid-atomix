@@ -40,6 +40,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 import edu.rit.poe.atomix.db.AtomixDbAdapter;
 import edu.rit.poe.atomix.db.Game;
+import edu.rit.poe.atomix.db.User;
 import edu.rit.poe.atomix.game.GameController;
 import edu.rit.poe.atomix.game.GameState;
 import edu.rit.poe.atomix.view.AtomicView;
@@ -73,6 +74,8 @@ public class AtomicActivity extends Activity {
     private AtomixDbAdapter db;
     
     private GameState gameState;
+    
+    private MenuItem undo;
     
     private Handler viewHandler = new Handler() {
         @Override 
@@ -119,8 +122,7 @@ public class AtomicActivity extends Activity {
         super.requestWindowFeature( Window.FEATURE_NO_TITLE );
         
         // create the database connector
-        db = new AtomixDbAdapter( this );
-        db.open();
+        db = new AtomixDbAdapter( this ).open();
         
         // get the "extras" bundle with the GameState
         Bundle extras = super.getIntent().getExtras();
@@ -157,9 +159,19 @@ public class AtomicActivity extends Activity {
         msg.what = WIN_LEVEL;
         viewHandler.sendMessage( msg );
         
+        // save the old game as finished
+        User user = gameState.getUser();
+        Game game = gameState.getGame();
+        game.setFinished( true );
+        db.update( game );
+        
         // @todo switch level now!!
-        Game newLevel = GameController.newLevel( gameState.getUser(), 2 );
-        GameState newGameState = new GameState( gameState.getUser(), newLevel );
+        Game newLevel = GameController.newLevel( user, game.getLevel() + 1 );
+        user.setCurrentGame( newLevel );
+        db.insert( newLevel );
+        db.update( user );
+        
+        GameState newGameState = new GameState( user, newLevel );
         
         // if we won the previous level, save it and move the game pointer in
         // the database
@@ -188,9 +200,9 @@ public class AtomicActivity extends Activity {
         item = menu.add( Menu.NONE, MENU_ITEM_LEVELS, Menu.NONE, "Levels" );
         item.setIcon( R.drawable.levels_cclicense );
         
-        item = menu.add( Menu.NONE, MENU_ITEM_UNDO, Menu.NONE,
+        undo = menu.add( Menu.NONE, MENU_ITEM_UNDO, Menu.NONE,
                 "Undo" );
-        item.setIcon( R.drawable.undo );
+        undo.setIcon( R.drawable.undo );
         
         item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
                 "Main Menu" );
@@ -204,7 +216,9 @@ public class AtomicActivity extends Activity {
     
     @Override
     public boolean onPrepareOptionsMenu( Menu menu ) {
-        // @todo nothing to do here, pretty sure...
+        // check to see if we can undo a move
+        undo.setEnabled( GameController.canUndo( gameState ) );
+        
         return true;
     }
     
@@ -227,19 +241,18 @@ public class AtomicActivity extends Activity {
             } break;
             
             case MENU_ITEM_UNDO: {
-                
+                // undo the last move
+                GameController.undo( gameState );
             } break;
             
             case MENU_ITEM_MAIN_MENU: {
-                // go back to the main menu after saving
-                // @todo save here?
+                // go back to the main menu (save will happen in onPause())
                 super.setResult( MenuActivity.GAME_RESULT_MAIN_MENU );
                 super.finish();
             } break;
             
             case MENU_ITEM_QUIT: {
-                // quit the game entirely after saving
-                // @todo save here?
+                // quit the game entirely (save will happen in onPause())
                 super.setResult( MenuActivity.GAME_RESULT_QUIT );
                 super.finish();
             } break;
@@ -275,10 +288,6 @@ public class AtomicActivity extends Activity {
         // save the game state
         icicle.putSerializable( GameState.GAME_STATE_KEY, gameState );
         
-        if ( db == null ) {
-            db = new AtomixDbAdapter( this ).open();
-        }
-        
         db.update( gameState.getUser() );
         db.update( gameState.getGame() );
     }
@@ -287,10 +296,6 @@ public class AtomicActivity extends Activity {
     public void onPause() {
         super.onPause();
         Log.d( "DROID_ATOMIX", "onPause() called" );
-        
-        if ( db == null ) {
-            db = new AtomixDbAdapter( this ).open();
-        }
         
         db.update( gameState.getUser() );
         db.update( gameState.getGame() );
@@ -307,6 +312,11 @@ public class AtomicActivity extends Activity {
         
         // make sure the view has the right GameState
         view.setGameState( gameState );
+        
+        // turn the database adapter back on
+        if ( db == null ) {
+            db = new AtomixDbAdapter( this ).open();
+        }
     }
     
     @Override
