@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Atomix</string>
+    
+    <!-- Activity Titles -->
     <string name="home_title">Atomix</string>
+    <string name="levels_title">DroidAtomix Levels</string>
+    
+    <!-- Strings for the Levels List -->
+    <string name="completed_seconds_text">Solved in %1$d seconds,</string>
+    <string name="completed_moves_text">using %1$d moves.</string>
+    
 </resources>
