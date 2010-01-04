@@ -1,0 +1,43 @@
+# DroidAtomix Map Config File
+# Level 4
+
+level:
+4
+
+name:
+Ethylene
+
+formula:
+C_2H_4
+
+size:
+11X11
+
+molecules:
+1 0000FF H -ur
+2 444444 C =l -ur -lr
+3 0000FF H -ll
+4 444444 C =r -ul -ll
+5 0000FF H -ul
+6 0000FF H -lr
+
+map:
+XXX     XXX
+X X     X X
+X1XXXXXXX X
+X      X  X
+XX  2 X   X
+X X    3X4X
+X   X    XX
+X  X    56X
+X XXXXXXX X
+X X     X X
+XXX     XXX
+
+goal_size:
+4X3
+
+goal:
+6  3
+ 42 
+1  5
