@@ -216,8 +216,6 @@ public class AtomicView extends View {
         
         // squares that will be drawn as arrows
         arrowSquares = new HashMap<Point, GameState.Direction>();
-        // if this is being re-instated, set the arrow squares
-        this.setArrowSquares();
         
         // stuff that got moved from onDraw() ==================================
         
@@ -335,6 +333,9 @@ public class AtomicView extends View {
         
         // grab the board from the game state
         Square[][] board = gameState.getBoard();
+        
+        // set the squares where arrows should be drawn
+        this.setArrowSquares();
         
         // translate to create the 1px top/left gap
         canvas.save();
@@ -783,10 +784,6 @@ public class AtomicView extends View {
     }
     
     private void setHoverpoint( int i, int j, boolean redraw ) {
-        Log.d( "TOUCH EVENT", "========" );
-        Log.d( "TOUCH EVENT", "HOVER POINT at " + i + ", " + j );
-        Log.d( "TOUCH EVENT", "========" );
-        
         // is this a NEW hover point?
         Point hoverPoint = gameState.getHoverPoint();
         if ( ( hoverPoint == null ) ||
@@ -923,23 +920,8 @@ public class AtomicView extends View {
         GameState.Direction d = null;
         
         try {
-            
             if ( board[ j ][ i ] instanceof Atom ) {
-                
-            } else if ( board[ j ][ i ] instanceof Square ) {
-                
-            }
-            
-            if ( board[ j ][ i ] instanceof Atom ) {
-                try {
-                    GameController.select( gameState, i, j );
-                } catch ( GameException e ) {
-                    // this shouldn't ever happen, we checked beforehand
-                    assert false;
-                }
-                
-                // set the squares were arrows should be drawn
-                this.setArrowSquares();
+                gameState.setSelected( new Point( i, j ) );
             } else if ( ( d = arrowSquares.get( new Point( i, j ) ) )
                     != null ) {
                 // we clicked on an arrow -> move the selected atom
@@ -966,9 +948,6 @@ public class AtomicView extends View {
                 
                 // move the hover point to the new location of the Atom
                 setHoverpoint( selected.x, selected.y, false );
-                
-                // set the squares were arrows should be drawn
-                this.setArrowSquares();
             }
             
             //hoverPoint = null;
@@ -984,6 +963,9 @@ public class AtomicView extends View {
         }
     }
     
+    /**
+     * Sets the locations to draw arrows on the board.
+     */
     private void setArrowSquares() {
         
         // identify and store all Direction flags to be drawn
