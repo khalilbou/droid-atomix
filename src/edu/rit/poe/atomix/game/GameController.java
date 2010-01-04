@@ -174,6 +174,10 @@ public final class GameController {
         Atom atom = ( Atom )gameState.board[ endY ][ endX ];
         gameState.game.getAtoms().put( atom.getId(), new Point( endX, endY ) );
         
+        // increment the number of moves in this game's database object
+        int moves = gameState.game.getMoves() + 1;
+        gameState.game.setMoves( moves );
+        
         // check for win conditions
         // -- consult the gold standard level object
         return gameState.getLevelObj().isComplete( gameState.board );
@@ -255,6 +259,11 @@ public final class GameController {
             Atom atom = ( Atom )gameState.board[ move.start.y ][ move.start.x ];
             gameState.game.getAtoms().put( atom.getId(),
                     new Point( move.start.x, move.start.y ) );
+            
+            // decrement the number of moves in this game's database object
+            int moves = gameState.game.getMoves() - 1;
+            gameState.game.setMoves( moves );
+        
         }
     }
     
