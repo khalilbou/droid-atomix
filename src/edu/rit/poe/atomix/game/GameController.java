@@ -60,6 +60,16 @@ public final class GameController {
         return user;
     }
     
+    /**
+     * Creates a new <tt>Game</tt> object for the specified user at the
+     * specified level, if such a level exists.
+     * 
+     * @param   user    the user to create a new game for
+     * @param   level   the level at which to create the game
+     * 
+     * @return          a new <tt>Game</tt> object that has been initialized for
+     *                  the specified level
+     */
     public static Game newLevel( User user, int level ) {
         // create basic game data
         Game game = new Game();
@@ -109,6 +119,7 @@ public final class GameController {
         }
         int endX = gameState.selected.x;
         int endY = gameState.selected.y;
+        Point start = new Point( endX, endY );
         
         // perform an iterative search for the furthest distance the atom can
         // travel in the given direction
@@ -146,6 +157,11 @@ public final class GameController {
                 endY = nextY;
             }
         }
+        Point end = new Point( endX, endY );
+        
+        // add this move to the undo stack
+        gameState.undoStack.clear(); // only keep one move (for now?)
+        gameState.undoStack.push( new GameState.Move( start, end ) );
         
         //move the atom
         gameState.board[ endY ][ endX ] =
@@ -207,23 +223,39 @@ public final class GameController {
         return directions;
     }
     
-    public static void select( GameState gameState, int x, int y )
-            throws GameException {
-        if ( gameState.board[ y ][ x ] instanceof Atom ) {
-            gameState.selected = new Point( x, y );
-        } else {
-            throw new GameException( "No atom at specified location." );
-        }
-    }
-    
+    /**
+     * Returns whether an undo operation can be performed.
+     * 
+     * @param   gameState   the game state to check for an available undo move
+     * 
+     * @return              <tt>true</tt> if undo can be performed, otherwise
+     *                      <tt>false</tt>
+     */
     public static boolean canUndo( GameState gameState ) {
-        // @todo check to see if we have a move to undo in the GameState
-        return false;
+        return ( ! gameState.undoStack.empty() );
     }
     
+    /**
+     * Performs an undo operation, undoing the mostly recently moved atom.
+     * 
+     * @param   gameState   the game state to perform the undo upon
+     */
     public static void undo( GameState gameState ) {
-        // @todo write the undo mechanism
-        // maybe check canUndo first?
+        if ( canUndo( gameState ) ) {
+            GameState.Move move = gameState.undoStack.pop();
+            
+            // move the atom back
+            gameState.board[ move.start.y ][ move.start.x ] =
+                    gameState.board[ move.end.y ][ move.end.x ];
+            gameState.board[ move.end.y ][ move.end.x ] = Square.EMPTY;
+            gameState.selected.set( move.start.x, move.start.y );
+            gameState.setHoverPoint( move.start );
+            
+            // update the database copy of the atom's location
+            Atom atom = ( Atom )gameState.board[ move.start.y ][ move.start.x ];
+            gameState.game.getAtoms().put( atom.getId(),
+                    new Point( move.start.x, move.start.y ) );
+        }
     }
     
 } // GameManager

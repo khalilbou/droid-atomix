@@ -243,6 +243,9 @@ public class AtomicActivity extends Activity {
             case MENU_ITEM_UNDO: {
                 // undo the last move
                 GameController.undo( gameState );
+                
+                // a redraw is needed immediately after an undo
+                redrawView( null );
             } break;
             
             case MENU_ITEM_MAIN_MENU: {

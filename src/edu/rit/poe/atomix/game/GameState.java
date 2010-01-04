@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * This class represents all in-game state.  It wraps the <tt>User</tt> and
@@ -74,6 +75,8 @@ public class GameState implements Serializable {
     /** The point that is currently being hovered over, or <tt>null</tt>. */
     Point hoverPoint;
     
+    Stack<Move> undoStack;
+    
     /**
      * 
      * @param user
@@ -105,6 +108,8 @@ public class GameState implements Serializable {
             
             board[ point.y ][ point.x ] = atom;
         }
+        
+        undoStack = new Stack<Move>();
     }
     
     // Simple Accesors/Mutators
@@ -174,6 +179,10 @@ public class GameState implements Serializable {
         return selected;
     }
     
+    public void setSelected( Point selected ) {
+        this.selected = selected;
+    }
+    
     public Point getHoverPoint() {
         return hoverPoint;
     }
@@ -181,5 +190,33 @@ public class GameState implements Serializable {
     public void setHoverPoint( Point hoverPoint ) {
         this.hoverPoint = hoverPoint;
     }
+    
+    /**
+     * This class 
+     * 
+     * @author  Peter O. Erickson
+     * 
+     * @version $Id$
+     */
+    static class Move {
+        
+        /** The starting location of this move. */
+        Point start;
+        
+        /** The ending location of this move. */
+        Point end;
+        
+        /**
+         * Constructs a new move with the starting and ending location.
+         * 
+         * @param   start   the starting location
+         * @param   end     the ending location
+         */
+        Move( Point start, Point end ) {
+            this.start = start;
+            this.end = end;
+        }
+        
+    } // Move
     
 } // GameState
