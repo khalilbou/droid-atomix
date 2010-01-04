@@ -23,6 +23,7 @@
 
 package edu.rit.poe.atomix.game;
 
+import android.util.Log;
 import edu.rit.poe.atomix.db.Game;
 import edu.rit.poe.atomix.db.User;
 import edu.rit.poe.atomix.game.GameState.Direction;
@@ -44,6 +45,8 @@ import java.util.EnumSet;
  * @version $Id$
  */
 public final class GameController {
+    
+    public static final int MS_PER_S = 1000;
     
     /**
      * Creates a new user.
@@ -265,6 +268,22 @@ public final class GameController {
             gameState.game.setMoves( moves );
         
         }
+    }
+    
+    public static void startTimer( GameState gameState ) {
+        Log.d( "GAME_CONTROLLER", "*Starting the playing timer*" );
+        
+        gameState.timeStarted_sec = System.currentTimeMillis() / MS_PER_S;
+    }
+    
+    public static void stopTimer( GameState gameState ) {
+        Log.d( "GAME_CONTROLLER", "*Stopping the playing timer*" );
+        
+        long now = System.currentTimeMillis() / MS_PER_S;
+        int dt = ( int )( now - gameState.timeStarted_sec );
+        
+        int seconds = gameState.game.getSeconds() + dt;
+        gameState.game.setSeconds( seconds );
     }
     
 } // GameManager

@@ -77,6 +77,8 @@ public class GameState implements Serializable {
     
     Stack<Move> undoStack;
     
+    long timeStarted_sec;
+    
     /**
      * 
      * @param user
@@ -198,7 +200,7 @@ public class GameState implements Serializable {
      * 
      * @version $Id$
      */
-    static class Move {
+    static class Move implements Serializable {
         
         /** The starting location of this move. */
         Point start;

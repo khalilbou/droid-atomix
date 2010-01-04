@@ -26,8 +26,8 @@ package edu.rit.poe.atomix;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +49,10 @@ import java.util.Map;
  */
 public class LevelListActivity extends ListActivity {
     
+    private Resources resources;
+    
+    private AtomixDbAdapter db;
+    
     private Cursor levelCursor;
     
     /**
@@ -60,7 +64,10 @@ public class LevelListActivity extends ListActivity {
     public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
         
-        super.setTitle( "DroidAtomix Levels" );
+        // access the application resources
+        resources = super.getResources();
+        
+        super.setTitle( resources.getString( R.string.levels_title) );
         
         // get the game state from the intent's extras
         Intent intent = super.getIntent();
@@ -69,9 +76,11 @@ public class LevelListActivity extends ListActivity {
                 ( GameState )extras.getSerializable( GameState.GAME_STATE_KEY );
         
         // load the current users games in a cursor
-        AtomixDbAdapter db = new AtomixDbAdapter( this );
-        db.open();
-        Cursor games = db.getFinishedGames( gameState.getUser().getId() );
+        db = new AtomixDbAdapter( this ).open();
+        
+        final Cursor games = db.getFinishedGames( gameState.getUser().getId() );
+        super.startManagingCursor( games );
+        
         // load all finished levels' time into a map
         final Map<Integer, Integer> finished = new HashMap<Integer, Integer>();
         
@@ -79,12 +88,7 @@ public class LevelListActivity extends ListActivity {
             games.moveToNext();
             
             int level = games.getInt( games.getColumnIndex( Game.LEVEL_KEY ) );
-            int seconds =
-                    games.getInt( games.getColumnIndex( Game.SECONDS_KEY ) );
-            // @todo perhaps load the entire game objects?
-            // and show both time and moves in the level list?
-            int moves = games.getInt( games.getColumnIndex( Game.MOVES_KEY ) );
-            finished.put( level, seconds );
+            finished.put( level, games.getPosition() );
         }
         
         LevelManager levelManager = LevelManager.getInstance();
@@ -100,15 +104,36 @@ public class LevelListActivity extends ListActivity {
             public View getView( int pos, View convertView, ViewGroup parent ) {
                 View view = super.getView( pos, convertView, parent );
                 
-                TextView levelCompleted =
-                        ( TextView )view.findViewById( R.id.level_completed );
+                TextView secondsText = ( TextView )view.findViewById(
+                        R.id.level_completed_seconds );
+                TextView movesText = ( TextView )view.findViewById(
+                        R.id.level_completed_moves );
+                
+                // find out what level this is
+                levelCursor.moveToPosition( pos );
+                int level = levelCursor.getInt(
+                        levelCursor.getColumnIndex( "_id" ) );
                 
                 // @todo see SimpleCursorAdapter for how it accesses the data
                 // in the cursor per row
-                if ( finished.containsKey( pos + 1 ) ) {
-                    int seconds = finished.get( pos + 1 );
-                    levelCompleted.setText( seconds + " seconds" );
-                    levelCompleted.setTextColor( Color.GREEN );
+                if ( finished.containsKey( level ) ) {
+                    // the value in the map at this level is the position in the
+                    // games cursor
+                    int gamesPos = finished.get( level );
+                    games.moveToPosition( gamesPos );
+                    
+                    int seconds = games.getInt(
+                            games.getColumnIndex( Game.SECONDS_KEY ) );
+                    String fmt = resources.getString(
+                            R.string.completed_seconds_text );
+                    String text = String.format( fmt, seconds );
+                    secondsText.setText( text );
+                    
+                    int moves = games.getInt(
+                            games.getColumnIndex( Game.MOVES_KEY ) );
+                    fmt = resources.getString( R.string.completed_moves_text );
+                    text = String.format( fmt, moves );
+                    movesText.setText( text );
                 }
                 
                 return view;
@@ -122,7 +147,7 @@ public class LevelListActivity extends ListActivity {
     public void onListItemClick( ListView lv, View v, int position, long id ) {
         AtomicActivity atomix = ( AtomicActivity )super.getParent();
         
-        atomix.winLevel();
+        atomix.startLevel( ( int )id );
         
         
         // @todo COMPLETE
@@ -144,6 +169,23 @@ public class LevelListActivity extends ListActivity {
     protected void onPrepareDialog( int id, Dialog dialog ) {
         super.onPrepareDialog( id, dialog );
         
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        // close the connection to the database
+        db.close();
+        db = null;
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // turn the database adapter back on
+        if ( db == null ) {
+            db = new AtomixDbAdapter( this ).open();
+        }
     }
     
 } // LevelListActivity

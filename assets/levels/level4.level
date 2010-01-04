@@ -22,8 +22,8 @@ molecules:
 6 0000FF H -lr
 
 map:
-XXX     XXX
-X X     X X
+XXXBBBBBXXX
+X XBBBBBX X
 X1XXXXXXX X
 X      X  X
 XX  2 X   X
@@ -31,8 +31,8 @@ X X    3X4X
 X   X    XX
 X  X    56X
 X XXXXXXX X
-X X     X X
-XXX     XXX
+X XBBBBBX X
+XXXBBBBBXXX
 
 goal_size:
 4X3

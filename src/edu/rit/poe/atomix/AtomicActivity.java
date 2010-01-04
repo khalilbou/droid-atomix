@@ -159,26 +159,32 @@ public class AtomicActivity extends Activity {
         msg.what = WIN_LEVEL;
         viewHandler.sendMessage( msg );
         
+        // stop the old game timer
+        GameController.stopTimer( gameState );
+        
         // save the old game as finished
-        User user = gameState.getUser();
         Game game = gameState.getGame();
         game.setFinished( true );
         db.update( game );
         
-        // @todo switch level now!!
-        Game newLevel = GameController.newLevel( user, game.getLevel() + 1 );
+        startLevel( game.getLevel() + 1 );
+    }
+    
+    public void startLevel( int level ) {
+        User user = gameState.getUser();
+        
+        Game newLevel = GameController.newLevel( user, level );
         user.setCurrentGame( newLevel );
         db.insert( newLevel );
         db.update( user );
         
-        GameState newGameState = new GameState( user, newLevel );
         
-        // if we won the previous level, save it and move the game pointer in
-        // the database
-        
-        gameState = newGameState;
-        
+        // set the new game state
+        gameState = new GameState( user, newLevel );
         view.setGameState( gameState );
+        
+        // start the playing timer
+        GameController.startTimer( gameState );
         
         redrawView( null );
     }
@@ -300,6 +306,9 @@ public class AtomicActivity extends Activity {
         super.onPause();
         Log.d( "DROID_ATOMIX", "onPause() called" );
         
+        // stop the playing timer
+        GameController.stopTimer( gameState );
+        
         db.update( gameState.getUser() );
         db.update( gameState.getGame() );
         
@@ -315,6 +324,9 @@ public class AtomicActivity extends Activity {
         
         // make sure the view has the right GameState
         view.setGameState( gameState );
+        
+        // start the playing timer
+        GameController.startTimer( gameState );
         
         // turn the database adapter back on
         if ( db == null ) {
