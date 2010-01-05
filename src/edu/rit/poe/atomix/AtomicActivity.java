@@ -24,6 +24,8 @@
 package edu.rit.poe.atomix;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -37,7 +39,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 import edu.rit.poe.atomix.db.AtomixDbAdapter;
 import edu.rit.poe.atomix.db.Game;
 import edu.rit.poe.atomix.db.User;
@@ -89,11 +90,29 @@ public class AtomicActivity extends Activity {
                     view.invalidate();
                 }
             } else if ( msg.what == WIN_LEVEL ) {
+                Game game = ( Game )msg.obj;
+                final int nextLevel = game.getLevel() + 1;
                 
-                Toast toast = Toast.makeText( AtomicActivity.this, "You win!",
-                        Toast.LENGTH_LONG );
-                toast.show();
-                // @todo handle win condition betters!
+                
+                Resources resources = AtomicActivity.super.getResources();
+                int level = game.getLevel();
+                int seconds = game.getSeconds();
+                int moves = game.getMoves();
+                String fmt = resources.getString( R.string.win_dialog_text );
+                String text = String.format( fmt, level, seconds, moves );
+                
+                AlertDialog.Builder alert =
+                        new AlertDialog.Builder( AtomicActivity.this );
+                alert.setTitle( R.string.win_dialog_title );
+                alert.setMessage( text );
+                alert.setPositiveButton( R.string.win_dialog_button,
+                        new DialogInterface.OnClickListener() {
+                    public void onClick( DialogInterface di, int arg1 ) {
+                        // start the next level
+                        AtomicActivity.this.startLevel( nextLevel );
+                    }
+                } );
+                alert.show();
             }
             super.handleMessage( msg );
         }
@@ -146,8 +165,8 @@ public class AtomicActivity extends Activity {
         return view.onTrackballEvent( event );
     }
     
+    
     public void redrawView( Rect rect ) {
-        Log.d( "ATOMIX_ACTIVITY", "Redraw view" );
         Message msg = new Message();
         msg.what = REDRAW_VIEW;
         msg.obj = rect;
@@ -155,10 +174,6 @@ public class AtomicActivity extends Activity {
     }
     
     public void winLevel() {
-        Message msg = new Message();
-        msg.what = WIN_LEVEL;
-        viewHandler.sendMessage( msg );
-        
         // stop the old game timer
         GameController.stopTimer( gameState );
         
@@ -167,9 +182,21 @@ public class AtomicActivity extends Activity {
         game.setFinished( true );
         db.update( game );
         
-        startLevel( game.getLevel() + 1 );
+        // show the dialog and then start the next level
+        Message msg = new Message();
+        msg.what = WIN_LEVEL;
+        msg.obj = game;
+        viewHandler.sendMessage( msg );
     }
     
+    /**
+     * Starts a new level for the current user by creating a new game at the
+     * specified level and updating the game state and view.  This method does
+     * not perform any persistence for the user's current game (this should be
+     * handled prior to calling this method).
+     * 
+     * @param   level   the level number of the new level
+     */
     public void startLevel( int level ) {
         User user = gameState.getUser();
         
@@ -178,7 +205,6 @@ public class AtomicActivity extends Activity {
         db.insert( newLevel );
         db.update( user );
         
-        
         // set the new game state
         gameState = new GameState( user, newLevel );
         view.setGameState( gameState );
@@ -186,6 +212,7 @@ public class AtomicActivity extends Activity {
         // start the playing timer
         GameController.startTimer( gameState );
         
+        // update the view with the new game
         redrawView( null );
     }
     
@@ -194,32 +221,41 @@ public class AtomicActivity extends Activity {
      * 
      * @param   menu    the application menu to add options to
      * 
-     * @return          whether to display the menu on Menu press
+     * @return          always <tt>true</tt>, to display the menu on Menu press
      */
     @Override
     public boolean onCreateOptionsMenu( Menu menu ) {
         // add the menu items!
         MenuItem item = menu.add( Menu.NONE, MENU_ITEM_GOAL, Menu.NONE,
-                "Goal Molecule" );
+                R.string.menu_goal );
         item.setIcon( android.R.drawable.ic_menu_zoom );
         
-        item = menu.add( Menu.NONE, MENU_ITEM_LEVELS, Menu.NONE, "Levels" );
+        item = menu.add( Menu.NONE, MENU_ITEM_LEVELS, Menu.NONE,
+                R.string.menu_levels );
         item.setIcon( R.drawable.levels_cclicense );
         
         undo = menu.add( Menu.NONE, MENU_ITEM_UNDO, Menu.NONE,
-                "Undo" );
+                R.string.menu_undo );
         undo.setIcon( R.drawable.undo );
         
         item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
-                "Main Menu" );
+                R.string.menu_main );
         item.setIcon( R.drawable.options );
         
-        item = menu.add( Menu.NONE, MENU_ITEM_QUIT, Menu.NONE, "Quit" );
+        item = menu.add( Menu.NONE, MENU_ITEM_QUIT, Menu.NONE,
+                R.string.menu_quit );
         item.setIcon( android.R.drawable.ic_menu_close_clear_cancel );
         
         return true;
     }
     
+    /**
+     * Prepares the options menu before showing it to the user.
+     * 
+     * @param   menu    the menu to be prepared
+     * 
+     * @return          always <tt>true</tt>, since this was handled
+     */
     @Override
     public boolean onPrepareOptionsMenu( Menu menu ) {
         // check to see if we can undo a move
@@ -228,6 +264,13 @@ public class AtomicActivity extends Activity {
         return true;
     }
     
+    /**
+     * Handles a menu item being selected from the options menu.
+     * 
+     * @param   item    the item that was clicked
+     * 
+     * @return          always <tt>true</tt>, since the event was handled
+     */
     @Override
     public boolean onOptionsItemSelected( MenuItem item ) {
         // switch on the selected menu item
@@ -271,6 +314,12 @@ public class AtomicActivity extends Activity {
         return true;
     }
     
+    /**
+     * This method handles configuration changes to the phone, such as a change
+     * to the orientation.
+     * 
+     * @param   conf    the new configuration
+     */
     @Override
     public void onConfigurationChanged( Configuration conf ) {
         super.onConfigurationChanged( conf );
