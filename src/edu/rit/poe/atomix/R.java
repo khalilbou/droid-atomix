@@ -80,5 +80,17 @@ public final class R {
          */
         public static final int home_title=0x7f040001;
         public static final int levels_title=0x7f040002;
+        /**  String literals for the options menu 
+         */
+        public static final int menu_goal=0x7f040008;
+        public static final int menu_levels=0x7f040009;
+        public static final int menu_main=0x7f04000b;
+        public static final int menu_quit=0x7f04000c;
+        public static final int menu_undo=0x7f04000a;
+        public static final int win_dialog_button=0x7f040007;
+        public static final int win_dialog_text=0x7f040006;
+        /**  Strings for the Win Level Dialog 
+         */
+        public static final int win_dialog_title=0x7f040005;
     }
 }

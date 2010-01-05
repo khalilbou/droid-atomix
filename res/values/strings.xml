@@ -10,4 +10,17 @@
     <string name="completed_seconds_text">Solved in %1$d seconds,</string>
     <string name="completed_moves_text">using %1$d moves.</string>
     
+    <!-- Strings for the Win Level Dialog -->
+    <string name="win_dialog_title">You Win!</string>
+    <string name="win_dialog_text">You solved level %1$d in %2$d seconds, using
+            %3$d moves.\n\nClick 'Next' to continue to the next level.</string>
+    <string name="win_dialog_button">Next</string>
+    
+    <!-- String literals for the options menu -->
+    <string name="menu_goal">Goal Molecule</string>
+    <string name="menu_levels">Levels</string>
+    <string name="menu_undo">Undo</string>
+    <string name="menu_main">Main Menu</string>
+    <string name="menu_quit">Quit</string>
+    
 </resources>
