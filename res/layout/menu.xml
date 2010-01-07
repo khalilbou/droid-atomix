@@ -40,22 +40,22 @@
                 android:id="@+id/continue_button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Continue"/>
+                android:text="@+string/main_menu_continue"/>
             <Button
                 android:id="@+id/new_game_button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="New Game"/>
+                android:text="@+string/main_menu_new_game"/>
             <Button
                 android:id="@+id/help_button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Help"/>
+                android:text="@+string/main_menu_help"/>
             <Button
                 android:id="@+id/quit_button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Quit"/>
+                android:text="@+string/main_menu_quit"/>
         </LinearLayout>
     </ScrollView>
     

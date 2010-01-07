@@ -25,6 +25,7 @@ package edu.rit.poe.atomix;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -44,6 +45,7 @@ import edu.rit.poe.atomix.db.Game;
 import edu.rit.poe.atomix.db.User;
 import edu.rit.poe.atomix.game.GameController;
 import edu.rit.poe.atomix.game.GameState;
+import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.view.AtomicView;
 
 /**
@@ -56,9 +58,15 @@ import edu.rit.poe.atomix.view.AtomicView;
  */
 public class AtomicActivity extends Activity {
     
-    public static final int REDRAW_VIEW = 0x1;
+    public static final String LOG_TAG = AtomicActivity.class.getName();
     
-    public static final int WIN_LEVEL = 0x2;
+    public static final int LEVEL_LIST_REQUEST_CODE = 0x0;
+    
+    public static final int START_NEW_LEVEL_RESULT_CODE = 0x1;
+    
+    public static final int EVENT_REDRAW_VIEW = 0x1;
+    
+    public static final int EVENT_WIN_LEVEL = 0x2;
     
     public static final int MENU_ITEM_GOAL = 0x00;
     
@@ -66,9 +74,19 @@ public class AtomicActivity extends Activity {
     
     public static final int MENU_ITEM_UNDO = 0x02;
     
+    public static final int MENU_ITEM_NEXT_LEVEL = 0x05;
+    
+    public static final int MENU_ITEM_PREVIOUS_LEVEL = 0x06;
+    
     public static final int MENU_ITEM_MAIN_MENU = 0x03;
     
     public static final int MENU_ITEM_QUIT = 0x04;
+    
+    public static final int DIALOG_CONFIRM_UNSAVED_LEVEL = 0x0;
+    
+    public static final int DIALOG_CONFIRM_OVERWRITE_LEVEL = 0x1;
+    
+    public static final int DIALOG_WIN_LEVEL = 0x2;
     
     private AtomicView view;
     
@@ -76,12 +94,23 @@ public class AtomicActivity extends Activity {
     
     private GameState gameState;
     
-    private MenuItem undo;
+    private MenuItem undoMenuItem;
     
+    private MenuItem nextMenuItem;
+    
+    private MenuItem prevMenuItem;
+    
+    /**
+     * This integer is the level number that is to be started, assuming all
+     * dialog confirmations are passed.
+     */
+    private int pendingLevel;
+    
+    /** A handler for view-related events.  */
     private Handler viewHandler = new Handler() {
         @Override 
         public void handleMessage( Message msg ) {
-            if ( msg.what == REDRAW_VIEW ) {
+            if ( msg.what == EVENT_REDRAW_VIEW ) {
                 
                 if ( msg.obj != null ) {
                     Rect rect = ( Rect )msg.obj;
@@ -89,34 +118,14 @@ public class AtomicActivity extends Activity {
                 } else {
                     view.invalidate();
                 }
-            } else if ( msg.what == WIN_LEVEL ) {
-                Game game = ( Game )msg.obj;
-                final int nextLevel = game.getLevel() + 1;
-                
-                
-                Resources resources = AtomicActivity.super.getResources();
-                int level = game.getLevel();
-                int seconds = game.getSeconds();
-                int moves = game.getMoves();
-                String fmt = resources.getString( R.string.win_dialog_text );
-                String text = String.format( fmt, level, seconds, moves );
-                
-                AlertDialog.Builder alert =
-                        new AlertDialog.Builder( AtomicActivity.this );
-                alert.setTitle( R.string.win_dialog_title );
-                alert.setMessage( text );
-                alert.setPositiveButton( R.string.win_dialog_button,
-                        new DialogInterface.OnClickListener() {
-                    public void onClick( DialogInterface di, int arg1 ) {
-                        // start the next level
-                        AtomicActivity.this.startLevel( nextLevel );
-                    }
-                } );
-                alert.show();
+            } else if ( msg.what == EVENT_WIN_LEVEL ) {
+                showDialog( DIALOG_WIN_LEVEL );
             }
             super.handleMessage( msg );
         }
     };
+    
+    // ===== Lifecycle Methods =====
     
     /**
      * Called when the activity is first created.
@@ -126,7 +135,7 @@ public class AtomicActivity extends Activity {
     @Override
     public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
-        Log.d( "DROID_ATOMIX", "AtomixActivity.onCreate() was called." );
+        Log.d( LOG_TAG, "onCreate() was called." );
         
         // if phone is landscape, make fullscreen!!!
         Resources resources = super.getResources();
@@ -153,6 +162,90 @@ public class AtomicActivity extends Activity {
     }
     
     /**
+     * Called to save activity state to the specified bundle.
+     * 
+     * @param   icicle  the bundle of saved state information
+     */
+    @Override
+    protected void onSaveInstanceState( Bundle icicle ) {
+        super.onSaveInstanceState( icicle );
+        Log.d( LOG_TAG, "onSaveInstanceState() called" );
+        
+        // save the game state
+        icicle.putSerializable( GameState.GAME_STATE_KEY, gameState );
+        
+        db.update( gameState.getUser() );
+        db.update( gameState.getGame() );
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d( LOG_TAG, "onPause() called" );
+        
+        // stop the playing timer
+        GameController.stopTimer( gameState );
+        
+        db.update( gameState.getUser() );
+        db.update( gameState.getGame() );
+        
+        // close the connection to the database
+        db.close();
+        db = null;
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d( LOG_TAG, "onResume() was called." );
+        
+        // make sure the view has the right GameState
+        view.setGameState( gameState );
+        
+        // start the playing timer
+        GameController.startTimer( gameState );
+        
+        // turn the database adapter back on
+        if ( db == null ) {
+            db = new AtomixDbAdapter( this ).open();
+        }
+    }
+    
+    @Override
+    protected void onRestoreInstanceState( Bundle icicle ) {
+        super.onRestoreInstanceState( icicle );
+        Log.d( LOG_TAG, "onRestoreInstanceState() called" );
+        
+        // restore game state
+        gameState =
+                ( GameState )icicle.getSerializable( GameState.GAME_STATE_KEY );
+    }
+    
+    /**
+     * 
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult( int requestCode, int resultCode,
+            Intent data ) {
+        if ( requestCode == LEVEL_LIST_REQUEST_CODE ) {
+            if ( resultCode == START_NEW_LEVEL_RESULT_CODE ) {
+                // execute the confirmations before starting the new level
+                Bundle extras = data.getExtras();
+                int level = extras.getInt( Game.LEVEL_KEY );
+                this.confirmAndStartLevel( level );
+                
+            } else {
+                // continue playing this level
+            }
+        }
+    }
+    
+    // ===== Other Android Methods =====
+    
+    /**
      * Called when the trackball is moved.
      * 
      * @param   event   the trackball event
@@ -165,56 +258,29 @@ public class AtomicActivity extends Activity {
         return view.onTrackballEvent( event );
     }
     
-    
-    public void redrawView( Rect rect ) {
-        Message msg = new Message();
-        msg.what = REDRAW_VIEW;
-        msg.obj = rect;
-        viewHandler.sendMessage( msg );
-    }
-    
-    public void winLevel() {
-        // stop the old game timer
-        GameController.stopTimer( gameState );
-        
-        // save the old game as finished
-        Game game = gameState.getGame();
-        game.setFinished( true );
-        db.update( game );
-        
-        // show the dialog and then start the next level
-        Message msg = new Message();
-        msg.what = WIN_LEVEL;
-        msg.obj = game;
-        viewHandler.sendMessage( msg );
-    }
-    
     /**
-     * Starts a new level for the current user by creating a new game at the
-     * specified level and updating the game state and view.  This method does
-     * not perform any persistence for the user's current game (this should be
-     * handled prior to calling this method).
+     * This method handles configuration changes to the phone, such as a change
+     * to the orientation.
      * 
-     * @param   level   the level number of the new level
+     * @param   conf    the new configuration
      */
-    public void startLevel( int level ) {
-        User user = gameState.getUser();
+    @Override
+    public void onConfigurationChanged( Configuration conf ) {
+        super.onConfigurationChanged( conf );
+        Log.d( LOG_TAG, "onConfigurationChanged() called" );
         
-        Game newLevel = GameController.newLevel( user, level );
-        user.setCurrentGame( newLevel );
-        db.insert( newLevel );
-        db.update( user );
-        
-        // set the new game state
-        gameState = new GameState( user, newLevel );
-        view.setGameState( gameState );
-        
-        // start the playing timer
-        GameController.startTimer( gameState );
-        
-        // update the view with the new game
-        redrawView( null );
+        // if we're sideways, go fullscreen
+        if ( conf.orientation == Configuration.ORIENTATION_LANDSCAPE ) {
+            this.getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
+        } else {
+            this.getWindow().clearFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
+        }
     }
+    
+    // ===== Menu Methods =====
     
     /**
      * Create the options menu.
@@ -226,25 +292,48 @@ public class AtomicActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu( Menu menu ) {
         // add the menu items!
-        MenuItem item = menu.add( Menu.NONE, MENU_ITEM_GOAL, Menu.NONE,
-                R.string.menu_goal );
-        item.setIcon( android.R.drawable.ic_menu_zoom );
+        MenuItem item = null;
         
+        // the context menu:
+        // [PREVIOUS]      [LEVELS]        [NEXT]
+        //   [UNDO]     [GOAL MOLECULE]    [MORE]
+        
+        // Previous Level
+        prevMenuItem= menu.add( Menu.NONE, MENU_ITEM_PREVIOUS_LEVEL, Menu.NONE,
+                R.string.menu_previous );
+        prevMenuItem.setIcon( R.drawable.arrow_left );
+        
+        // Levels
         item = menu.add( Menu.NONE, MENU_ITEM_LEVELS, Menu.NONE,
                 R.string.menu_levels );
         item.setIcon( R.drawable.levels_cclicense );
         
-        undo = menu.add( Menu.NONE, MENU_ITEM_UNDO, Menu.NONE,
-                R.string.menu_undo );
-        undo.setIcon( R.drawable.undo );
+        // Next Level
+        nextMenuItem= menu.add( Menu.NONE, MENU_ITEM_NEXT_LEVEL, Menu.NONE,
+                R.string.menu_next );
+        nextMenuItem.setIcon( R.drawable.arrow_right );
         
+        // Undo
+        undoMenuItem = menu.add( Menu.NONE, MENU_ITEM_UNDO, Menu.NONE,
+                R.string.menu_undo );
+        undoMenuItem.setIcon( R.drawable.undo );
+        
+        // Goal Molecule
+        item = menu.add( Menu.NONE, MENU_ITEM_GOAL, Menu.NONE,
+                R.string.menu_goal );
+        item.setIcon( android.R.drawable.ic_menu_zoom );
+        
+        // Main Menu
+        item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
+                R.string.menu_restart );
+        
+        // Main Menu
         item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
                 R.string.menu_main );
-        item.setIcon( R.drawable.options );
         
+        // Quit Game
         item = menu.add( Menu.NONE, MENU_ITEM_QUIT, Menu.NONE,
                 R.string.menu_quit );
-        item.setIcon( android.R.drawable.ic_menu_close_clear_cancel );
         
         return true;
     }
@@ -258,8 +347,17 @@ public class AtomicActivity extends Activity {
      */
     @Override
     public boolean onPrepareOptionsMenu( Menu menu ) {
+        LevelManager levelManager = LevelManager.getInstance();
+        
         // check to see if we can undo a move
-        undo.setEnabled( GameController.canUndo( gameState ) );
+        undoMenuItem.setEnabled( GameController.canUndo( gameState ) );
+        
+        // check on the next and previous level menu items
+        prevMenuItem.setEnabled(
+                levelManager.hasLevel( gameState.getLevel() - 1 ) );
+        nextMenuItem.setEnabled(
+                levelManager.hasLevel( gameState.getLevel() + 1 ) );
+        
         
         return true;
     }
@@ -277,15 +375,12 @@ public class AtomicActivity extends Activity {
         switch ( item.getItemId() ) {
             
             case MENU_ITEM_GOAL: {
-                
+                // @todo larger goal to be launched here
             } break;
             
             case MENU_ITEM_LEVELS: {
-                Intent i = new Intent( this, LevelListActivity.class );
-                Bundle extras = new Bundle();
-                extras.putSerializable( GameState.GAME_STATE_KEY, gameState );
-                i.putExtras( extras );
-                super.startActivity( i );
+                // show the level list activity
+                startLevelListActivity();
                 
             } break;
             
@@ -309,88 +404,207 @@ public class AtomicActivity extends Activity {
                 super.finish();
             } break;
             
+            case MENU_ITEM_NEXT_LEVEL: {
+                // confirm and launch the next level
+                this.confirmAndStartLevel( gameState.getLevel() + 1 );
+                
+            } break;
+            
+            case MENU_ITEM_PREVIOUS_LEVEL: {
+                // confirm and launch the previous level
+                this.confirmAndStartLevel( gameState.getLevel() - 1 );
+                
+            } break;
         }
         
         return true;
     }
     
-    /**
-     * This method handles configuration changes to the phone, such as a change
-     * to the orientation.
-     * 
-     * @param   conf    the new configuration
-     */
+    // ===== Dialog Methods =====
+    
     @Override
-    public void onConfigurationChanged( Configuration conf ) {
-        super.onConfigurationChanged( conf );
+    protected Dialog onCreateDialog( int id ) {
+        AlertDialog.Builder builder = new AlertDialog.Builder( this );
         
-        Log.d( "DROID_ATOMIX",
-                "AtomicActivity.onConfigurationChanged() called" );
+        if ( id == DIALOG_CONFIRM_UNSAVED_LEVEL ) {
+            builder.setTitle( R.string.unsaved_dialog_title );
+            builder.setMessage( R.string.unsaved_dialog_text );
+            builder.setCancelable( false );
+            builder.setPositiveButton( R.string.confirm_yes,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    // check for level overwrite
+                    checkOverwriteOldLevel();
+                }
+            } );
+            builder.setNegativeButton( R.string.confirm_no,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    dialog.dismiss();
+                }
+            });
+            
+        } else if ( id == DIALOG_CONFIRM_OVERWRITE_LEVEL ) {
+            builder.setTitle( R.string.overwrite_dialog_title );
+            builder.setMessage( R.string.overwrite_dialog_text );
+            builder.setCancelable( false );
+            builder.setPositiveButton( R.string.confirm_yes,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    // confirmed!  start the level
+                    AtomicActivity.this.startLevel( pendingLevel );
+                }
+            } );
+            builder.setNegativeButton( R.string.confirm_no,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    // nevermind!
+                    dialog.dismiss();
+                }
+            });
+            
+        } else if ( id == DIALOG_WIN_LEVEL ) {
+            builder.setTitle( R.string.win_dialog_title );
+            builder.setMessage( "" ); // placeholder to be populated later
+            // positive for the left side
+            builder.setPositiveButton( R.string.win_dialog_levels_button,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    // start the level list activity
+                    startLevelListActivity();
+                }
+            } );
+            // negative for the right side
+            builder.setNegativeButton( R.string.win_dialog_next_button,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    // start the next level
+                    Game game = gameState.getGame();
+                    startLevel( game.getLevel() + 1 );
+                }
+            } );
+        }
         
-        // if we're sideways, go fullscreen
-        if ( conf.orientation == Configuration.ORIENTATION_LANDSCAPE ) {
-            this.getWindow().setFlags(
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
-        } else {
-            this.getWindow().clearFlags(
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
+        return builder.create();
+    }
+    
+    @Override
+    protected void onPrepareDialog( int id, Dialog dialog ) {
+        super.onPrepareDialog( id, dialog );
+        Resources resources = super.getResources();
+        
+        if ( id == DIALOG_WIN_LEVEL ) {
+            AlertDialog d = ( AlertDialog )dialog;
+            Game game = gameState.getGame();
+            
+            int level = game.getLevel();
+            int seconds = game.getSeconds();
+            int moves = game.getMoves();
+            String fmt = resources.getString( R.string.win_dialog_text );
+            String text = String.format( fmt, level, seconds, moves );
+            d.setMessage( text );
         }
     }
     
-    @Override
-    protected void onSaveInstanceState( Bundle icicle ) {
-        super.onSaveInstanceState( icicle );
-        Log.d( "DROID_ATOMIX", "onSaveInstanceState() called" );
+    // ===== Assorted Atomix Methods =====
+    
+    private void startLevelListActivity() {
+        Intent intent = new Intent( this, LevelListActivity.class );
+        Bundle extras = new Bundle();
+        extras.putSerializable( GameState.GAME_STATE_KEY, gameState );
+        intent.putExtras( extras );
         
-        // save the game state
-        icicle.putSerializable( GameState.GAME_STATE_KEY, gameState );
-        
-        db.update( gameState.getUser() );
-        db.update( gameState.getGame() );
+        // run the activity!
+        super.startActivityForResult( intent, LEVEL_LIST_REQUEST_CODE );
     }
     
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d( "DROID_ATOMIX", "onPause() called" );
-        
-        // stop the playing timer
+    /**
+     * Redraws the activity's view.
+     * <p>
+     * The specified <tt>Rect</tt> object is used as the cropped area to redraw.
+     * This argument may be <tt>null</tt> to redraw the entire view.
+     * @param rect
+     */
+    public void redrawView( Rect rect ) {
+        Message msg = new Message();
+        msg.what = EVENT_REDRAW_VIEW;
+        msg.obj = rect;
+        viewHandler.sendMessage( msg );
+    }
+    
+    public void winLevel() {
+        // stop the old game timer
         GameController.stopTimer( gameState );
         
-        db.update( gameState.getUser() );
-        db.update( gameState.getGame() );
+        // save the old game as finished
+        Game game = gameState.getGame();
+        db.update( game );
         
-        // close the connection to the database
-        db.close();
-        db = null;
+        // show the dialog and then start the next level
+        viewHandler.sendEmptyMessage( EVENT_WIN_LEVEL );
     }
     
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d( "DROID_ATOMIX", "AtomixActivity.onResume() was called." );
+    /**
+     * Starts a new level for the current user by creating a new game at the
+     * specified level and updating the game state and view.  This method does
+     * not perform any persistence for the user's current game (this should be
+     * handled prior to calling this method).
+     * 
+     * @param   level   the level number of the new level
+     */
+    private void confirmAndStartLevel( int level ) {
+        pendingLevel = level;
         
-        // make sure the view has the right GameState
+        // is this game finished?  if not, confirm the unsaved lost game
+        if ( ! gameState.isFinished() ) {
+            showDialog( DIALOG_CONFIRM_UNSAVED_LEVEL );
+        } else {
+            // check for level overwrite
+            checkOverwriteOldLevel();
+        }
+    }
+    
+    private void checkOverwriteOldLevel() {
+        // is the new level already completed?
+        if ( db.isLevelCompleted( gameState.getUser(), pendingLevel ) ) {
+            // the game is finished, no unsaved dialog needed
+            // instead, check for an overwrite of the chosen new level
+            showDialog( DIALOG_CONFIRM_OVERWRITE_LEVEL );
+        } else {
+            // start the level
+            startLevel( pendingLevel );
+        }
+    }
+    
+    private void startLevel( int level ) {
+        User user = gameState.getUser();
+        Game game = gameState.getGame();
+        
+        // delete and terminate the existing game (if it's not finished)
+        if ( ! game.isFinished() ) {
+            db.deleteGame( game.getId() );
+        }
+        
+        // delete the existing game at this level (if there is one)
+        if ( db.isLevelCompleted( user, level ) ) {
+            db.deleteSavedGame( user, level );
+        }
+        
+        // setup the new game
+        Game newLevel = GameController.newLevel( user, level );
+        user.setCurrentGame( newLevel );
+        db.insert( newLevel );
+        db.update( user );
+        
+        // set the new game state
+        gameState = new GameState( user, newLevel );
         view.setGameState( gameState );
         
         // start the playing timer
         GameController.startTimer( gameState );
         
-        // turn the database adapter back on
-        if ( db == null ) {
-            db = new AtomixDbAdapter( this ).open();
-        }
-    }
-    
-    @Override
-    protected void onRestoreInstanceState( Bundle icicle ) {
-        super.onRestoreInstanceState( icicle );
-        Log.d( "DROID_ATOMIX", "onRestoreInstanceState() called" );
-        
-        // restore game state
-        gameState =
-                ( GameState )icicle.getSerializable( GameState.GAME_STATE_KEY );
+        // update the view with the new game
+        redrawView( null );
     }
     
 } // AtomicActivity

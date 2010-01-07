@@ -114,8 +114,6 @@ public class LevelListActivity extends ListActivity {
                 int level = levelCursor.getInt(
                         levelCursor.getColumnIndex( "_id" ) );
                 
-                // @todo see SimpleCursorAdapter for how it accesses the data
-                // in the cursor per row
                 if ( finished.containsKey( level ) ) {
                     // the value in the map at this level is the position in the
                     // games cursor
@@ -145,18 +143,14 @@ public class LevelListActivity extends ListActivity {
     
     @Override
     public void onListItemClick( ListView lv, View v, int position, long id ) {
-        AtomicActivity atomix = ( AtomicActivity )super.getParent();
-        
-        atomix.startLevel( ( int )id );
-        
-        
-        // @todo COMPLETE
-        
-        // 1. confirm with a dialog box
-        
-        // 2. then kill this process and set the game state of the existing
-        //    AtomicActivity (make sure this is fluid)
-        
+        // end this activity and tell the parent to start the specified level
+        int level = ( int )id;
+        Intent intent = new Intent();
+        Bundle extras = new Bundle();
+        extras.putSerializable( Game.LEVEL_KEY, level );
+        intent.putExtras( extras );
+        super.setResult( AtomicActivity.START_NEW_LEVEL_RESULT_CODE, intent );
+        super.finish();
     }
     
     @Override

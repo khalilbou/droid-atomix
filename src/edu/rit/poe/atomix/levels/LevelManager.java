@@ -100,6 +100,10 @@ public class LevelManager {
         return level;
     }
     
+    public boolean hasLevel( int levelNumber ) {
+        return levelMap.containsKey( levelNumber );
+    }
+    
     public Cursor getLevels() {
         MatrixCursor cursor =
                 new MatrixCursor( new String[] { "_id", "level", "name" } );

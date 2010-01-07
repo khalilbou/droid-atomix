@@ -193,6 +193,10 @@ public class GameState implements Serializable {
         this.hoverPoint = hoverPoint;
     }
     
+    public boolean isFinished() {
+        return game.isFinished();
+    }
+    
     /**
      * This class 
      * 

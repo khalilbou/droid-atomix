@@ -334,8 +334,14 @@ public class AtomicView extends View {
         // grab the board from the game state
         Square[][] board = gameState.getBoard();
         
-        // set the squares where arrows should be drawn
-        this.setArrowSquares();
+        // set the squares where arrows should be drawn (if the game isn't
+        // finished)
+        if ( ! gameState.isFinished() ) {
+            this.setArrowSquares();
+        } else {
+            // no arrows!
+            arrowSquares.clear();
+        }
         
         // translate to create the 1px top/left gap
         canvas.save();
@@ -404,9 +410,11 @@ public class AtomicView extends View {
                 
                 // does this square as the hover point?
                 // also!  don't draw the hover point if the animation is running
+                // also!  don't draw the hover point if the game is finished
                 Point hoverPoint = gameState.getHoverPoint();
                 if ( ( hoverPoint != null ) && hoverPoint.equals( i, j ) &&
-                        ( animation == null ) ) {
+                        ( animation == null ) &&
+                        ( ! gameState.isFinished() ) ) {
                     int hoverColor = Color.argb( 100, 255, 0, 0 );
                     p.setColor( hoverColor );
                     
@@ -751,33 +759,36 @@ public class AtomicView extends View {
      */
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
-        Square[][] board = gameState.getBoard();
-        
-        // what portion of the screen was clicked?
-        int x = ( int )event.getX();
-        int y = ( int )event.getY();
-        
-        // don't trigger a click outside the game area
-        if ( gameArea.contains( x, y ) ) {
-            int i = ( int )( ( x - offsetX ) / 29.0f );
-            int j = ( int )( ( y - offsetY ) / 29.0f );
-            //@todo ensure this works for maps larger, as well as smaller
+        // ignore clicking if the game is finished
+        if ( ! gameState.isFinished() ) {
+            Square[][] board = gameState.getBoard();
             
-            // don't hover or click blank boxes
-            try {
-                if ( board[ j ][ i ] != null ) {
-                    // try to set as hoverpoint first and foremost
-                    setHoverpoint( i, j, true );
-                    
-                    if ( event.getAction() == MotionEvent.ACTION_UP ) {
-                        Log.d( "TOUCH EVENT", "Selected at " + i + ", " + j );
-                        
-                        // select the currently hovered square
-                        touch( i, j );
+            // what portion of the screen was clicked?
+            int x = ( int )event.getX();
+            int y = ( int )event.getY();
+            
+            // don't trigger a click outside the game area
+            if ( gameArea.contains( x, y ) ) {
+                int i = ( int )( ( x - offsetX ) / 29.0f );
+                int j = ( int )( ( y - offsetY ) / 29.0f );
+                
+                // don't hover or click blank boxes
+                try {
+                    if ( board[ j ][ i ] != null ) {
+                        // try to set as hoverpoint first and foremost
+                        setHoverpoint( i, j, true );
+
+                        if ( event.getAction() == MotionEvent.ACTION_UP ) {
+                            Log.d( "TOUCH EVENT",
+                                    "Selected at " + i + ", " + j );
+
+                            // select the currently hovered square
+                            touch( i, j );
+                        }
                     }
+                } catch ( ArrayIndexOutOfBoundsException e ) {
+                    // ignore - this can get thrown sometimes, in special places
                 }
-            } catch ( ArrayIndexOutOfBoundsException e ) {
-                // ignore -- this _can_ get thrown sometimes, in special places
             }
         }
         return true;
@@ -933,6 +944,13 @@ public class AtomicView extends View {
                     Atom atom = ( Atom )board[ oldY ][ oldX ];
                     
                     boolean win = GameController.moveSelected( gameState, d );
+                    
+                    if ( win ) {
+                        Log.d( "ATOMIC_VIEW", "this is a win..." );
+                        if ( gameState.isFinished() ) {
+                            Log.d( "ATOMIC_VIEW", "GameState FINISHED" );
+                        }
+                    }
                     
                     int newX = selected.x;
                     int newY = selected.y;

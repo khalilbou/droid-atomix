@@ -356,12 +356,12 @@ public class AtomixDbAdapter {
     }
     
     public Cursor getSavedUsers() {
-        String sql = "SELECT USER.id AS '_id', USER.username AS '" +
-                User.USERNAME_KEY + "', ( 'Level: ' || Game.level || ', " +
-                "Last played: ' || strftime( '%m/%d/%Y %H:%M', Game.SAVED, " +
-                "'unixepoch', 'localtime' ) ) AS '" + Game.SAVED_KEY +
-                "' FROM USER, GAME WHERE USER." + User.SAVED_GAME_ID_KEY +
-                " = GAME." + Game.ID_KEY + " ORDER BY GAME.saved DESC;";
+        String sql = "SELECT USER.id AS '_id', USER.username AS '"
+                + User.USERNAME_KEY + "', ( 'Level: ' || Game.level || ', "
+                + "Last played: ' || strftime( '%m/%d/%Y %H:%M', Game.SAVED, "
+                + "'unixepoch', 'localtime' ) ) AS '" + Game.SAVED_KEY
+                + "' FROM USER, GAME WHERE USER." + User.SAVED_GAME_ID_KEY
+                + " = GAME." + Game.ID_KEY + " ORDER BY GAME.saved DESC;";
         
         return database.rawQuery( sql, null );
     }
@@ -379,19 +379,54 @@ public class AtomixDbAdapter {
             
             // get the game ID
             long gameId = games.getLong( games.getColumnIndex( Game.ID_KEY ) );
-            
-            // delete the game
-            where = Game.ID_KEY + "=" + gameId;
-            database.delete( GAME_TABLE_NAME, where, null );
-            
-            // delete all associated atoms (if any)
-            deleteAtoms( gameId );
+            deleteGame( gameId );
         }
     }
     
-    public void deleteAtoms( long gameId ) {
+    public void deleteGame( long gameId ) {
+        // delete the game
+        String where = Game.ID_KEY + "=" + gameId;
+        database.delete( GAME_TABLE_NAME, where, null );
+        
+        // delete all associated atoms (if any)
+        deleteAtoms( gameId );
+    }
+    
+    private void deleteAtoms( long gameId ) {
         String where = Game.ATOM_GAME_ID_KEY + "=" + gameId;
         database.delete( ATOM_TABLE_NAME, where, null );
+    }
+    
+    public boolean isLevelCompleted( User user, int level ) {
+        boolean retVal = false;
+        
+        String where = Game.USER_ID_KEY + "=" + user.getId() + " AND "
+                + Game.LEVEL_KEY + "=" + level;
+        Cursor cursor = database.query( GAME_TABLE_NAME,
+                new String[] { Game.ID_KEY }, where, null, null, null, null );
+        
+        // if there isn't exactly one result, return null
+        if ( cursor.getCount() == 1 ) {
+            retVal = true;
+        }
+        cursor.close();
+        
+        return retVal;
+    }
+    
+    public void deleteSavedGame( User user, int level ) {
+        String where = Game.USER_ID_KEY + "=" + user.getId();
+        Cursor cursor = database.query( GAME_TABLE_NAME,
+                new String[] { Game.ID_KEY }, where, null, null, null, null );
+        
+        // if there isn't exactly one result, return null
+        if ( cursor.getCount() == 1 ) {
+            cursor.moveToNext();
+            
+            int gameId = cursor.getInt( cursor.getColumnIndex( Game.ID_KEY ) );
+            this.deleteGame( gameId );
+        }
+        cursor.close();
     }
     
     /**
