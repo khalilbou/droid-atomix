@@ -183,7 +183,10 @@ public final class GameController {
         
         // check for win conditions
         // -- consult the gold standard level object
-        return gameState.getLevelObj().isComplete( gameState.board );
+        boolean win = gameState.getLevelObj().isComplete( gameState.board );
+        gameState.game.setFinished( win );
+        
+        return win;
     }
     
     /**

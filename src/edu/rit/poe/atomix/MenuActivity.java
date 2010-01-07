@@ -383,8 +383,6 @@ public class MenuActivity extends Activity {
                             return true;
                         }
                     } );
-                    
-                    //@todo delete game?
                 }
             } );
             savedList.setOnItemClickListener(
