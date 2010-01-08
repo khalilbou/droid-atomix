@@ -18,5 +18,5 @@
     <supports-screen android:smallScreens="false" android:normalScreens="true"
             android:largeScreens="true" android:anyDensity="true"/>
     <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="4"
-          android:maxSdkVersion="5" />
+          android:maxSdkVersion="6" />
 </manifest>

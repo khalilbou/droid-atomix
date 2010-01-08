@@ -58,6 +58,8 @@ import edu.rit.poe.atomix.util.Point;
  */
 public class AtomicView extends View {
     
+    public static final String LOG_TAG = "DROID_ATOMIX";
+    
     private static final int SQUARE_AREA = 11;
     
     private static final float TRACKBALL_MOVE_SUM = 0.50f;
@@ -99,6 +101,10 @@ public class AtomicView extends View {
     
     private Rect gameArea;
     
+    private int gameAreaOffsetX;
+    
+    private int gameAreaOffsetY;
+    
     private int offsetX;
     
     private int offsetY;
@@ -127,8 +133,11 @@ public class AtomicView extends View {
         /** The HTC Dream (T-Mobile G1) or a device with a 320x400 screen. */
         HVGA( 320, 480 ),
         
-        /** The Motorola Droid or a device with a 400x800 screen. */
+        /** The Motorola Droid or a device with a 480x854 screen. */
         WVGA( 480, 854 ),
+        
+        /** The Nexus One or a device with a 480x800 screen. */
+        WVGA800( 480, 800 ),
         
         /** A device with a different screen size. */
         OTHER( -1, -1 );
@@ -244,23 +253,30 @@ public class AtomicView extends View {
                     "This is not the Droid you are looking for." );
             
             size = 29;
-            offsetX = 1;
-            offsetY = 2;
+            gameAreaOffsetX = 1;
+            gameAreaOffsetY = 2;
             
             // else if Droid
         } else if ( ScreenSize.WVGA.equals( dm ) ) {
             Log.d( "DROID_ATOMIX", "This IS the Droid you are looking for." );
             
             size = 43;
-            offsetX = 4;
-            offsetY = 4;
+            gameAreaOffsetX = 4;
+            gameAreaOffsetY = 4;
+            
+        } else if ( ScreenSize.WVGA800.equals( dm ) ) {
+            Log.d( LOG_TAG, "Voight-Kampff test: Nexus replicant found." );
+            
+            size = 43;
+            gameAreaOffsetX = 4;
+            gameAreaOffsetY = 4;
             
         } else {
             Log.d( "DROID_ATOMIX", "Resorting to HTC Dream display size." );
             
             size = 29;
-            offsetX = 1;
-            offsetY = 2;
+            gameAreaOffsetX = 1;
+            gameAreaOffsetY = 2;
         }
         Log.d( "SIZE", "Size: " + size );
         
@@ -279,6 +295,8 @@ public class AtomicView extends View {
         
         // calculate centering offset
         
+        offsetX = gameAreaOffsetX;
+        offsetY = gameAreaOffsetY;
         offsetX += ( ( float )( ( SQUARE_AREA - boardWidth ) * size ) ) / 2.0f;
         offsetY += ( ( float )( ( SQUARE_AREA - boardHeight ) * size ) ) / 2.0f;
         
@@ -470,18 +488,18 @@ public class AtomicView extends View {
         // === draw the solution panel ===
         
         // where are we translating to?
-        int t = SQUARE_AREA * size;
+        int t = ( SQUARE_AREA * size ) + gameAreaOffsetY;
         int solutionOffsetX = 0;
         int solutionOffsetY = t;
-        int solutionWidth = super.getWidth() - 2;
-        int solutionHeight = super.getHeight() - t - 2;
+        int solutionWidth = super.getWidth() - 1;
+        int solutionHeight = super.getHeight() - t - 1;
         // if we're landscape, the goal is off to the side
         DisplayMetrics dm = new DisplayMetrics();
         atomix.getWindowManager().getDefaultDisplay().getMetrics( dm );
         if ( ScreenSize.isLandscape( dm ) ) {
             solutionOffsetX = t;
             solutionOffsetY = 2;
-            solutionWidth = super.getWidth() - t - 2;
+            solutionWidth = super.getWidth() - t - 1;
             solutionHeight = super.getHeight() - 3;
         }
         canvas.translate( solutionOffsetX, solutionOffsetY );
@@ -769,8 +787,8 @@ public class AtomicView extends View {
             
             // don't trigger a click outside the game area
             if ( gameArea.contains( x, y ) ) {
-                int i = ( int )( ( x - offsetX ) / 29.0f );
-                int j = ( int )( ( y - offsetY ) / 29.0f );
+                int i = ( int )( ( x - offsetX ) / size );
+                int j = ( int )( ( y - offsetY ) / size );
                 
                 // don't hover or click blank boxes
                 try {
