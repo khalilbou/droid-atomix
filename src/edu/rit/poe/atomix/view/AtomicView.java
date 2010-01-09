@@ -60,6 +60,12 @@ public class AtomicView extends View {
     
     public static final String LOG_TAG = "DROID_ATOMIX";
     
+    public static final int BGCOLOR = Color.GRAY;
+    
+    public static final int FGCOLOR = Color.parseColor( "#F1E9D9" );
+    
+    public static final int HOVER_COLOR = Color.argb( 100, 255, 0, 0 );
+    
     private static final int SQUARE_AREA = 11;
     
     private static final float TRACKBALL_MOVE_SUM = 0.50f;
@@ -340,11 +346,8 @@ public class AtomicView extends View {
      */
     @Override
     public void onDraw( Canvas canvas ) {
-        int bgcolor = Color.GRAY;
-        int fgcolor = Color.parseColor( "#F1E9D9" );
-        
         Paint p = new Paint();
-        p.setColor( bgcolor );
+        p.setColor( BGCOLOR );
         
         Rect rect = new Rect( 0, 0, canvas.getWidth(), canvas.getHeight() );
         canvas.drawRect( rect, p );
@@ -377,7 +380,7 @@ public class AtomicView extends View {
                 canvas.translate( ( left + r ), ( top + r ) );
                 
                 Rect sq = new Rect( -r, -r, r, r );
-                p.setColor( bgcolor );
+                p.setColor( BGCOLOR );
                 canvas.drawRect( sq, p );
                 
                 try {
@@ -394,7 +397,7 @@ public class AtomicView extends View {
                         // check whether this square should represent an arrow
                         if ( ( dir = arrowSquares.get( new Point( i, j ) ) ) !=
                                 null ) {
-                            p.setColor( fgcolor );
+                            p.setColor( FGCOLOR );
                             canvas.drawRect( sq, p );
                             
                             // don't draw arrows until animation has finished
@@ -402,14 +405,14 @@ public class AtomicView extends View {
                                 drawArrow( canvas, dir, r );
                             }
                         } else {
-                            p.setColor( fgcolor );
+                            p.setColor( FGCOLOR );
                             canvas.drawRect( sq, p );
                         }
                     } else if ( sqr instanceof Atom ) {
                         Atom atom = ( Atom )sqr;
                         
                         // draw the square background
-                        p.setColor( fgcolor );
+                        p.setColor( FGCOLOR );
                         canvas.drawRect( sq, p );
                         
                         // don't draw the selected atom during an animation
@@ -419,11 +422,11 @@ public class AtomicView extends View {
                             drawAtom( canvas, atom, r, false );
                         }
                     } else {
-                        p.setColor( bgcolor );
+                        p.setColor( BGCOLOR );
                         canvas.drawRect( sq, p );
                     }
                 } catch ( Exception e ) {
-                    p.setColor( bgcolor );
+                    p.setColor( BGCOLOR );
                 }
                 
                 // does this square as the hover point?
@@ -433,14 +436,13 @@ public class AtomicView extends View {
                 if ( ( hoverPoint != null ) && hoverPoint.equals( i, j ) &&
                         ( animation == null ) &&
                         ( ! gameState.isFinished() ) ) {
-                    int hoverColor = Color.argb( 100, 255, 0, 0 );
-                    p.setColor( hoverColor );
+                    p.setColor( HOVER_COLOR );
                     
                     canvas.drawRect( sq, p );
                 }
                 
                 // draw the rounded corners
-                p.setColor( bgcolor );
+                p.setColor( BGCOLOR );
                 
                 canvas.save();
                 
@@ -812,6 +814,13 @@ public class AtomicView extends View {
         return true;
     }
     
+    /**
+     * Sets the current hover point and redraws the view if specified.
+     * 
+     * @param   i       the X coordinate
+     * @param   j       the Y coordinate
+     * @param   redraw  whether to redraw the view
+     */
     private void setHoverpoint( int i, int j, boolean redraw ) {
         // is this a NEW hover point?
         Point hoverPoint = gameState.getHoverPoint();
@@ -941,7 +950,14 @@ public class AtomicView extends View {
         
         return retVal;
     }
-
+    
+    /**
+     * Touches the board at the specified location.  This method will trigger
+     * selecting of atoms and clicking of arrows.
+     * 
+     * @param   i   the X coordinate
+     * @param   j   the Y coordinate
+     */
     private void touch( int i, int j ) {
         Square[][] board = gameState.getBoard();
         Point selected = gameState.getSelected();
@@ -985,8 +1001,6 @@ public class AtomicView extends View {
                 // move the hover point to the new location of the Atom
                 setHoverpoint( selected.x, selected.y, false );
             }
-            
-            //hoverPoint = null;
             
             // if only forgetting were this easy for me.
             assert ItsGoingToBeOkay;
@@ -1103,34 +1117,8 @@ public class AtomicView extends View {
         public void run() {
             // loop over all frames
             for ( int frame = 0; frame < frames; frame++ ) {
-                Log.d( "ANIMATION", "DRAW" );
-                
-                // draw the position of the atom
-                
-                // @todo FIGURE OUT THIS MESS!!
-                // invalidate only the old and new drawing areas
-                int x0 = ( int )( currentX * size );
-                int y0 = ( int )( currentY * size );
                 currentX += offsetX;
                 currentY += offsetY;
-                int x1 = ( int )( currentX * size );
-                int y1 = ( int )( currentY * size );
-                
-                Rect rect;
-                if ( orientation == 'y' ) {
-                    if ( y1 > y0 ) {
-                        rect = new Rect( x0, y0, x1 + size, y1 + size );
-                    } else {
-                        rect = new Rect( x1, y1, x0 + size, y0 + size );
-                    }
-                } else {
-                    if ( x1 > x0 ) {
-                        rect = new Rect( x0, y0, x1 + size, y1 + size );
-                    } else {
-                        rect = new Rect( x1, y1, x0 + size, y0 + size );
-                    }
-                }
-                
                 
                 // draw the position of the atom
                 atomix.redrawView( null );
