@@ -26,6 +26,7 @@ package edu.rit.poe.atomix;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -35,11 +36,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import edu.rit.poe.atomix.db.AtomixDbAdapter;
 import edu.rit.poe.atomix.db.Game;
 import edu.rit.poe.atomix.db.User;
@@ -87,6 +93,8 @@ public class AtomicActivity extends Activity {
     public static final int DIALOG_CONFIRM_OVERWRITE_LEVEL = 0x1;
     
     public static final int DIALOG_WIN_LEVEL = 0x2;
+    
+    public static final int DIALOG_GOAL_MOLECULE = 0x3;
     
     private AtomicView view;
     
@@ -375,7 +383,7 @@ public class AtomicActivity extends Activity {
         switch ( item.getItemId() ) {
             
             case MENU_ITEM_GOAL: {
-                // @todo larger goal to be launched here
+                showDialog( DIALOG_GOAL_MOLECULE );
             } break;
             
             case MENU_ITEM_LEVELS: {
@@ -422,6 +430,18 @@ public class AtomicActivity extends Activity {
     
     // ===== Dialog Methods =====
     
+    /**
+     * Called to create dialogs for this activity.
+     * 
+     * @param   id  the integer ID of the dialog to be created
+     * 
+     * @return      the newly created <tt>Dialog</tt> of the specified type
+     * 
+     * @see         DIALOG_CONFIRM_UNSAVED_LEVEL
+     * @see         DIALOG_CONFIRM_OVERWRITE_LEVEL
+     * @see         DIALOG_WIN_LEVEL
+     * @see         DIALOG_GOAL_MOLECULE
+     */
     @Override
     protected Dialog onCreateDialog( int id ) {
         AlertDialog.Builder builder = new AlertDialog.Builder( this );
@@ -483,26 +503,65 @@ public class AtomicActivity extends Activity {
                     startLevel( game.getLevel() + 1 );
                 }
             } );
+        } else if ( id == DIALOG_GOAL_MOLECULE ) {
+            builder.setTitle( "Goal" ); // placeholder to be populated later
+            
+            // inflate the layout
+            LayoutInflater inflater = ( LayoutInflater )
+                    super.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+            View layout = inflater.inflate( R.layout.goal_dialog,
+                    ( ViewGroup )super.findViewById( R.id.goal_dialog ) );
+            LinearLayout l = ( LinearLayout )layout;
+            
+            // add the goal view
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT );
+            params.gravity = Gravity.CENTER_HORIZONTAL;
+            l.addView( view.getGoalView(), params );
+            
+            builder.setView( layout );
+            
+            // set the "Return to Game" button
+            builder.setPositiveButton( R.string.goal_dialog_return_button,
+                    new DialogInterface.OnClickListener() {
+                public void onClick( DialogInterface dialog, int id ) {
+                    dialog.dismiss();
+                }
+            } );
         }
         
         return builder.create();
     }
     
+    /**
+     * Called to prepare the specified dialog for viewing.
+     * 
+     * @param   id      the ID of the dialog to be prepared
+     * @param   dialog  the actual <tt>Dialog</tt> to be prepared
+     */
     @Override
     protected void onPrepareDialog( int id, Dialog dialog ) {
         super.onPrepareDialog( id, dialog );
         Resources resources = super.getResources();
+        Game game = gameState.getGame();
+
+        int level = game.getLevel();
+        int seconds = game.getSeconds();
+        int moves = game.getMoves();
         
         if ( id == DIALOG_WIN_LEVEL ) {
             AlertDialog d = ( AlertDialog )dialog;
-            Game game = gameState.getGame();
             
-            int level = game.getLevel();
-            int seconds = game.getSeconds();
-            int moves = game.getMoves();
             String fmt = resources.getString( R.string.win_dialog_text );
             String text = String.format( fmt, level, seconds, moves );
             d.setMessage( text );
+        } else if ( id == DIALOG_GOAL_MOLECULE ) {
+            AlertDialog d = ( AlertDialog )dialog;
+            
+            String fmt = resources.getString( R.string.goal_dialog_title );
+            String text = String.format( fmt, level );
+            d.setTitle( text );
         }
     }
     

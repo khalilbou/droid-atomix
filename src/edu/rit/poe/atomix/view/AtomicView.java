@@ -126,6 +126,8 @@ public class AtomicView extends View {
     
     private byte[][] walls;
     
+    private View goalView;
+    
     /**
      * An enumerated type to represent screen sizes of devices such as the HTC
      * Dream or Motorola Droid.
@@ -335,6 +337,9 @@ public class AtomicView extends View {
                 }
             }
         }
+        
+        // create the goal view
+        createGoalView();
     }
     
     /**
@@ -626,6 +631,42 @@ public class AtomicView extends View {
     }
     
     /**
+     * Draws an arrow on the given canvas.
+     * 
+     * @param   canvas  the canvas to draw to (also translated to the proper
+     *                  drawing location)
+     * @param   dir     the direction of the arrow
+     * @param   r       the radius of the square
+     */
+    private static void drawArrow( Canvas canvas, GameState.Direction dir,
+            int r ) {
+        Path path = new Path();
+        path.moveTo( ( -r + 3 ), ( r - 3 ) );
+        path.lineTo( ( r - 3 ), ( r - 3 ) );
+        path.lineTo( 0, ( -r + 5 ) );
+        
+        canvas.save();
+        
+        switch ( dir ) {
+            case DOWN: {
+                canvas.rotate( 180.0f );
+            } break;
+            case RIGHT: {
+                canvas.rotate( 90.0f );
+            } break;
+            case LEFT: {
+                canvas.rotate( -90.0f );
+            } break;
+        }
+        
+        Paint paint = new Paint();
+        paint.setColor( Color.GREEN );
+        canvas.drawPath( path, paint );
+        
+        canvas.restore();
+    }
+    
+    /**
      * Draws the specified solution configuration to the specified canvas.
      * <p>
      * The canvas should be translated to the top left corner of the solution
@@ -733,40 +774,37 @@ public class AtomicView extends View {
         }
     }
     
-    /**
-     * Draws an arrow on the given canvas.
-     * 
-     * @param   canvas  the canvas to draw to (also translated to the proper
-     *                  drawing location)
-     * @param   dir     the direction of the arrow
-     * @param   r       the radius of the square
-     */
-    private static void drawArrow( Canvas canvas, GameState.Direction dir,
-            int r ) {
-        Path path = new Path();
-        path.moveTo( ( -r + 3 ), ( r - 3 ) );
-        path.lineTo( ( r - 3 ), ( r - 3 ) );
-        path.lineTo( 0, ( -r + 5 ) );
-        
-        canvas.save();
-        
-        switch ( dir ) {
-            case DOWN: {
-                canvas.rotate( 180.0f );
-            } break;
-            case RIGHT: {
-                canvas.rotate( 90.0f );
-            } break;
-            case LEFT: {
-                canvas.rotate( -90.0f );
-            } break;
-        }
-        
-        Paint paint = new Paint();
-        paint.setColor( Color.GREEN );
-        canvas.drawPath( path, paint );
-        
-        canvas.restore();
+    private void createGoalView() {
+        goalView = new View( atomix ) {
+            int width;
+            int height;
+            
+            @Override
+            protected void onMeasure( int wMeasureSpec, int hMeasureSpec ) {
+                // calculate the size of the goal display area (6x5) +2 each
+                width = 8 * size;
+                height = 7 * size;
+                
+                this.setMeasuredDimension( width, height );
+            }
+            
+            @Override
+            public void onDraw( Canvas canvas ) {
+                Square[][] goal = gameState.getGoal();
+                
+                // draw the actual goal
+                drawSolution( canvas, goal, size, width, height );
+
+                // draw the strings
+                drawSolutionInfo( canvas, gameState.getLevel(),
+                        gameState.getMoleculeName(), gameState.getFormula(),
+                        width, height );
+            }
+        };
+    }
+    
+    public View getGoalView() {
+        return goalView;
     }
     
     /**

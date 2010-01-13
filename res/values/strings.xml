@@ -44,6 +44,10 @@
     <string name="unsaved_dialog_text">Are you sure you want to quit this level?
             \n\n(This game will not be saved)</string>
     
+    <!-- String literals for the zoomed goal viewer -->
+    <string name="goal_dialog_title">Level %1$d Goal</string>
+    <string name="goal_dialog_return_button">Return to Game</string>
+    
     <!-- General dialog string literals -->
     <string name="confirm_yes">Yes</string>
     <string name="confirm_no">No</string>

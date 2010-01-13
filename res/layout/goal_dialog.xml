@@ -6,36 +6,5 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:padding="10dp">
-                  
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/goal_dialog2"
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:padding="10dp">
-
-        <ImageView android:id="@+id/goal_dialog_atomix_image"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_marginRight="10dp"
-                android:src="@drawable/atomix_icon"/>
-
-        <TextView android:id="@+id/goal_dialog_level"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:gravity="center_horizontal|center_vertical"
-                android:text="Level 1"/>
-
-    </LinearLayout>
-    
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/goal_details_solution">
-        <!-- Solution Panel gets added here -->
-    </LinearLayout>
-    
+    <!-- Solution Panel gets added here -->
 </LinearLayout>
