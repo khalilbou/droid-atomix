@@ -80,6 +80,30 @@ public final class Atom extends Square {
     }
     
     /**
+     * Compares this <tt>Atom</tt> to the specified object for equality.
+     * 
+     * @param   o   
+     * 
+     * @return
+     */
+    @Override
+    public boolean equals( Object o ) {
+        boolean retVal = false;
+        if ( o instanceof Atom ) {
+            Atom a = ( Atom )o;
+            
+            retVal = ( ( element == a.element ) &&
+                    ( connectors.containsAll( a.connectors ) ) );
+        }
+        return retVal;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+    
+    /**
      * Returns this atom in <tt>String</tt> form.
      * 
      * @return  this atom as a <tt>String</tt>

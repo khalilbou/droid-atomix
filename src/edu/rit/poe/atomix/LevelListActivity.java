@@ -23,7 +23,6 @@
 
 package edu.rit.poe.atomix;
 
-import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -42,17 +41,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * An activity to display all available levels, the current user's scores, and
+ * to select a level to start in a new game.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
 public class LevelListActivity extends ListActivity {
     
+    /** The application's resource bundle. */
     private Resources resources;
     
+    /** The database adapter to persist and query game state. */
     private AtomixDbAdapter db;
     
+    /** A cursor of all levels to be displayed in the list. */
     private Cursor levelCursor;
     
     /**
@@ -141,6 +145,14 @@ public class LevelListActivity extends ListActivity {
         this.setListAdapter( adapter );
     }
     
+    /**
+     * Called to select an item in the list of levels.
+     * 
+     * @param   lv          the <tt>ListView</tt> that was clicked on
+     * @param   v           the individual <tt>View</tt> of the clicked item
+     * @param   position    the position of the clicked item in the list
+     * @param   id          the <tt>id</tt> of the item that was clicked
+     */
     @Override
     public void onListItemClick( ListView lv, View v, int position, long id ) {
         // end this activity and tell the parent to start the specified level
@@ -153,18 +165,11 @@ public class LevelListActivity extends ListActivity {
         super.finish();
     }
     
-    @Override
-    protected Dialog onCreateDialog( int id ) {
-        
-        return null;
-    }
-    
-    @Override
-    protected void onPrepareDialog( int id, Dialog dialog ) {
-        super.onPrepareDialog( id, dialog );
-        
-    }
-    
+    /**
+     * Called to pause this activity cleanly.
+     * <p>
+     * The connection to the database is closed.
+     */
     @Override
     public void onPause() {
         super.onPause();
@@ -173,6 +178,11 @@ public class LevelListActivity extends ListActivity {
         db = null;
     }
     
+    /**
+     * Called to resume this activity cleanly.
+     * <p>
+     * A connection is made to the game database.
+     */
     @Override
     public void onResume() {
         super.onResume();

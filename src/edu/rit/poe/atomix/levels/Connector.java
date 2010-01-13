@@ -102,4 +102,19 @@ public class Connector implements Serializable {
         return bond;
     }
     
+    @Override
+    public boolean equals( Object o ) {
+        boolean retVal = false;
+        if ( o instanceof Connector ) {
+            Connector c = ( Connector )o;
+            retVal = ( ( c.direction == direction ) && ( c.bond == bond ) );
+        }
+        return retVal;
+    }
+    
+    @Override
+    public int hashCode() {
+        return direction.hashCode() + bond.hashCode();
+    }
+    
 } // Connector
