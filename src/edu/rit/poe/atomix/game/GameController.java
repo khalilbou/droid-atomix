@@ -46,6 +46,7 @@ import java.util.EnumSet;
  */
 public final class GameController {
     
+    /** A constant for the number of milliseconds per second. */
     public static final int MS_PER_S = 1000;
     
     /**
@@ -53,7 +54,7 @@ public final class GameController {
      * 
      * @param   username    the username of the new user to be created
      * 
-     * @return              
+     * @return              a new <tt>User</tt> object
      */
     public static User newUser( String username ) {
         // create the user
@@ -273,12 +274,22 @@ public final class GameController {
         }
     }
     
+    /**
+     * Starts the game timer for the specified game.
+     * 
+     * @param   gameState   the game state for which to start the game timer
+     */
     public static void startTimer( GameState gameState ) {
         Log.d( "GAME_CONTROLLER", "*Starting the playing timer*" );
         
         gameState.timeStarted_sec = System.currentTimeMillis() / MS_PER_S;
     }
     
+    /**
+     * Stops the game timer for the specified game.
+     * 
+     * @param   gameState   the game state for which to stop the game timer
+     */
     public static void stopTimer( GameState gameState ) {
         Log.d( "GAME_CONTROLLER", "*Stopping the playing timer*" );
         

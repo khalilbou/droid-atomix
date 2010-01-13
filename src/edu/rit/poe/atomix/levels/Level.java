@@ -36,7 +36,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
+ * A class to represent a level, by containing information such as the layout of
+ * the board, the atoms on the board, and the solution.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
@@ -94,6 +96,7 @@ public class Level implements Serializable {
     private Square[][] goal;
     
     private Map<Short, Atom> atoms;
+    
     /**
      * Constructs a new <tt>Level</tt>.
      */
@@ -182,14 +185,17 @@ public class Level implements Serializable {
                         Square goalSqr = goal[ y0 ][ x0 ];
                         
                         // @todo fix this mess!!  now hiring: better algorithm
-                        // throwing ideas against a wall: Square.NULL isntead of
+                        // throwing ideas against a wall: Square.NULL instead of
                         // using null and use .equals() for all comparison?
                         // could work........
                         if ( ( boardSqr instanceof Atom ) &&
                                 ( goalSqr instanceof Atom ) ) {
                             Atom boardAtom = ( Atom )boardSqr;
                             Atom goalAtom = ( Atom )goalSqr;
-                            if ( boardAtom.getId() != goalAtom.getId() ) {
+                            // the .equals() comparison is deep, and checks more
+                            // than just ID, to allow duplicate atoms to be
+                            // interchangeable
+                            if ( ! goalAtom.equals( boardAtom ) ) {
                                 goalFound = false;
                             }
                         } else if ( ( goalSqr instanceof Atom ) &&

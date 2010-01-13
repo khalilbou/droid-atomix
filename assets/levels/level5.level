@@ -1,0 +1,46 @@
+# DroidAtomix Map Config File
+# Level 5
+
+level:
+5
+
+name:
+Propylene
+
+formula:
+C_3H_6
+
+size:
+12X11
+
+molecules:
+1 0000FF H -ll
+2 0000FF H -u
+3 444444 C =l -ur -lr
+4 0000FF H -d
+5 0000FF H -d
+6 0000FF H -r
+7 444444 C -u =r -l
+8 444444 C -u -d -r -l
+9 0000FF H -ul
+
+map:
+BXXXXXXXXXBB
+BX1X X X XBB
+BX X X X XXX
+XX2 3X4X X X
+X5 6   X7X X
+X X      X X
+X X8X      X
+X X X X   XX
+XXX X9X X XB
+BBX X X X XB
+BBXXXXXXXXXB
+
+goal_size:
+5X3
+
+goal:
+ 45 1
+6873 
+ 2  9
