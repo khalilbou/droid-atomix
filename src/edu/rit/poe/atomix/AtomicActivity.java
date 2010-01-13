@@ -64,48 +64,73 @@ import edu.rit.poe.atomix.view.AtomicView;
  */
 public class AtomicActivity extends Activity {
     
+    /** The tag for all log messages from this activity. */
     public static final String LOG_TAG = AtomicActivity.class.getName();
     
+    /**
+     * The request code used to request an answer from the level list activity,
+     * used to either start a new level or remain in the current game.
+     */
     public static final int LEVEL_LIST_REQUEST_CODE = 0x0;
     
+    /** The result code from the level list activity to start a new level. */
     public static final int START_NEW_LEVEL_RESULT_CODE = 0x1;
     
+    /** An event code for this activity's message handler to redraw the view. */
     public static final int EVENT_REDRAW_VIEW = 0x1;
     
+    /** An event code for this activity's message handler to win the game. */
     public static final int EVENT_WIN_LEVEL = 0x2;
     
+    /** The code for the 'View Goal' menu item in the context menu. */
     public static final int MENU_ITEM_GOAL = 0x00;
     
+    /** The code for the 'Level List Activity' menu item in the context menu. */
     public static final int MENU_ITEM_LEVELS = 0x01;
     
+    /** The code for the 'Undo' menu item in the context menu. */
     public static final int MENU_ITEM_UNDO = 0x02;
     
+    /** The code for the 'Next Level' menu item in the context menu. */
     public static final int MENU_ITEM_NEXT_LEVEL = 0x05;
     
+    /** The code for the 'Previous Level' menu item in the context menu. */
     public static final int MENU_ITEM_PREVIOUS_LEVEL = 0x06;
     
+    /** The code for the 'Main Menu' menu item in the context menu. */
     public static final int MENU_ITEM_MAIN_MENU = 0x03;
     
+    /** The code for the 'Quit' menu item in the context menu." */
     public static final int MENU_ITEM_QUIT = 0x04;
     
+    /** The ID of the 'Confirm Lose Unsaved Game' dialog. */
     public static final int DIALOG_CONFIRM_UNSAVED_LEVEL = 0x0;
     
+    /** The ID of the 'Confirm Overwrite Existing Game' dialog. */
     public static final int DIALOG_CONFIRM_OVERWRITE_LEVEL = 0x1;
     
+    /** The ID of the 'Win Level' dialog. */
     public static final int DIALOG_WIN_LEVEL = 0x2;
     
+    /** The ID of the 'Goal Molecule' dialog. */
     public static final int DIALOG_GOAL_MOLECULE = 0x3;
     
+    /** The <tt>View</tt> for this activity, to display the game board. */
     private AtomicView view;
     
+    /** The database adapter to persist and query game state. */
     private AtomixDbAdapter db;
     
+    /** The current game's state information. */
     private GameState gameState;
     
+    /** The 'Undo' menu item in the context menu. */
     private MenuItem undoMenuItem;
     
+    /** The 'Next Level' menu item in the context menu. */
     private MenuItem nextMenuItem;
     
+    /** The 'Previous Level' menu item in the context menu. */
     private MenuItem prevMenuItem;
     
     /**
@@ -186,6 +211,12 @@ public class AtomicActivity extends Activity {
         db.update( gameState.getGame() );
     }
     
+    /**
+     * Called to pause this activity cleanly.
+     * <p>
+     * The game timer is stopped and all game state is persisted to the
+     * database.  The connection to the database is broken.
+     */
     @Override
     public void onPause() {
         super.onPause();
@@ -202,6 +233,12 @@ public class AtomicActivity extends Activity {
         db = null;
     }
     
+    /**
+     * Called to resume this activity cleanly.
+     * <p>
+     * All game state is set and the game timer is started.  A connection is
+     * made to the game database.
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -219,6 +256,11 @@ public class AtomicActivity extends Activity {
         }
     }
     
+    /**
+     * Restores the specified frozen state of the game.
+     * 
+     * @param   icicle  the bundle of frozen state information
+     */
     @Override
     protected void onRestoreInstanceState( Bundle icicle ) {
         super.onRestoreInstanceState( icicle );
@@ -230,10 +272,13 @@ public class AtomicActivity extends Activity {
     }
     
     /**
+     * Called when an activity finished and returns to this one.
+     * <p>
+     * This method is used to trigger a new level from the Level List Activity.
      * 
-     * @param requestCode
-     * @param resultCode
-     * @param data
+     * @param   requestCode     the activity request code
+     * @param   resultCode      the activity result code
+     * @param   data            additional data returned from the activity
      */
     @Override
     protected void onActivityResult( int requestCode, int resultCode,
@@ -567,6 +612,10 @@ public class AtomicActivity extends Activity {
     
     // ===== Assorted Atomix Methods =====
     
+    /**
+     * Starts the Level List Activity which may return a request to start a new
+     * level.
+     */
     private void startLevelListActivity() {
         Intent intent = new Intent( this, LevelListActivity.class );
         Bundle extras = new Bundle();
@@ -591,6 +640,10 @@ public class AtomicActivity extends Activity {
         viewHandler.sendMessage( msg );
     }
     
+    /**
+     * Invokes all events to win the current game and prompt the user to
+     * continue to the next level.
+     */
     public void winLevel() {
         // stop the old game timer
         GameController.stopTimer( gameState );
@@ -604,10 +657,13 @@ public class AtomicActivity extends Activity {
     }
     
     /**
-     * Starts a new level for the current user by creating a new game at the
-     * specified level and updating the game state and view.  This method does
-     * not perform any persistence for the user's current game (this should be
-     * handled prior to calling this method).
+     * This method performs user intention confirmation checks and potentially
+     * starts the specified level.
+     * <p>
+     * First, this checks to see if the current game is completed, and if not,
+     * prompts the user to confirm their intention to abandon the unsaved game.
+     * If the user agrees, the <tt>checkOverWriteOldLevel()</tt> method is
+     * called.
      * 
      * @param   level   the level number of the new level
      */
@@ -623,6 +679,11 @@ public class AtomicActivity extends Activity {
         }
     }
     
+    /**
+     * This method checks to see if starting the currently pending level will
+     * overwrite a saved game, and if so prompts the user to confirm their
+     * intention to overwrite it.
+     */
     private void checkOverwriteOldLevel() {
         // is the new level already completed?
         if ( db.isLevelCompleted( gameState.getUser(), pendingLevel ) ) {
@@ -635,6 +696,18 @@ public class AtomicActivity extends Activity {
         }
     }
     
+    /**
+     * This method starts the specified level.  If the curent game is not
+     * finished, it is deleted.  If the level to be started has already been
+     * completed, it is deleted.  The game timer is started by this method.
+     * <tt>
+     * This starts the level for the current user by creating a new game at the
+     * specified level and updating the game state and view.  This method does
+     * not perform any persistence for the user's current game (this should be
+     * handled prior to calling this method).
+     * 
+     * @param   level   the level to be started
+     */
     private void startLevel( int level ) {
         User user = gameState.getUser();
         Game game = gameState.getGame();
