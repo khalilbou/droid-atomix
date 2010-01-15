@@ -1,0 +1,44 @@
+# DroidAtomix Map Config File
+# Level 6
+
+level:
+6
+
+name:
+Ethanal
+
+formula:
+CH_3CHO
+
+size:
+11X11
+
+molecules:
+1 0000FF H -d
+2 444444 C -u -d -r -l
+3 0000FF H -u
+4 0000FF H -r
+5 444444 C -u -l =r
+6 0000FF H -d
+7 FF0000 O =l
+
+map:
+XXXXXXXXXXX
+X         X
+X XX   XX X
+X1     2  X
+X XXX XXX X
+X3   4    X
+X5XXX6XXX X
+X         X
+X XX   XX X
+X  7      X
+XXXXXXXXXXX
+
+goal_size:
+4X3
+
+goal:
+ 16 
+4527
+ 3  
