@@ -401,11 +401,12 @@ public class AtomixDbAdapter {
         boolean retVal = false;
         
         String where = Game.USER_ID_KEY + "=" + user.getId() + " AND "
-                + Game.LEVEL_KEY + "=" + level;
+                + Game.LEVEL_KEY + "=" + level + " AND "
+                + Game.FINISHED_KEY + "=1";
         Cursor cursor = database.query( GAME_TABLE_NAME,
                 new String[] { Game.ID_KEY }, where, null, null, null, null );
         
-        // if there isn't exactly one result, return null
+        // if there isn't exactly one result, return false
         if ( cursor.getCount() == 1 ) {
             retVal = true;
         }
