@@ -97,6 +97,9 @@ public class AtomicActivity extends Activity {
     /** The code for the 'Previous Level' menu item in the context menu. */
     public static final int MENU_ITEM_PREVIOUS_LEVEL = 0x06;
     
+    /** The code for the 'Restart Level' menu item in the context menu. */
+    public static final int MENU_ITEM_RESTART_LEVEL = 0x07;
+    
     /** The code for the 'Main Menu' menu item in the context menu. */
     public static final int MENU_ITEM_MAIN_MENU = 0x03;
     
@@ -376,8 +379,8 @@ public class AtomicActivity extends Activity {
                 R.string.menu_goal );
         item.setIcon( android.R.drawable.ic_menu_zoom );
         
-        // Main Menu
-        item = menu.add( Menu.NONE, MENU_ITEM_MAIN_MENU, Menu.NONE,
+        // Restart Level
+        item = menu.add( Menu.NONE, MENU_ITEM_RESTART_LEVEL, Menu.NONE,
                 R.string.menu_restart );
         
         // Main Menu
@@ -443,6 +446,13 @@ public class AtomicActivity extends Activity {
                 
                 // a redraw is needed immediately after an undo
                 redrawView( null );
+            } break;
+            
+            case MENU_ITEM_RESTART_LEVEL: {
+                // confirm that we want to restart this level
+                int level = gameState.getLevel();
+                this.confirmAndStartLevel( level );
+                
             } break;
             
             case MENU_ITEM_MAIN_MENU: {
