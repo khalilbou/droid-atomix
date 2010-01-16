@@ -34,7 +34,6 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import java.util.EnumSet;
@@ -57,7 +56,7 @@ import edu.rit.poe.atomix.util.Point;
  *
  * @version $Id$
  */
-public class AtomicView extends View implements View.OnKeyListener {
+public class AtomicView extends View {
     
     public static final String LOG_TAG = "DROID_ATOMIX";
     
@@ -222,10 +221,6 @@ public class AtomicView extends View implements View.OnKeyListener {
         for ( int i = 0; i < wallId.length; i++ ) {
             wallMap[ i ] = BitmapFactory.decodeResource( res, wallId[ i ] );
         }
-        
-        // set this as a key listener for the Droid
-        super.setFocusableInTouchMode( true );
-        super.setOnKeyListener( this );
     }
     
     /**
@@ -891,9 +886,8 @@ public class AtomicView extends View implements View.OnKeyListener {
         // switch on the type of action
         if ( event.getAction() == MotionEvent.ACTION_DOWN ) {
             
-            // select the currently hovered square
-            Point hoverPoint = gameState.getHoverPoint();
-            touch( hoverPoint.x, hoverPoint.y );
+            // pass-through the D-Pad event-handling code
+            move( null, true );
             
         } else if ( event.getAction() == MotionEvent.ACTION_MOVE ) {
             float y = Math.abs( event.getY() );
@@ -926,104 +920,75 @@ public class AtomicView extends View implements View.OnKeyListener {
             trackballSum += sum;
             
             if ( Math.abs( trackballSum ) > TRACKBALL_MOVE_SUM ) {
-                Point hoverPoint = gameState.getHoverPoint();
-
-                // set the track point
+                
+                // pass-through the D-Pad event-handling code
                 switch ( trackballDir ) {
                     case UP: {
-                        if ( isHoverable( hoverPoint.x,
-                                ( hoverPoint.y - 1 ) ) ) {
-                            hoverPoint.offset( 0, -1 );
-                        }
+                        move( GameState.Direction.UP, false );
                     } break;
                     case DOWN: {
-                        if ( isHoverable( hoverPoint.x,
-                                ( hoverPoint.y + 1 ) ) ) {
-                            hoverPoint.offset( 0, 1 );
-                        }
+                        move( GameState.Direction.DOWN, false );
                     } break;
                     case RIGHT: {
-                        if ( isHoverable( ( hoverPoint.x + 1 ),
-                                hoverPoint.y ) ) {
-                            hoverPoint.offset( 1, 0 );
-                        }
+                        move( GameState.Direction.RIGHT, false );
                     } break;
                     case LEFT: {
-                        if ( isHoverable( ( hoverPoint.x - 1 ),
-                                hoverPoint.y ) ) {
-                            hoverPoint.offset( -1, 0 );
-                        }
+                        move( GameState.Direction.LEFT, false );
                     } break;
                 }
                 
                 trackballSum = 0.0f;
             }
-            
-            super.postInvalidate();
             trackballTime = curr;
         }
         return true;
     }
     
     /**
-     * Event handling method for key press events.  This method handles only
-     * D-Pad events, primilarily for the Droid.
+     * This method handles D-Pad events for moving and clicking.
      * 
-     * @param   view        the view in which this event was triggered
-     * @param   keyCode     the key code of the key that was pressed
-     * @param   event       the actual <tt>KeyEvent</tt> information
-     * 
-     * @return              always <tt>true</tt>; this method consumes the event
+     * @param   direction   the direction to move in (can be <tt>null</tt>)
+     * @param   center      if this is a center press for clicking
      */
-    public boolean onKey( View view, int keyCode, KeyEvent event ) {
-        int action = event.getAction();
-        int repeat = event.getRepeatCount();
+    public void move( GameState.Direction direction, boolean center ) {
+        Point hoverPoint = gameState.getHoverPoint();
         
-        // only register for the down-press
-        if ( ( action == KeyEvent.ACTION_DOWN ) && ( repeat == 0 ) ) {
-            Point hoverPoint = gameState.getHoverPoint();
+        // is this a select or move?
+        if ( center ) {
+            // touch the current hoverpoint position
+            touch( hoverPoint.x, hoverPoint.y );
             
-            // find which way to move, or select the current hoverpoint
-            switch ( keyCode ) {
-                case KeyEvent.KEYCODE_DPAD_UP: {
-                    Log.d( LOG_TAG, "D-Pad UP" );
+        } else {
+            // find which way to move
+            switch ( direction ) {
+                case UP: {
                     if ( isHoverable( hoverPoint.x, ( hoverPoint.y - 1 ) ) ) {
                         hoverPoint.offset( 0, -1 );
                     }
                 } break;
                 
-                case KeyEvent.KEYCODE_DPAD_DOWN: {
-                    Log.d( LOG_TAG, "D-Pad DOWN" );
+                case DOWN: {
                     if ( isHoverable( hoverPoint.x, ( hoverPoint.y + 1 ) ) ) {
                         hoverPoint.offset( 0, 1 );
                     }
                 } break;
                 
-                case KeyEvent.KEYCODE_DPAD_RIGHT: {
-                    Log.d( LOG_TAG, "D-Pad RIGHT" );
+                case RIGHT: {
                     if ( isHoverable( ( hoverPoint.x + 1 ), hoverPoint.y ) ) {
                         hoverPoint.offset( 1, 0 );
                     }
                 } break;
                 
-                case KeyEvent.KEYCODE_DPAD_LEFT: {
-                    Log.d( LOG_TAG, "D-Pad LEFT" );
+                case LEFT: {
                     if ( isHoverable( ( hoverPoint.x - 1 ), hoverPoint.y ) ) {
                         hoverPoint.offset( -1, 0 );
                     }
                 } break;
-                
-                case KeyEvent.KEYCODE_DPAD_CENTER: {
-                    Log.d( LOG_TAG, "D-Pad CENTER" );
-                    touch( hoverPoint.x, hoverPoint.y );
-                } break;
             }
             
-            // force a redraw with the new hoverpoint (if any)
+            // redraw the view
             super.postInvalidate();
         }
-        
-        return true;
     }
     
     /**
