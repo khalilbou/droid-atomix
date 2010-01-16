@@ -34,6 +34,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import java.util.EnumSet;
@@ -56,7 +57,7 @@ import edu.rit.poe.atomix.util.Point;
  *
  * @version $Id$
  */
-public class AtomicView extends View {
+public class AtomicView extends View implements View.OnKeyListener {
     
     public static final String LOG_TAG = "DROID_ATOMIX";
     
@@ -221,6 +222,10 @@ public class AtomicView extends View {
         for ( int i = 0; i < wallId.length; i++ ) {
             wallMap[ i ] = BitmapFactory.decodeResource( res, wallId[ i ] );
         }
+        
+        // set this as a key listener for the Droid
+        super.setFocusableInTouchMode( true );
+        super.setOnKeyListener( this );
     }
     
     /**
@@ -885,7 +890,6 @@ public class AtomicView extends View {
     public boolean onTrackballEvent( MotionEvent event ) {
         // switch on the type of action
         if ( event.getAction() == MotionEvent.ACTION_DOWN ) {
-            Log.d( "TRACKBALL", "PRESS EVENT" );
             
             // select the currently hovered square
             Point hoverPoint = gameState.getHoverPoint();
@@ -900,19 +904,15 @@ public class AtomicView extends View {
             if ( y > x ) {
                 sum = event.getY();
                 if ( event.getY() < 0 ) {
-                    Log.d( "TRACKBALL", "Y up: " + event.getY() );
                     dir = GameState.Direction.UP;
                 } else if ( event.getY() > 0 ) {
-                    Log.d( "TRACKBALL", "Y down " + event.getY() );
                     dir = GameState.Direction.DOWN;
                 }
             } else {
                 sum = event.getX();
                 if ( event.getX() < 0 ) {
-                    Log.d( "TRACKBALL", "X left " + event.getX() );
                     dir = GameState.Direction.LEFT;
                 } else if ( event.getX() > 0 ) {
-                    Log.d( "TRACKBALL", "X right " + event.getX() );
                     dir = GameState.Direction.RIGHT;
                 }
             }
@@ -926,7 +926,6 @@ public class AtomicView extends View {
             trackballSum += sum;
             
             if ( Math.abs( trackballSum ) > TRACKBALL_MOVE_SUM ) {
-                Log.d( "TRACKBALL", "TRIGGERED!" );
                 Point hoverPoint = gameState.getHoverPoint();
 
                 // set the track point
@@ -963,6 +962,67 @@ public class AtomicView extends View {
             super.postInvalidate();
             trackballTime = curr;
         }
+        return true;
+    }
+    
+    /**
+     * Event handling method for key press events.  This method handles only
+     * D-Pad events, primilarily for the Droid.
+     * 
+     * @param   view        the view in which this event was triggered
+     * @param   keyCode     the key code of the key that was pressed
+     * @param   event       the actual <tt>KeyEvent</tt> information
+     * 
+     * @return              always <tt>true</tt>; this method consumes the event
+     */
+    public boolean onKey( View view, int keyCode, KeyEvent event ) {
+        int action = event.getAction();
+        int repeat = event.getRepeatCount();
+        
+        // only register for the down-press
+        if ( ( action == KeyEvent.ACTION_DOWN ) && ( repeat == 0 ) ) {
+            Point hoverPoint = gameState.getHoverPoint();
+            
+            // find which way to move, or select the current hoverpoint
+            switch ( keyCode ) {
+                case KeyEvent.KEYCODE_DPAD_UP: {
+                    Log.d( LOG_TAG, "D-Pad UP" );
+                    if ( isHoverable( hoverPoint.x, ( hoverPoint.y - 1 ) ) ) {
+                        hoverPoint.offset( 0, -1 );
+                    }
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_DOWN: {
+                    Log.d( LOG_TAG, "D-Pad DOWN" );
+                    if ( isHoverable( hoverPoint.x, ( hoverPoint.y + 1 ) ) ) {
+                        hoverPoint.offset( 0, 1 );
+                    }
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_RIGHT: {
+                    Log.d( LOG_TAG, "D-Pad RIGHT" );
+                    if ( isHoverable( ( hoverPoint.x + 1 ), hoverPoint.y ) ) {
+                        hoverPoint.offset( 1, 0 );
+                    }
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_LEFT: {
+                    Log.d( LOG_TAG, "D-Pad LEFT" );
+                    if ( isHoverable( ( hoverPoint.x - 1 ), hoverPoint.y ) ) {
+                        hoverPoint.offset( -1, 0 );
+                    }
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_CENTER: {
+                    Log.d( LOG_TAG, "D-Pad CENTER" );
+                    touch( hoverPoint.x, hoverPoint.y );
+                } break;
+            }
+            
+            // force a redraw with the new hoverpoint (if any)
+            super.postInvalidate();
+        }
+        
         return true;
     }
     
