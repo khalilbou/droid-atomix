@@ -37,6 +37,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -312,6 +313,57 @@ public class AtomicActivity extends Activity {
     public boolean onTrackballEvent( MotionEvent event ) {
         // pass-through to AtomicView
         return view.onTrackballEvent( event );
+    }
+    
+    
+    
+    /**
+     * Event handling method for key press events.  This method handles only
+     * D-Pad events, primilarily for the Droid.
+     * 
+     * @param   view        the view in which this event was triggered
+     * @param   keyCode     the key code of the key that was pressed
+     * @param   event       the actual <tt>KeyEvent</tt> information
+     * 
+     * @return              whether the method consumed the event
+     */
+    @Override
+    public boolean onKeyDown( int keyCode, KeyEvent event ) {
+        int action = event.getAction();
+        int repeat = event.getRepeatCount();
+        
+        // only register for the down-press
+        if ( ( action == KeyEvent.ACTION_DOWN ) && ( repeat == 0 ) ) {
+            
+            // find which way to move, or select the current hoverpoint
+            switch ( keyCode ) {
+                case KeyEvent.KEYCODE_DPAD_UP: {
+                    view.move( GameState.Direction.UP, false );
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_DOWN: {
+                    view.move( GameState.Direction.DOWN, false );
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_RIGHT: {
+                    view.move( GameState.Direction.RIGHT, false );
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_LEFT: {
+                    view.move( GameState.Direction.LEFT, false );
+                } break;
+                
+                case KeyEvent.KEYCODE_DPAD_CENTER: {
+                    view.move( null, true );
+                } break;
+                
+                default: {
+                    // not a button we care about -- move on
+                }
+            }
+        }
+        
+        return super.onKeyDown( keyCode, event );
     }
     
     /**
