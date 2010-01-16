@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    
+    <!-- Create Statements -->
+    
+    <string name="sql_create_user_table">
+        CREATE TABLE USER( id INTEGER PRIMARY KEY, saved_game_id INTEGER,
+        username TEXT );
+    </string>
+    <string name="sql_create_game_table">
+        CREATE TABLE GAME ( id INTEGER PRIMARY KEY, created INTEGER,
+        finished INTEGER, level INTEGER, moves INTEGER, saved INTEGER,
+        seconds INTEGER, user_id INTEGER )
+    </string>
+    <string name="sql_create_atom_table">
+        CREATE TABLE ATOM ( atom_marker INTEGER, game_id INTEGER, x INTEGER,
+        y INTEGER );
+    </string>
+    
+    <!-- Query Statements -->
+    
+    <!-- definitely add some stuff here -->
+    
+</resources>

@@ -25,11 +25,13 @@ package edu.rit.poe.atomix.db;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import edu.rit.poe.atomix.R;
 import edu.rit.poe.atomix.util.Point;
 import java.util.Calendar;
 import java.util.Map;
@@ -43,35 +45,38 @@ import java.util.Map;
  */
 public class AtomixDbAdapter {
     
+    /** The current database version. */
     private static final int DATABASE_VERSION = 1;
     
+    /** The name of the application's SQLite database. */
     public static final String DATABASE_NAME = "Atomix";
     
+    /** The canonical name of the <tt>USER</tt> table. */
     public static final String USER_TABLE_NAME = "USER";
     
+    /** The canonical name of the <tt>GAME</tt> table. */
     public static final String GAME_TABLE_NAME = "GAME";
     
+    /** The canonical name of the <tt>ATOM</tt> table. */
     public static final String ATOM_TABLE_NAME = "ATOM";
     
-    public static final String CREATE_USER_TABLE_SQL = "CREATE TABLE USER " +
-            "( id INTEGER PRIMARY KEY, saved_game_id INTEGER, username TEXT );";
+    /** A constant used for cursor IDs. */
+    public static final String ID = "_id";
     
-    public static final String CREATE_GAME_TABLE_SQL = "CREATE TABLE GAME " +
-            "( id INTEGER PRIMARY KEY, created INTEGER, finished INTEGER, " +
-            "level INTEGER, moves INTEGER, saved INTEGER, seconds INTEGER," +
-            " user_id INTEGER );";
+    /** A constant for the number of milliseconds per second. */
+    public static final int MS_PER_S = 1000;
     
-    public static final String CREATE_ATOM_TABLE_SQL = "CREATE TABLE ATOM " +
-            "( atom_marker INTEGER, game_id INTEGER, x INTEGER, y INTEGER );";
-    
+    /** An object that represents a connection to the application's database. */
     private SQLiteDatabase database;
     
+    /** A database helper for creating, upgrading, and accessing the database */
     private DatabaseHelper databaseHelper;
     
+    /** The application's context. */
     private final Context context;
     
     /**
-     * 
+     * Creates a new database adapter.
      * 
      * @param   context     the <tt>Context</tt> within which to work
      */
@@ -86,6 +91,7 @@ public class AtomixDbAdapter {
      * 
      * @return this (self reference, allowing this to be chained in an
      *         initialization call)
+     * 
      * @throws SQLException if the database could be neither opened or created
      */
     public AtomixDbAdapter open() throws SQLException {
@@ -96,6 +102,9 @@ public class AtomixDbAdapter {
         return this;
     }
     
+    /**
+     * Closes the connection the database.
+     */
     public void close() {
         databaseHelper.close();
     }
@@ -191,6 +200,14 @@ public class AtomixDbAdapter {
         return values;
     }
     
+    /**
+     * Inserts the specified <tt>Game</tt> into the database.  This method will
+     * set the game's new <tt>id</tt>.
+     * <p>
+     * This method will <b>not</b> cascade to insert the game's user.
+     * 
+     * @param   game    the game to be persisted to the database
+     */
     public void insert( Game game ) {
         ContentValues values = getValues( game );
         
@@ -213,6 +230,15 @@ public class AtomixDbAdapter {
         }
     }
     
+    /**
+     * Updates the specified <tt>Game</tt> in the database. This method will
+     * save all state of the specified object to the database row which matches
+     * the game's <tt>id</tt>.
+     * <p>
+     * This method will <b>not</b> cascade to save the game's user.
+     * 
+     * @param   game    the game to be updated in the database
+     */
     public void update( Game game ) {
         ContentValues values = getValues( game );
         
@@ -240,6 +266,14 @@ public class AtomixDbAdapter {
         }
     }
     
+    /**
+     * Retrieves the user with the specified ID.  This method <b>will</b>
+     * cascade to retrieve the user's current game.
+     * 
+     * @param   userId  the ID of the user to retrieve from the database
+     * 
+     * @return          the user with the specified ID
+     */
     public User getUser( long userId ) {
         String where = User.ID_KEY + "=" + userId;
         Cursor cursor = database.query( USER_TABLE_NAME,
@@ -276,12 +310,13 @@ public class AtomixDbAdapter {
             game.setId( gameCursor.getLong(
                     gameCursor.getColumnIndex( Game.ID_KEY ) ) );
             Calendar created = Calendar.getInstance();
-            created.setTimeInMillis( gameCursor.getLong(
-                    gameCursor.getColumnIndex( Game.CREATED_KEY ) ) * 1000L );
+            created.setTimeInMillis(
+                    gameCursor.getLong( gameCursor.getColumnIndex(
+                    Game.CREATED_KEY ) ) * MS_PER_S );
             game.setCreated( created );
             Calendar saved = Calendar.getInstance();
             saved.setTimeInMillis( gameCursor.getLong(
-                    gameCursor.getColumnIndex( Game.SAVED_KEY ) ) * 1000L );
+                    gameCursor.getColumnIndex( Game.SAVED_KEY ) ) * MS_PER_S );
             game.setSaved( saved );
             game.setLevel( gameCursor.getInt(
                     gameCursor.getColumnIndex( Game.LEVEL_KEY ) ) );
@@ -339,15 +374,40 @@ public class AtomixDbAdapter {
         return user;
     }
     
+    /**
+     * Returns a <tt>Cursor</tt> to all games saved under the specified user ID.
+     * 
+     * @param   userId  the ID of the user to retrieve games for
+     * 
+     * @return          a cursor of all games for the user with the specified ID
+     */
     public Cursor getGames( long userId ) {
         return getGames( Game.USER_ID_KEY + "=" + userId );
     }
     
+    /**
+     * Returns a <tt>Cursor</tt> to all finished games saved under the specified
+     * user ID.
+     * 
+     * @param   userId  the ID of the user to retrieve finished games for
+     * 
+     * @return          a cursor of all finished games for the user with the
+     *                  specified ID
+     */
     public Cursor getFinishedGames( long userId ) {
         return getGames( Game.USER_ID_KEY + "=" + userId + " AND "
                 + Game.FINISHED_KEY + "=" + 1 );
     }
     
+    /**
+     * Find all games from the database that match the specified <tt>where</tt>
+     * clause, if any.
+     * 
+     * @param   where   the SQL <tt>WHERE</tt> clause value
+     * 
+     * @return          a cursor of all games that match the specified where
+     *                  clause
+     */
     private Cursor getGames( String where ) {
         return database.query( GAME_TABLE_NAME, new String[] { Game.ID_KEY,
                 Game.CREATED_KEY, Game.SAVED_KEY, Game.LEVEL_KEY,
@@ -355,6 +415,12 @@ public class AtomixDbAdapter {
                 null, null, null, null );
     }
     
+    /**
+     * Returns a <tt>Cursor</tt> specifically designed for the Main Menu to view
+     * all saved users and their latest game.
+     * 
+     * @return  a cursor of all saved users and their latest levels
+     */
     public Cursor getSavedUsers() {
         String sql = "SELECT USER.id AS '_id', USER.username AS '"
                 + User.USERNAME_KEY + "', ( 'Level: ' || Game.level || ', "
@@ -366,6 +432,12 @@ public class AtomixDbAdapter {
         return database.rawQuery( sql, null );
     }
     
+    /**
+     * Deletes the user with the specified ID.  This method <tt>will</tt>
+     * cascade and delete the user's games.
+     * 
+     * @param   userId  the ID of the user to be deleted
+     */
     public void deleteUser( long userId ) {
         // delete the user first
         String where = User.ID_KEY + "=" + userId;
@@ -383,6 +455,13 @@ public class AtomixDbAdapter {
         }
     }
     
+    
+    /**
+     * Deletes the game with the specified ID.  This method <tt>will</tt>
+     * cascade and delete the game's atoms.
+     * 
+     * @param   gameId  the ID of the game to be deleted
+     */
     public void deleteGame( long gameId ) {
         // delete the game
         String where = Game.ID_KEY + "=" + gameId;
@@ -391,6 +470,7 @@ public class AtomixDbAdapter {
         // delete all associated atoms (if any)
         deleteAtoms( gameId );
     }
+    
     
     private void deleteAtoms( long gameId ) {
         String where = Game.ATOM_GAME_ID_KEY + "=" + gameId;
@@ -431,7 +511,7 @@ public class AtomixDbAdapter {
     }
     
     /**
-     * 
+     * A database helper used to create and upgrade the database when needed.
      * 
      * @author  Peter O. Erickson
      * 
@@ -439,16 +519,21 @@ public class AtomixDbAdapter {
      */
     private static class DatabaseHelper extends SQLiteOpenHelper {
         
+        /** The context from which this database helper was created. */
+        private Context context;
+        
         /**
+         * Constructs a new database helper.
          * 
-         * @param   context     
-         * @param   name        
-         * @param   factory     
-         * @param   version     
+         * @param   context     the context from which the DB helper was started
+         * @param   name        the name of the database
+         * @param   factory     the cursor factory for this helper, if any
+         * @param   version     the database version
          */
         public DatabaseHelper( Context context, String name,
                 CursorFactory factory, int version ) {
             super( context, name, factory, version );
+            this.context = context;
         }
         
         /**
@@ -458,10 +543,12 @@ public class AtomixDbAdapter {
          */
         @Override
         public void onCreate( SQLiteDatabase db ) {
+            Resources res = context.getResources();
+            
             // create the tables!
-            db.execSQL( CREATE_USER_TABLE_SQL );
-            db.execSQL( CREATE_GAME_TABLE_SQL );
-            db.execSQL( CREATE_ATOM_TABLE_SQL );
+            db.execSQL( res.getString( R.string.sql_create_user_table ) );
+            db.execSQL( res.getString( R.string.sql_create_game_table ) );
+            db.execSQL( res.getString( R.string.sql_create_atom_table ) );
         }
         
         /**

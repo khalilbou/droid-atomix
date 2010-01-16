@@ -67,6 +67,8 @@ public class MenuActivity extends Activity {
     
     public static final String LOG_TAG = "MENU_ACTIVITY";
     
+    public static final int RED_COLOR = Color.parseColor( "#CC0000" );
+    
     /** The subactivity request code. */
     public static final int GAME_REQUEST_CODE = 0x0;
     
@@ -100,7 +102,6 @@ public class MenuActivity extends Activity {
     @Override
     public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
-        Log.d( LOG_TAG, "onCreate()" );
         
         //super.setRequestedOrientation(
         //        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
@@ -113,7 +114,7 @@ public class MenuActivity extends Activity {
         
         // set the gradient background
         GradientDrawable grad = new GradientDrawable( Orientation.TOP_BOTTOM,
-            new int[] { Color.BLACK, Color.parseColor( "#CC0000" ) } );
+            new int[] { Color.BLACK, RED_COLOR } );
         grad.setGradientType( GradientDrawable.LINEAR_GRADIENT );
         super.getWindow().setBackgroundDrawable( grad );
         
@@ -129,15 +130,11 @@ public class MenuActivity extends Activity {
         final Cursor savedUsers = db.getSavedUsers();
         super.startManagingCursor( savedUsers );
         
-        Log.d( LOG_TAG, "Saved games: " + savedUsers.getCount() );
-        
         // setup the Continue button
         LinearLayout menu =
                 ( LinearLayout )findViewById( R.id.main_button_list );
         Button resume = ( Button )findViewById( R.id.continue_button );
         if ( savedUsers.getCount() > 0 ) {
-            Log.d( LOG_TAG, "Display CONTINUE button." );
-            
             // setup button callbacks
             resume.setOnClickListener( new View.OnClickListener() {
                 public void onClick( View view ) {
@@ -148,8 +145,9 @@ public class MenuActivity extends Activity {
                         
                         // get the only user id
                         savedUsers.moveToFirst();
-                        long userId = savedUsers.getLong(
-                                savedUsers.getColumnIndex( "_id" ) );
+                        long userId =
+                                savedUsers.getLong( savedUsers.getColumnIndex(
+                                AtomixDbAdapter.ID ) );
                         
                         // query the selected user and load the saved game state
                         User user = db.getUser( userId );
@@ -265,7 +263,7 @@ public class MenuActivity extends Activity {
         GameState gameState = new GameState( user, user.getCurrentGame() );
         Intent intent = new Intent( this, AtomicActivity.class );
         Bundle extras = new Bundle();
-        extras.putSerializable( "game_state", gameState );
+        extras.putSerializable( GameState.GAME_STATE_KEY, gameState );
         intent.putExtras( extras );
         
         // start the game, and wait for a result
