@@ -116,7 +116,7 @@ public class LevelListActivity extends ListActivity {
                 // find out what level this is
                 levelCursor.moveToPosition( pos );
                 int level = levelCursor.getInt(
-                        levelCursor.getColumnIndex( "_id" ) );
+                        levelCursor.getColumnIndex( LevelManager.ID ) );
                 
                 if ( finished.containsKey( level ) ) {
                     // the value in the map at this level is the position in the
