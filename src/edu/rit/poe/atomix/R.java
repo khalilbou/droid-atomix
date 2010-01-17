@@ -68,21 +68,22 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f040003;
-        public static final int completed_moves_text=0x7f04000b;
-        /**  Strings for the Levels List 
-         */
-        public static final int completed_seconds_text=0x7f04000a;
-        public static final int confirm_no=0x7f04001f;
+        public static final int completed_moves_text=0x7f04000c;
+        public static final int completed_seconds_text=0x7f04000b;
+        public static final int confirm_no=0x7f040020;
         /**  General dialog string literals 
          */
-        public static final int confirm_yes=0x7f04001e;
-        public static final int goal_dialog_return_button=0x7f04001d;
+        public static final int confirm_yes=0x7f04001f;
+        public static final int goal_dialog_return_button=0x7f04001e;
         /**  String literals for the zoomed goal viewer 
          */
-        public static final int goal_dialog_title=0x7f04001c;
+        public static final int goal_dialog_title=0x7f04001d;
         /**  Activity Titles 
          */
         public static final int home_title=0x7f040004;
+        /**  Strings for the Levels List 
+         */
+        public static final int level_title=0x7f04000a;
         public static final int levels_title=0x7f040005;
         /**  String literals for the Main Menu 
          */
@@ -92,32 +93,32 @@ public final class R {
         public static final int main_menu_quit=0x7f040009;
         /**  String literals for the options menu 
          */
-        public static final int menu_goal=0x7f040010;
-        public static final int menu_levels=0x7f040011;
-        public static final int menu_main=0x7f040016;
-        public static final int menu_next=0x7f040013;
-        public static final int menu_previous=0x7f040014;
-        public static final int menu_quit=0x7f040017;
-        public static final int menu_restart=0x7f040015;
-        public static final int menu_undo=0x7f040012;
-        public static final int overwrite_dialog_text=0x7f040019;
+        public static final int menu_goal=0x7f040011;
+        public static final int menu_levels=0x7f040012;
+        public static final int menu_main=0x7f040017;
+        public static final int menu_next=0x7f040014;
+        public static final int menu_previous=0x7f040015;
+        public static final int menu_quit=0x7f040018;
+        public static final int menu_restart=0x7f040016;
+        public static final int menu_undo=0x7f040013;
+        public static final int overwrite_dialog_text=0x7f04001a;
         /**  String literals for the Overwrite Confirmation Menu 
          */
-        public static final int overwrite_dialog_title=0x7f040018;
+        public static final int overwrite_dialog_title=0x7f040019;
         public static final int sql_create_atom_table=0x7f040002;
         public static final int sql_create_game_table=0x7f040001;
         /**  Create Statements 
          */
         public static final int sql_create_user_table=0x7f040000;
-        public static final int unsaved_dialog_text=0x7f04001b;
+        public static final int unsaved_dialog_text=0x7f04001c;
         /**  Strings for the abandon unsaved level 
          */
-        public static final int unsaved_dialog_title=0x7f04001a;
-        public static final int win_dialog_levels_button=0x7f04000f;
-        public static final int win_dialog_next_button=0x7f04000e;
-        public static final int win_dialog_text=0x7f04000d;
+        public static final int unsaved_dialog_title=0x7f04001b;
+        public static final int win_dialog_levels_button=0x7f040010;
+        public static final int win_dialog_next_button=0x7f04000f;
+        public static final int win_dialog_text=0x7f04000e;
         /**  Strings for the Win Level Dialog 
          */
-        public static final int win_dialog_title=0x7f04000c;
+        public static final int win_dialog_title=0x7f04000d;
     }
 }

@@ -25,8 +25,6 @@ package edu.rit.poe.atomix.levels;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.util.Log;
 import java.io.File;
 import java.io.InputStream;
@@ -45,12 +43,6 @@ import java.util.Map;
 public class LevelManager {
     
     public static final int FIRST_LEVEL = 1;
-    
-    public static final String ID = "_id";
-    
-    public static final String LEVEL_DESCRIPTION = "level";
-    
-    public static final String LEVEL_NAME = "name";
     
     public static final String LEVELS_DIRECTORY = "levels";
     
@@ -110,28 +102,12 @@ public class LevelManager {
     }
     
     /**
-     * Returns a <tt>Cursor</tt> of the loaded levels' number and formula.
      * 
-     * @return  a <tt>Cursor</tt> of levels sorted in ascending order
      */
-    public Cursor getLevels() {
-        MatrixCursor cursor =
-                new MatrixCursor( new String[] { ID, LEVEL_DESCRIPTION,
-                LEVEL_NAME } );
-        
-        // ensure the cursor is sorted in ascending order
-        List<Integer> levelList = new ArrayList<Integer>( levelMap.keySet() );
-        Collections.sort( levelList );
-        for ( Integer level : levelList ) {
-            Object[] row = new Object[ 3 ];
-            row[ 0 ] = level;
-            row[ 1 ] = "Level " + level;
-            row[ 2 ] = levelMap.get( level ).getName();
-            
-            cursor.addRow( row );
-        }
-        
-        return cursor;
+    public List<Level> getLevels() {
+        List<Level> list = new ArrayList<Level>( levelMap.values() );
+        Collections.sort( list );
+        return list;
     }
     
 } // LevelManager

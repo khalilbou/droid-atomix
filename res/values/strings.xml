@@ -13,6 +13,7 @@
     <string name="main_menu_quit">Quit</string>
     
     <!-- Strings for the Levels List -->
+    <string name="level_title">Level %1$d</string>
     <string name="completed_seconds_text">Solved in %1$d seconds,</string>
     <string name="completed_moves_text">using %1$d moves.</string>
     

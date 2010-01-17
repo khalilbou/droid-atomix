@@ -28,7 +28,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,7 +42,7 @@ import java.util.Set;
  *
  * @version $Id$
  */
-public class Level implements Serializable {
+public class Level implements Comparable<Level> {
     
     /**
      * Enumerated type of sections of a level file.
@@ -211,6 +210,19 @@ public class Level implements Serializable {
             }
         }
         return retVal;
+    }
+    
+    /**
+     * Compares this level to the specified one for sorting purposes.
+     * 
+     * @param   other   the level to compare to this one
+     * 
+     * @return          a negative integer, zero, or a positive integer as this
+     *                  level is less than, equal to, or greater than the
+     *                  specified level
+     */
+    public int compareTo( Level other ) {
+        return ( level > other.level ? 1 : ( level < other.level ? -1 : 0 ) );
     }
     
     public static final Level loadLevel( InputStream is )

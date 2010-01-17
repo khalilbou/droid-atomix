@@ -27,16 +27,17 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.TextView;
 import edu.rit.poe.atomix.db.AtomixDbAdapter;
 import edu.rit.poe.atomix.db.Game;
 import edu.rit.poe.atomix.game.GameState;
+import edu.rit.poe.atomix.levels.Level;
 import edu.rit.poe.atomix.levels.LevelManager;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +51,12 @@ import java.util.Map;
  */
 public class LevelListActivity extends ListActivity {
     
+    public static final String ID = "_id";
+    
+    public static final String LEVEL_DESCRIPTION = "level";
+    
+    public static final String LEVEL_NAME = "name";
+    
     /** The application's resource bundle. */
     private Resources resources;
     
@@ -57,7 +64,7 @@ public class LevelListActivity extends ListActivity {
     private AtomixDbAdapter db;
     
     /** A cursor of all levels to be displayed in the list. */
-    private Cursor levelCursor;
+    private MatrixCursor levelCursor;
     
     /**
      * Called when the activity is first created.
@@ -82,67 +89,65 @@ public class LevelListActivity extends ListActivity {
         // load the current users games in a cursor
         db = new AtomixDbAdapter( this ).open();
         
-        final Cursor games = db.getFinishedGames( gameState.getUser().getId() );
-        super.startManagingCursor( games );
         
         // load all finished levels' time into a map
-        final Map<Integer, Integer> finished = new HashMap<Integer, Integer>();
+        Cursor games = db.getFinishedGames( ( gameState.getUser() ).getId() );
+        
+        final Map<Integer, ScoreInfo> finished =
+                new HashMap<Integer, ScoreInfo>();
         
         for ( int i = 0; i < games.getCount(); i++ ) {
             games.moveToNext();
             
             int level = games.getInt( games.getColumnIndex( Game.LEVEL_KEY ) );
-            finished.put( level, games.getPosition() );
+            int seconds =
+                    games.getInt( games.getColumnIndex( Game.SECONDS_KEY ) );
+            int moves = games.getInt( games.getColumnIndex( Game.MOVES_KEY ) );
+            
+            finished.put( level, new ScoreInfo( seconds, moves ) );
+        }
+        games.close();
+        
+        // create a cursor for the window
+        LevelManager levelManager = LevelManager.getInstance();
+        Collection<Level> levels = levelManager.getLevels();
+        
+        levelCursor = new MatrixCursor( new String[] { ID, LEVEL_NAME,
+                LEVEL_DESCRIPTION, Game.SECONDS_KEY, Game.MOVES_KEY } );
+        for ( Level level : levels ) {
+            Object[] row = new Object[ 5 ];
+            row[ 0 ] = level.getLevel();
+            
+            String fmt = resources.getString( R.string.level_title );
+            row[ 1 ] = String.format( fmt, level.getLevel() );
+            row[ 2 ] = level.getName();
+            
+            if ( finished.containsKey( level.getLevel() ) ) {
+                // the value in the map at this level is the position in the
+                // games cursor
+                ScoreInfo scoreInfo = finished.get( level.getLevel() );
+                
+                fmt = resources.getString(
+                        R.string.completed_seconds_text );
+                row[ 3 ] = String.format( fmt, scoreInfo.seconds );
+                
+                fmt = resources.getString( R.string.completed_moves_text );
+                row[ 4 ] = String.format( fmt, scoreInfo.moves );
+            } else {
+                row[ 3 ] = "";
+                row[ 4 ] = "";
+            }
+            
+            levelCursor.addRow( row );
         }
         
-        LevelManager levelManager = LevelManager.getInstance();
-        levelCursor = levelManager.getLevels();
+        String[] from = new String[]{ LEVEL_NAME, LEVEL_DESCRIPTION,
+                Game.SECONDS_KEY,  Game.MOVES_KEY };
+        int[] to = new int[]{ R.id.level_number, R.id.level_name,
+                R.id.level_completed_seconds, R.id.level_completed_moves };
         
-        String[] from = new String[]{ Game.LEVEL_KEY, "name" };
-        int[] to = new int[]{ R.id.level_number, R.id.level_name };
-        
-        final SimpleCursorAdapter adapter = new SimpleCursorAdapter( this,
-                R.layout.level_row, levelCursor, from, to ) {
-            
-            @Override
-            public View getView( int pos, View convertView, ViewGroup parent ) {
-                View view = super.getView( pos, convertView, parent );
-                
-                TextView secondsText = ( TextView )view.findViewById(
-                        R.id.level_completed_seconds );
-                TextView movesText = ( TextView )view.findViewById(
-                        R.id.level_completed_moves );
-                
-                // find out what level this is
-                levelCursor.moveToPosition( pos );
-                int level = levelCursor.getInt(
-                        levelCursor.getColumnIndex( LevelManager.ID ) );
-                
-                if ( finished.containsKey( level ) ) {
-                    // the value in the map at this level is the position in the
-                    // games cursor
-                    int gamesPos = finished.get( level );
-                    games.moveToPosition( gamesPos );
-                    
-                    int seconds = games.getInt(
-                            games.getColumnIndex( Game.SECONDS_KEY ) );
-                    String fmt = resources.getString(
-                            R.string.completed_seconds_text );
-                    String text = String.format( fmt, seconds );
-                    secondsText.setText( text );
-                    
-                    int moves = games.getInt(
-                            games.getColumnIndex( Game.MOVES_KEY ) );
-                    fmt = resources.getString( R.string.completed_moves_text );
-                    text = String.format( fmt, moves );
-                    movesText.setText( text );
-                }
-                
-                return view;
-            }
-        };
-        
-        this.setListAdapter( adapter );
+        this.setListAdapter( new SimpleCursorAdapter( this, R.layout.level_row,
+                levelCursor, from, to ) );
     }
     
     /**
@@ -191,5 +196,33 @@ public class LevelListActivity extends ListActivity {
             db = new AtomixDbAdapter( this ).open();
         }
     }
+    
+    /**
+     * A container class for score information to be displayed on the level list
+     * activity.
+     * 
+     * @author  Peter O. Erickson
+     */
+    private class ScoreInfo {
+        
+        /** The number of seconds it took to complete the game. */
+        int seconds;
+        
+        /** The number of moves it took to complete the game. */
+        int moves;
+        
+        /**
+         * Constructs a new <tt>ScoreInfo</tt>.
+         * 
+         * @param   seconds     the number of seconds it took to complete the
+         *                      game
+         * @param   moves       the number of moves it took to complete the game
+         */
+        ScoreInfo( int seconds, int moves ) {
+            this.seconds = seconds;
+            this.moves = moves;
+        }
+        
+    } // ScoreInfo
     
 } // LevelListActivity
