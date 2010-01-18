@@ -107,6 +107,9 @@ public class AtomicActivity extends Activity {
     /** The code for the 'Quit' menu item in the context menu." */
     public static final int MENU_ITEM_QUIT = 0x04;
     
+    /** The code for the 'Help' menu item in the context menu. */
+    public static final int MENU_ITEM_HELP = 0x08;
+    
     /** The ID of the 'Confirm Lose Unsaved Game' dialog. */
     public static final int DIALOG_CONFIRM_UNSAVED_LEVEL = 0x0;
     
@@ -315,8 +318,6 @@ public class AtomicActivity extends Activity {
         return view.onTrackballEvent( event );
     }
     
-    
-    
     /**
      * Event handling method for key press events.  This method handles only
      * D-Pad events, primilarily for the Droid.
@@ -431,6 +432,9 @@ public class AtomicActivity extends Activity {
                 R.string.menu_goal );
         item.setIcon( android.R.drawable.ic_menu_zoom );
         
+        item = menu.add( Menu.NONE, MENU_ITEM_HELP, Menu.NONE,
+                R.string.menu_help );
+        
         // Restart Level
         item = menu.add( Menu.NONE, MENU_ITEM_RESTART_LEVEL, Menu.NONE,
                 R.string.menu_restart );
@@ -529,6 +533,12 @@ public class AtomicActivity extends Activity {
                 // confirm and launch the previous level
                 this.confirmAndStartLevel( gameState.getLevel() - 1 );
                 
+            } break;
+            
+            case MENU_ITEM_HELP: {
+                // start the help file
+                Intent i = new Intent( this, HelpActivity.class );
+                super.startActivity( i );
             } break;
         }
         

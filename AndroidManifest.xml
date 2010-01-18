@@ -18,5 +18,6 @@
          <activity android:name=".AtomicActivity"
                 android:configChanges="orientation"/>
          <activity android:name=".LevelListActivity"/>
+         <activity android:name=".HelpActivity"/>
     </application>
 </manifest>
