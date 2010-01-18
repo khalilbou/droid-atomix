@@ -178,9 +178,9 @@ public class MenuActivity extends Activity {
         Button help = ( Button )findViewById( R.id.help_button );
         help.setOnClickListener( new View.OnClickListener() {
             public void onClick( View view ) {
-                Toast toast = Toast.makeText( MenuActivity.this, "HELP!",
-                        Toast.LENGTH_LONG );
-                toast.show();
+                // start the help file
+                Intent i = new Intent( MenuActivity.this, HelpActivity.class );
+                MenuActivity.super.startActivity( i );
             }
         } );
         
