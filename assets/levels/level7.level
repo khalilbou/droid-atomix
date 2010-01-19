@@ -1,0 +1,47 @@
+# DroidAtomix Map Config File
+# Level 7
+
+level:
+7
+
+name:
+Ethanol
+
+formula:
+C_2H_6CO
+
+size:
+12X12
+
+molecules:
+1 0000FF H -u
+2 444444 C -u -d -r -l
+3 0000FF H -u
+4 0000FF H -d
+5 0000FF H -r
+6 0000FF H -d
+7 444444 C -u -d -r -l
+8 FF0000 O -r -l
+9 0000FF H -l
+
+map:
+BBBBBXXXXXBB
+BBBBBX12 XBB
+BXXXXX X XBB
+BX      3XBB
+BXXX4   XXBB
+BBBX X5X XXX
+BBBXX6   X X
+XXXX 7     X
+X 8    X   X
+XXXXX X  X X
+BBBX    X 9X
+BBBXXXXXXXXX
+
+goal_size:
+5X3
+
+goal:
+ 46  
+52789
+ 13  
