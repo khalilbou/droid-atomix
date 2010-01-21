@@ -1,0 +1,45 @@
+# DroidAtomix Map Config File
+# Level 8
+
+level:
+8
+
+name:
+Acetic Acid
+
+formula:
+C_2H_4O_2
+
+size:
+11X11
+
+molecules:
+1 O -r -l
+2 H -l
+3 H -r
+4 H -u
+5 C -u -d -r -l
+6 C =u -r -l
+7 O =d
+8 H -d
+
+map:
+XXXXXXXXXXX
+X   X   X X
+X 1       X
+X X  2X 3 X
+X4 5      X
+X   X   X X
+X         X
+X X 6 X   X
+X7     8  X
+X   X   X X
+XXXXXXXXXXX
+
+goal_size:
+5X3
+
+goal:
+ 87
+35612
+ 4

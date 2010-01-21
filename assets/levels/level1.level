@@ -30,9 +30,9 @@ size:
 #
 # Identifiers for elements should be numbers 0-9 or lowercase letters a-z.
 molecules:
-1 0000FF H -l
-2 0000FF H -r
-3 FF0000 O -l -r
+1 H -l
+2 H -r
+3 O -l -r
 
 # The actual level map (note that the outer border may be trimmed, if
 # necessary for screen size).

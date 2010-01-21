@@ -14,12 +14,12 @@ size:
 13X12
 
 molecules:
-1 FF0000 O -l -r
-2 0000FF H -u
-3 444444 C -l -r -u -d
-4 0000FF H -l
-5 0000FF H -d
-6 0000FF H -r
+1 O -l -r
+2 H -u
+3 C -l -r -u -d
+4 H -l
+5 H -d
+6 H -r
 
 map:
 BBBBBBBBBXXXX

@@ -295,6 +295,12 @@ public class AtomicActivity extends Activity {
                 // execute the confirmations before starting the new level
                 Bundle extras = data.getExtras();
                 int level = extras.getInt( Game.LEVEL_KEY );
+                
+                // turn the database adapter back on
+                if ( db == null ) {
+                    db = new AtomixDbAdapter( this ).open();
+                }
+                
                 this.confirmAndStartLevel( level );
                 
             } else {
@@ -757,6 +763,10 @@ public class AtomicActivity extends Activity {
      * intention to overwrite it.
      */
     private void checkOverwriteOldLevel() {
+        if ( db == null ) {
+            Log.d( LOG_TAG, "wtf?" );
+        }
+        
         // is the new level already completed?
         if ( db.isLevelCompleted( gameState.getUser(), pendingLevel ) ) {
             // the game is finished, no unsaved dialog needed
