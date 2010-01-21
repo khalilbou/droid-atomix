@@ -1,0 +1,48 @@
+# DroidAtomix Map Config File
+# Level 9
+
+level:
+9
+
+name:
+Dimethyl Ether
+
+formula:
+CH_3OCH_3
+
+size:
+13x13
+
+molecules:
+1 C -u -d -r -l
+2 O -r -l
+3 H -r
+4 H -u
+5 H -d
+6 H -l
+7 H -u
+8 H -d
+9 C -u -d -r -l
+
+map:
+XXXXXXXXXXXXX
+X   1 X2   3X
+X XXX X XXX X
+X X  4X   X X
+X X   X   X X
+X     X     X
+XXXX5    XXXX
+X     X     X
+X X   X   X X
+X X  6X  7X X
+X XXX X  XX8X
+X    9X     X
+XXXXXXXXXXXXX
+
+goal_size:
+5X3
+
+goal:
+ 5 8
+31296
+ 4 7

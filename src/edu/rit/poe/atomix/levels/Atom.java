@@ -23,6 +23,8 @@
 
 package edu.rit.poe.atomix.levels;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,11 +37,21 @@ import java.util.Set;
  */
 public final class Atom extends Square {
     
+    /** A map of atom element letter to hexadecimal color. */
+    private static final Map<Character, String> colorMap;
+    
+    // Setup the color map defaults
+    static {
+        colorMap = new HashMap<Character, String>();
+        
+        // set the default atom colors
+        colorMap.put( 'H', "0000FF" );
+        colorMap.put( 'O', "FF0000" );
+        colorMap.put( 'C', "444444" );
+    }
+    
     /** The short ID of this atom. */
     private short id;
-    
-    /** The color of this atom. */
-    private String color;
     
     /** The atom character. */
     private char element;
@@ -55,10 +67,8 @@ public final class Atom extends Square {
      * @param   element     the element letter
      * @param   connectors  the atom connectors
      */
-    public Atom( short id, String color, char element,
-            Set<Connector> connectors ) {
+    public Atom( short id, char element, Set<Connector> connectors ) {
         this.id = id;
-        this.color = color;
         this.element = element;
         this.connectors = connectors;
     }
@@ -68,7 +78,7 @@ public final class Atom extends Square {
     }
     
     public String getColor() {
-        return color;
+        return colorMap.get( element );
     }
     
     public char getElement() {
