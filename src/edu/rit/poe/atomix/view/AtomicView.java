@@ -73,7 +73,7 @@ public class AtomicView extends View {
     private static final int[] wallId;
     
     static {
-        wallId = new int[ 15 ];
+        wallId = new int[ 16 ];
         
         wallId[ 0 ] = R.drawable.wall_single;
         wallId[ 1 ] = R.drawable.wall_horizontal_right_end;
@@ -90,6 +90,7 @@ public class AtomicView extends View {
         wallId[ 12 ] = R.drawable.wall_vertical;
         wallId[ 13 ] = R.drawable.wall_vertical_leftx;
         wallId[ 14 ] = R.drawable.wall_vertical_rightx;
+        wallId[ 15 ] = R.drawable.wall_all_sides;
     }
     
     /** The controller of the application. */

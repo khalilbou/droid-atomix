@@ -20,21 +20,22 @@ public final class R {
         public static final int menu_icons_license=0x7f020006;
         public static final int options=0x7f020007;
         public static final int undo=0x7f020008;
-        public static final int wall_bottom_left=0x7f020009;
-        public static final int wall_bottom_right=0x7f02000a;
-        public static final int wall_horizontal=0x7f02000b;
-        public static final int wall_horizontal_bottomx=0x7f02000c;
-        public static final int wall_horizontal_left_end=0x7f02000d;
-        public static final int wall_horizontal_right_end=0x7f02000e;
-        public static final int wall_horizontal_topx=0x7f02000f;
-        public static final int wall_single=0x7f020010;
-        public static final int wall_top_left=0x7f020011;
-        public static final int wall_top_right=0x7f020012;
-        public static final int wall_vertical=0x7f020013;
-        public static final int wall_vertical_bottom_end=0x7f020014;
-        public static final int wall_vertical_leftx=0x7f020015;
-        public static final int wall_vertical_rightx=0x7f020016;
-        public static final int wall_vertical_top_end=0x7f020017;
+        public static final int wall_all_sides=0x7f020009;
+        public static final int wall_bottom_left=0x7f02000a;
+        public static final int wall_bottom_right=0x7f02000b;
+        public static final int wall_horizontal=0x7f02000c;
+        public static final int wall_horizontal_bottomx=0x7f02000d;
+        public static final int wall_horizontal_left_end=0x7f02000e;
+        public static final int wall_horizontal_right_end=0x7f02000f;
+        public static final int wall_horizontal_topx=0x7f020010;
+        public static final int wall_single=0x7f020011;
+        public static final int wall_top_left=0x7f020012;
+        public static final int wall_top_right=0x7f020013;
+        public static final int wall_vertical=0x7f020014;
+        public static final int wall_vertical_bottom_end=0x7f020015;
+        public static final int wall_vertical_leftx=0x7f020016;
+        public static final int wall_vertical_rightx=0x7f020017;
+        public static final int wall_vertical_top_end=0x7f020018;
     }
     public static final class id {
         public static final int atomix_title=0x7f05000d;
