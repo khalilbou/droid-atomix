@@ -288,7 +288,14 @@ public class Level implements Comparable<Level> {
                             try {
                                 String[] args = line.split( "\\s+" );
                                 
-                                short id = Short.parseShort( args[ 0 ] );
+                                short id = 0;
+                                try {
+                                    id = Short.parseShort( args[ 0 ] );
+                                } catch ( NumberFormatException e ) {
+                                    Log.d( "LEVEL", "PARSE CHARACTER" );
+                                    id = ( short )( 10
+                                            + ( args[ 0 ].charAt( 0 ) - 'a' ) );
+                                }
                                 char element = args[ 1 ].charAt( 0 );
                                 
                                 Set<Connector> connectors =
@@ -336,10 +343,18 @@ public class Level implements Comparable<Level> {
                                     sqr = Square.EMPTY;
                                 } else if ( row[ x ] == 'B' ) {
                                     sqr = null;
-                                } else if ( Character.isDigit( row[ x ] ) ) {
+                                } else {
                                     short id = -1;
                                     try {
-                                        id = Short.parseShort( "" + row[ x ] );
+                                        try {
+                                            id = Short.parseShort(
+                                                    Character.toString(
+                                                    row[ x ] ) );
+                                        } catch ( NumberFormatException e ) {
+                                            id = ( short )( 10
+                                                    + ( row[ x ] - 'a' ) );
+                                        }
+                                        
                                         sqr = level.getAtom( id );
                                     } catch ( Exception e ) {
                                         Log.e( "LevelLoader",
@@ -377,15 +392,22 @@ public class Level implements Comparable<Level> {
                                 if ( ( x >= row.length ) ||
                                         ( row[ x ] == ' ' ) ) {
                                     sqr = Square.EMPTY;
-                                } else if ( Character.isDigit( row[ x ] ) ) {
+                                } else {
                                     short id = -1;
                                     try {
-                                        id = Short.parseShort( "" + row[ x ] );
+                                        try {
+                                            id = Short.parseShort(
+                                                    Character.toString(
+                                                    row[ x ] ) );
+                                        } catch ( NumberFormatException e ) {
+                                            id = ( short )( 10
+                                                    + ( row[ x ] - 'a' ) );
+                                        }
+                                        
                                         sqr = level.getAtom( id );
                                     } catch ( Exception e ) {
-                                        throw new LevelFileFormatException(
-                                                "Error setting goal " +
-                                                "configuration." );
+                                        Log.e( "LevelLoader",
+                                                Log.getStackTraceString( e ) );
                                     }
                                 }
                                 
