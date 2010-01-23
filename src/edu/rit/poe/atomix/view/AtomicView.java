@@ -690,12 +690,12 @@ public class AtomicView extends View {
         
         // scale the goal size, if necessary
         if ( xNeeded > w ) {
-            goalSize /= ( xNeeded / w );
+            goalSize /= ( float )( ( float )xNeeded / ( float )w );
         } else {
             goalOffsetX = ( w - xNeeded ) / 2;
         }
         if ( yNeeded > h ) {
-            goalSize /= ( yNeeded / h );
+            goalSize /= ( float )( ( float )yNeeded / ( float )h );
         } else {
             goalOffsetY = ( h - yNeeded ) / 2;
         }
