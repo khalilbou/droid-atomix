@@ -77,7 +77,7 @@ public class LevelManager {
             
             // get all level files in the "levels" directory
             String[] levelFiles = am.list( LEVELS_DIRECTORY );
-            
+            Log.d( "LevelManager", "Levels: " + levelFiles.length );
             Log.d( "LevelManager", "Level File List:" );
             for ( String levelFile : levelFiles ) {
                 Log.d( "LevelManager FILE:", levelFile );
@@ -89,7 +89,7 @@ public class LevelManager {
                 levelMap.put( level.getLevel(), level );
             }
         } catch ( Exception e ) {
-            // ignore
+            Log.e( "LevelManager", Log.getStackTraceString( e ) );
         }
     }
     

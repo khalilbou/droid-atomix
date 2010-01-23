@@ -1,14 +1,14 @@
 # DroidAtomix Map Config File
-# Level 10
+# Level 13
 
 level:
-10
+13
 
 name:
-Methanal
+Butanol
 
 formula:
-CH_2O
+C_4H_1_0O
 
 size:
 13x13
