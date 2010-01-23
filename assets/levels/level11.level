@@ -1,0 +1,49 @@
+# DroidAtomix Map Config File
+# Level 11
+
+level:
+11
+
+name:
+Acetone
+
+formula:
+C_3H_6O
+
+size:
+13x13
+
+molecules:
+1 O =u
+2 C -u -d -r -l
+3 H -u
+4 C =d -r -l
+5 H -d
+6 H -u
+7 H -r
+8 H -d
+9 C -u -d -r -l
+a H -l
+
+map:
+BBBXXXXXXXXXX
+BXXX  XX    X
+XX     X X  X
+X     1X XXXX
+X X2X 3 4  5X
+X X6XXX  7  X
+XXX  8    XXX
+X     XXX X X
+X     9 X X X
+XXXX X     aX
+X  X X     XX
+X    XX  XXXB
+XXXXXXXXXXBBB
+
+goal_size:
+5x3
+
+goal:
+ 5 8
+7249a
+ 316

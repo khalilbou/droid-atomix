@@ -1,0 +1,43 @@
+# DroidAtomix Map Config File
+# Level 10
+
+level:
+10
+
+name:
+Methanal
+
+formula:
+CH_2O
+
+size:
+13x13
+
+molecules:
+1 O =l
+2 C -u -d =r
+3 H -u
+4 H -d
+
+map:
+XXXXXXXXXXXXX
+X1    X    2X
+X  XX X XX  X
+XX X     X XX
+X  X     X  X
+X XX  X  XX X
+X    XXX    X
+X XX  X  XX X
+X  X     X  X
+XX X     X XX
+X  XX X XX  X
+X3    X    4X
+XXXXXXXXXXXXX
+
+goal_size:
+2x3
+
+goal:
+4
+21
+3
