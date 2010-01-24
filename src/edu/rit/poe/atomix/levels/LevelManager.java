@@ -35,19 +35,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * A class to manage and store all levels that are read from the Android assets.
+ * 
  * @author  Peter O. Erickson
  *
  * @version $Id$
  */
 public class LevelManager {
     
+    /** A constant for the first level. */
     public static final int FIRST_LEVEL = 1;
     
+    /** A constant for the levels directory where level files are stored. */
     public static final String LEVELS_DIRECTORY = "levels";
     
+    /** The singleton instance of this class. */
     private static volatile LevelManager instance;
     
+    /** The map of level objects, mapped by their respective level numbers. */
     private Map<Integer, Level> levelMap;
     
     /**
@@ -56,6 +61,11 @@ public class LevelManager {
     private LevelManager() {
     }
     
+    /**
+     * Returns the singleton instance of this class.
+     * 
+     * @return  the singleton instance of this class
+     */
     public static final LevelManager getInstance() {
         // DCL anti-pattern avoided by way of 'volatile'
         if ( instance == null ) {
@@ -68,6 +78,11 @@ public class LevelManager {
         return instance;
     }
     
+    /**
+     * Initializes the levels stored in this object.
+     * 
+     * @param   context     the application context
+     */
     public void init( Context context ) {
         levelMap = new HashMap<Integer, Level>();
         
@@ -93,16 +108,34 @@ public class LevelManager {
         }
     }
     
+    /**
+     * Returns the level with the specified level number.
+     * 
+     * @param   levelNumber     the level number to return a level for
+     * 
+     * @return                  the level identified by the specified level
+     *                          number, or <tt>null</tt> if no such level exists
+     */
     public Level getLevel( int levelNumber ) {
         return levelMap.get( levelNumber );
     }
     
+    /**
+     * Returns whether the specified level exists.
+     * 
+     * @param   levelNumber     the level numebr of the level to check
+     * 
+     * @return                  <tt>true</tt> if the level exists, otherwise
+     *                          <tt>false</tt>
+     */
     public boolean hasLevel( int levelNumber ) {
         return levelMap.containsKey( levelNumber );
     }
     
     /**
+     * Returns a list of all available levels, sorted in ascending order.
      * 
+     * @return  a list of all levels
      */
     public List<Level> getLevels() {
         List<Level> list = new ArrayList<Level>( levelMap.values() );
