@@ -58,21 +58,29 @@ import edu.rit.poe.atomix.util.Point;
  */
 public class AtomicView extends View {
     
+    /** The default log tag of all log messages made from this class. */
     public static final String LOG_TAG = "DROID_ATOMIX";
     
+    /** The default background color. */
     public static final int BGCOLOR = Color.GRAY;
     
+    /** The default foreground color of squares on the board. */
     public static final int FGCOLOR = Color.parseColor( "#F1E9D9" );
     
+    /** The default hoverpoint color. */
     public static final int HOVER_COLOR = Color.argb( 100, 255, 0, 0 );
     
-    private static final int SQUARE_AREA = 11;
+    /** The number of squares on the board. */
+    private static final int BOARD_SQUARES = 11;
     
+    /** The minimum sum created by the trackball movements to trigger a move. */
     private static final float TRACKBALL_MOVE_SUM = 0.50f;
     
+    /** The static "map" of integer bit set to resource ID for wall images. */
     private static final int[] wallId;
     
     static {
+        // create the integer bitset to resource ID map
         wallId = new int[ 16 ];
         
         wallId[ 0 ] = R.drawable.wall_single;
@@ -96,37 +104,63 @@ public class AtomicView extends View {
     /** The controller of the application. */
     private AtomicActivity atomix;
     
+    /** The current <tt>GameState</tt> object containing all current state. */
     private GameState gameState;
     
+    /**
+     * A map of all currently viewable arrows to their respective directions.
+     */
     private Map<Point, GameState.Direction> arrowSquares;
     
+    /**
+     * The time (in milliseconds since the epoch) of the last trackball
+     * movemement.
+     */
     private long trackballTime;
     
+    /** The last trackball movemement direction. */
     private GameState.Direction trackballDir;
     
+    /** The current trackball movement sum. */
     private float trackballSum;
     
+    /** A rectangle of the game area on the screen. */
     private Rect gameArea;
     
+    /** The X offset of the game area, based on device. */
     private int gameAreaOffsetX;
     
+    /** The Y offset of the game area, based on device.  */
     private int gameAreaOffsetY;
     
+    /** The X offset of the game area, based on the level size. */
     private int offsetX;
     
+    /** The Y offset of the game area, based on the level size. */
     private int offsetY;
     
+    /** The radius of each atom on this device. */
     private int r;
     
+    /** The size of each square on this device (width/height diameter). */
     private int size;
     
-    // if this ISN'T null, then the animation is running
+    /**
+     * The animation object for moving atoms.  If this object is <b>not</b>
+     * null, then the animation is running.
+     */
     private SlideAnimation animation;
     
-    private final Bitmap[] wallMap;
+    /** An array of all image square bitmap resources.  */
+    private final Bitmap[] wallArr;
     
+    /** A byte-map to indicate which image to be drawn at each square. */
     private byte[][] walls;
     
+    /**
+     * The <tt>View</tt> of the goal to be displayed in the View Solution
+     * dialog.
+     */
     private View goalView;
     
     /**
@@ -218,9 +252,9 @@ public class AtomicView extends View {
         
         // load all wall bitmaps
         Resources res = atomix.getResources();
-        wallMap = new Bitmap[ wallId.length ];
+        wallArr = new Bitmap[ wallId.length ];
         for ( int i = 0; i < wallId.length; i++ ) {
-            wallMap[ i ] = BitmapFactory.decodeResource( res, wallId[ i ] );
+            wallArr[ i ] = BitmapFactory.decodeResource( res, wallId[ i ] );
         }
     }
     
@@ -298,17 +332,17 @@ public class AtomicView extends View {
         int boardWidth = board[ 0 ].length;
         int boardHeight = board.length;
         
-        gameArea = new Rect( 0, 0, ( SQUARE_AREA * size ),
-                ( SQUARE_AREA * size ) );
-        
+        gameArea = new Rect( 0, 0, ( BOARD_SQUARES * size ),
+                ( BOARD_SQUARES * size ) );
         
         // calculate centering offset
         
         offsetX = gameAreaOffsetX;
         offsetY = gameAreaOffsetY;
-        offsetX += ( ( float )( ( SQUARE_AREA - boardWidth ) * size ) ) / 2.0f;
-        offsetY += ( ( float )( ( SQUARE_AREA - boardHeight ) * size ) ) / 2.0f;
-        
+        offsetX +=
+                ( ( float )( ( BOARD_SQUARES - boardWidth ) * size ) ) / 2.0f;
+        offsetY +=
+                ( ( float )( ( BOARD_SQUARES - boardHeight ) * size ) ) / 2.0f;
         
         // setup the map of wall types
         walls = new byte[ board.length ][ board[ 0 ].length ];
@@ -395,7 +429,7 @@ public class AtomicView extends View {
                         //canvas.drawRect( sq, p );
                         
                         // draw a wall
-                        Bitmap b = wallMap[ walls[ j ][ i ] ];
+                        Bitmap b = wallArr[ walls[ j ][ i ] ];
                         
                         canvas.drawBitmap( b, null, sq, null );
                         
@@ -495,8 +529,10 @@ public class AtomicView extends View {
         
         // === draw the solution panel ===
         
+        // @todo these things should be drawn up front
+        
         // where are we translating to?
-        int t = ( SQUARE_AREA * size ) + gameAreaOffsetY;
+        int t = ( BOARD_SQUARES * size ) + gameAreaOffsetY;
         int solutionOffsetX = 0;
         int solutionOffsetY = t;
         int solutionWidth = super.getWidth() - 1;
@@ -775,6 +811,9 @@ public class AtomicView extends View {
         }
     }
     
+    /**
+     * Creates a view for display in the View Solution dialog.
+     */
     private void createGoalView() {
         goalView = new View( atomix ) {
             int width;
@@ -804,6 +843,11 @@ public class AtomicView extends View {
         };
     }
     
+    /**
+     * Returns the view to be displayed in the View Solution dialog.
+     * 
+     * @return  the goal view
+     */
     public View getGoalView() {
         return goalView;
     }
@@ -1138,6 +1182,7 @@ public class AtomicView extends View {
         /** The number of squares to offset every frame on the Y axis. */
         private final float offsetY;
         
+        /** A chracter to indicate the direction of travel of the atom. */
         private char orientation;
         
         /** Whether this move will cause a win at the end of the animation. */
@@ -1183,6 +1228,8 @@ public class AtomicView extends View {
             for ( int frame = 0; frame < frames; frame++ ) {
                 currentX += offsetX;
                 currentY += offsetY;
+                
+                // @todo redraw only needed areas of the window
                 
                 // draw the position of the atom
                 atomix.redrawView( null );
