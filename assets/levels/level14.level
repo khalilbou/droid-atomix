@@ -1,0 +1,49 @@
+# DroidAtomix Map Config File
+# Level 14
+
+level:
+14
+
+name:
+Propanal
+
+formula:
+CH_3CH_2CHO
+
+size:
+11x13
+
+molecules:
+1 H -d
+2 C =d -r -l
+3 H -u
+4 C -u -d -r -l
+5 H -l
+6 H -d
+7 C -u -d -r -l
+8 H -r
+9 O =u
+a H -u
+
+map:
+XXXXXXXXXXX
+X 1X 2    X
+X XX3  XX X
+X     4 XXX
+X  XXX    X
+X  X    XXX
+X    X    X
+XXXX  X   X
+X56     X X
+X  X 78 X X
+X9XX  X XaX
+X     X   X
+XXXXXXXXXXX
+
+goal_size:
+5x3
+
+goal:
+ 16
+87425
+ 3a9
