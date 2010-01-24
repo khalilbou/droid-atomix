@@ -22,6 +22,9 @@
     <string name="win_dialog_text">You solved level %1$d in %2$d seconds, using
             %3$d moves.\n\nPress \'Levels\' to jump to a different level, or
             \'Next Level\' to continue to the next level.</string>
+    <string name="win_dialog_last_text">You solved level %1$d in %2$d seconds,
+            using %3$d moves.\n\nThis was the last level; press \'Levels\' to
+            jump to a different level.</string>
     <string name="win_dialog_next_button">Next Level ></string>
     <string name="win_dialog_levels_button">Levels</string>
     

@@ -123,6 +123,7 @@ public final class GameController {
         }
         int endX = gameState.selected.x;
         int endY = gameState.selected.y;
+        Atom atom = ( Atom )gameState.board[ endY ][ endX ];
         Point start = new Point( endX, endY );
         
         // perform an iterative search for the furthest distance the atom can
@@ -175,7 +176,6 @@ public final class GameController {
         gameState.selected.set( endX, endY );
         
         // update the game's atom
-        Atom atom = ( Atom )gameState.board[ endY ][ endX ];
         gameState.game.getAtoms().put( atom.getId(), new Point( endX, endY ) );
         
         // increment the number of moves in this game's database object

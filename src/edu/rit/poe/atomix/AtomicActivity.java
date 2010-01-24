@@ -46,6 +46,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import edu.rit.poe.atomix.db.AtomixDbAdapter;
 import edu.rit.poe.atomix.db.Game;
@@ -676,9 +677,26 @@ public class AtomicActivity extends Activity {
         if ( id == DIALOG_WIN_LEVEL ) {
             AlertDialog d = ( AlertDialog )dialog;
             
-            String fmt = resources.getString( R.string.win_dialog_text );
+            String fmt = null;
+            // check to see if there is a next level
+            LevelManager levelManager = LevelManager.getInstance();
+            Button next = d.getButton( AlertDialog.BUTTON_NEGATIVE );
+            if ( levelManager.hasLevel( level + 1 ) ) {
+                // there is a next level
+                fmt = resources.getString( R.string.win_dialog_text );
+                
+                // set the Next Button to enabled
+                next.setEnabled( false );
+            } else {
+                // this was the last available level
+                fmt = resources.getString( R.string.win_dialog_last_text );
+                
+                // set the Next Button to disabled
+                next.setEnabled( false );
+            }
             String text = String.format( fmt, level, seconds, moves );
             d.setMessage( text );
+            
         } else if ( id == DIALOG_GOAL_MOLECULE ) {
             AlertDialog d = ( AlertDialog )dialog;
             
