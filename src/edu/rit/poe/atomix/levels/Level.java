@@ -292,7 +292,6 @@ public class Level implements Comparable<Level> {
                                 try {
                                     id = Short.parseShort( args[ 0 ] );
                                 } catch ( NumberFormatException e ) {
-                                    Log.d( "LEVEL", "PARSE CHARACTER" );
                                     id = ( short )( 10
                                             + ( args[ 0 ].charAt( 0 ) - 'a' ) );
                                 }

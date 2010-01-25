@@ -1,0 +1,55 @@
+# DroidAtomix Map Config File
+# Level 19
+
+level:
+19
+
+name:
+Glycerin
+
+formula:
+C_3H_8O_3
+
+size:
+11x13
+
+molecules:
+1 H -u
+2 C -u -d -r -l
+3 O -r -l
+4 C -u -d -r -l
+5 H -l
+6 H -r
+7 O -r -l
+8 H -r
+9 O -r -l
+a H -r
+b C -u -d -r -l
+c H -l
+d H -d
+e H -l
+
+map:
+XXXXXXXXXXX
+X X 1X2 X X
+X 3X X X  X
+XX  4    XX
+X X     X X
+X 5    6  X
+XXXX7  XXXX
+X    89 a X
+X X    bX X
+XX     c XX
+X  X X X dX
+X X eX  X X
+XXXXXXXXXXX
+
+goal_size:
+4x5
+
+goal:
+ d
+6235
+847c
+ab9e
+ 1

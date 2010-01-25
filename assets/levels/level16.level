@@ -1,0 +1,50 @@
+# DroidAtomix Map Config File
+# Level 16
+
+level:
+16
+
+name:
+Cyclobutane
+
+formula:
+C_4H_8
+
+size:
+11x11
+
+molecules:
+1 H -r
+2 H -l
+3 H -u
+4 C -u -d -r -l
+5 H -r
+6 C -u -d -r -l
+7 H -l
+8 H -d
+9 C -u -d -r -l
+a C -u -d -r -l
+b H -d
+c H -u
+
+map:
+XXXXXXXXBBB
+X   1  XXBB
+XX2 XX 3XXX
+BXX 4     X
+BBX X     X
+BXX5XX  X6X
+BX   7X8XXX
+BX      X X
+BX9   a  bX
+BXc X XXX X
+BXXXXXXBXXX
+
+goal_size:
+4x4
+
+goal:
+ 8b
+1462
+59a7
+ 3c

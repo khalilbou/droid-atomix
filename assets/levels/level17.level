@@ -1,0 +1,46 @@
+# DroidAtomix Map Config File
+# Level 17
+
+level:
+17
+
+name:
+Ethane
+
+formula:
+C_2H_6
+
+size:
+11x11
+
+molecules:
+1 H -ur
+2 H -d
+3 C -u -d -ll -lr
+4 C -u -d -ul -ur
+5 H -lr
+6 H -u
+7 H -ul
+8 H -ll
+
+map:
+BBXXXXXXXXX
+BBX    1  X
+BBX  X X  X
+BBX2 3 XXXX
+XXXXX4 X5XB
+X   X    XB
+X        XB
+X 6 XXX7 XX
+XXX8   X  X
+X         X
+XXXXXXXXXXX
+
+goal_size:
+3x4
+
+goal:
+528
+ 4
+ 3
+167
