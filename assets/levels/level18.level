@@ -1,0 +1,53 @@
+# DroidAtomix Map Config File
+# Level 18
+
+level:
+18
+
+name:
+Lactic Acid
+
+formula:
+C_3H_6O_3
+
+size:
+13x13
+
+molecules:
+1 H -lr
+2 C -ur -ul -lr -ll
+3 O -ul -lr
+4 C -ur -ul -lr -ll 
+5 C =u -r -ll
+6 O =d
+7 H -l
+8 O -r -l
+9 H -lr
+a H -ul
+b H -ur
+c H -ul
+
+map:
+XXXXXXXXXXXXX
+X1 X       2X
+X  X3  X    X
+X     X   XXX
+X     X   4 X
+X X  5X6    X
+X  XXXXXXX  X
+X    7X8  X X
+X 9   X     X
+XXX   X     X
+X    X  aX  X
+Xb       X cX
+XXXXXXXXXXXXX
+
+goal_size:
+6x5
+
+goal:
+1  6
+ 3 587
+9 2
+ 4 c
+b a

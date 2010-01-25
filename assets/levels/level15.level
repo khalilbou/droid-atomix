@@ -1,0 +1,53 @@
+# DroidAtomix Map Config File
+# Level 15
+
+level:
+15
+
+name:
+Pyran
+
+formula:
+C_5H_6O
+
+size:
+13x13
+
+molecules:
+1 C =l -u -lr
+2 H -ll
+3 O -ur -lr
+4 H -d
+5 C =l -d -ur
+6 C =r -d -ul
+7 H -d
+8 H -u
+9 C =r -u -ll
+a H -ul
+b H -u
+c C -ur -ul -lr -ll
+
+map:
+BXXXXXXXBBBBB
+BX     XBBBBB
+BX  1  XXXXXX
+BX XX  X2   X
+BX 34 5XXXX X
+BXX    X    X
+XX XX  X 6  X
+X     X7 X  X
+X        X8 X
+X 9aXb X XX X
+XXXXX  X    X
+BBBX   XcXXXX
+BBBXXXXXXXBBB
+
+goal_size:
+5x5
+
+goal:
+ 47
+ 91 2
+3  c
+ 65 a
+ 8b

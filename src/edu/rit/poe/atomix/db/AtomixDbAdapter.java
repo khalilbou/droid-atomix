@@ -455,7 +455,6 @@ public class AtomixDbAdapter {
         }
     }
     
-    
     /**
      * Deletes the game with the specified ID.  This method <tt>will</tt>
      * cascade and delete the game's atoms.
@@ -471,12 +470,26 @@ public class AtomixDbAdapter {
         deleteAtoms( gameId );
     }
     
-    
+    /**
+     * Delete all the atoms associated with the specified game.
+     * 
+     * @param   gameId  the ID of the game to delete all atoms for
+     */
     private void deleteAtoms( long gameId ) {
         String where = Game.ATOM_GAME_ID_KEY + "=" + gameId;
         database.delete( ATOM_TABLE_NAME, where, null );
     }
     
+    /**
+     * Returns whether the specified level has been completed.
+     * 
+     * @param   user    the user to check for a completed level
+     * @param   level   the leve to check for completion
+     * 
+     * @return          returns <tt>true</tt> if the specified level has been
+     *                  completed by the specified user, otherwise
+     *                  <tt>false</tt>
+     */
     public boolean isLevelCompleted( User user, int level ) {
         boolean retVal = false;
         
@@ -495,6 +508,12 @@ public class AtomixDbAdapter {
         return retVal;
     }
     
+    /**
+     * Deletes the specified saved level for the specified user.
+     * 
+     * @param   user    the user to delete a saved level for
+     * @param   level   the saved level to be deleted
+     */
     public void deleteSavedGame( User user, int level ) {
         String where = Game.USER_ID_KEY + "=" + user.getId();
         Cursor cursor = database.query( GAME_TABLE_NAME,
