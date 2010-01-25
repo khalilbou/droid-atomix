@@ -686,7 +686,7 @@ public class AtomicActivity extends Activity {
                 fmt = resources.getString( R.string.win_dialog_text );
                 
                 // set the Next Button to enabled
-                next.setEnabled( false );
+                next.setEnabled( true );
             } else {
                 // this was the last available level
                 fmt = resources.getString( R.string.win_dialog_last_text );

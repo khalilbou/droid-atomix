@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-     package="edu.rit.poe.atomix" android:versionCode="1"
-     android:versionName="1.0.0">
+     package="edu.rit.poe.atomix" android:versionCode="2"
+     android:versionName="1.0.1">
     <supports-screen android:smallScreens="false" android:normalScreens="true"
             android:largeScreens="true" android:anyDensity="true"/>
     <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"
