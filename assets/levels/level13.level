@@ -1,0 +1,55 @@
+# DroidAtomix Map Config File
+# Level 13
+
+level:
+13
+
+name:
+Butanol
+
+formula:
+C_4H_1_0O
+
+size:
+13x13
+
+molecules:
+1 H -d
+2 H -d
+3 H -d
+4 H -d
+5 H -r
+6 H -l
+7 H -u
+8 H -u
+9 H -u
+a H -u
+b C -u -d -r -l
+c C -u -d -r -l
+d C -u -d -r -l
+e C -u -d -r -l
+f O -u -d
+
+map:
+XXXXXXXXXXXXX
+X  71     b X
+X X  XXXX XXX
+XXX2   X    X
+X 6  X     8X
+X XX X XX 9 X
+X X  X  X XXX
+XXX cX f dX X
+X5          X
+Xa   X  3   X
+X  XXX4XX X X
+X    X e  X X
+XXXXXXXXXXXXX
+
+goal_size:
+6x4
+
+goal:
+ 1234
+5bcde6
+ 789f
+    a

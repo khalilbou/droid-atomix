@@ -1,0 +1,53 @@
+# DroidAtomix Map Config File
+# Level 12
+
+level:
+12
+
+name:
+Trans Butylen
+
+formula:
+C_4H_8
+
+size:
+13x13
+
+molecules:
+1 C =l -ur -lr
+2 C =r -ul -ll
+3 H -ll
+4 H -ur
+5 H -ul
+6 H -lr
+7 C -ur -ul -lr -ll
+8 H -lr
+9 H -lr
+a H -ul
+b C -ur -ul -lr -ll
+c H -ul
+
+map:
+XXXXXXXXXXXXX
+X           X
+X   X  1X   X
+X2 X 3   X  X
+X X XX XX X X
+X  4        X
+XXX5XX XX XXX
+X           X
+X X XX6XX X X
+X  X78   X9 X
+X   X  aX   X
+Xb  c       X
+XXXXXXXXXXXXX
+
+goal_size:
+6x5
+
+goal:
+   6 3
+ 8  7
+9 21 a
+ b  c
+4 5

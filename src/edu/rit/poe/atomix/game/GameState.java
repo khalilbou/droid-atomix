@@ -31,8 +31,6 @@ import edu.rit.poe.atomix.levels.LevelManager;
 import edu.rit.poe.atomix.levels.Square;
 import edu.rit.poe.atomix.util.Point;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Stack;
 
@@ -46,27 +44,37 @@ import java.util.Stack;
  */
 public class GameState implements Serializable {
     
+    /** The stirng literal key for this object. */
     public static final String GAME_STATE_KEY = "game_state";
     
-    public static final DateFormat DATE_FORMAT =
-            new SimpleDateFormat( "MM/dd/yyyy hh:mm a" );
-    
+    /**
+     * An enumerated type of directions, useful for the game state.
+     * 
+     * @author  Peter O. Erickson
+     */
     public static enum Direction {
         
+        /** The up direction. */
         UP,
         
+        /** The down direction. */
         DOWN,
         
+        /** The right direction. */
         RIGHT,
         
+        /** The left direction. */
         LEFT;
         
     } // Direction
     
+    /** The game's current user. */
     User user;
     
+    /** The game's current <tt>Game</tt> object. */
     Game game;
     
+    /** The game's current board configuration. */
     Square[][] board;
     
     /** The (x,y) location of the currently selected atom. */
@@ -75,14 +83,18 @@ public class GameState implements Serializable {
     /** The point that is currently being hovered over, or <tt>null</tt>. */
     Point hoverPoint;
     
+    /** The stack of moves to potentially be undone. */
     Stack<Move> undoStack;
     
+    /** The last starting time of the game play timer. */
     long timeStarted_sec;
     
     /**
+     * Constructs a new <tt>GameState</tt> with the specified user and game
+     * data objects.
      * 
-     * @param user
-     * @param game
+     * @param   user    the user playing this game
+     * @param   game    the backing persistent game object
      */
     public GameState( User user, Game game ) {
         this.user = user;
@@ -126,14 +138,29 @@ public class GameState implements Serializable {
         return levelManager.getLevel( game.getLevel() );
     }
     
+    /**
+     * Returns the backing <tt>User</tt> object.
+     * 
+     * @return  the persistent user object
+     */
     public User getUser() {
         return user;
     }
     
+    /**
+     * Returns the backing <tt>Game</tt> object.
+     * 
+     * @return  the persistent game object
+     */
     public Game getGame() {
         return game;
     }
     
+    /**
+     * Returns the current level of this game state.
+     * 
+     * @return  the current level
+     */
     public int getLevel() {
         return game.getLevel();
     }
@@ -177,28 +204,53 @@ public class GameState implements Serializable {
         return getLevelObj().getGoal();
     }
     
+    /**
+     * Returned the point location of the currently selected object.
+     * 
+     * @return  the currently selected point
+     */
     public Point getSelected() {
         return selected;
     }
     
+    /**
+     * Sets the currently selected point.
+     * 
+     * @param   selected    the new selection point
+     */
     public void setSelected( Point selected ) {
         this.selected = selected;
     }
     
+    /**
+     * Returns the current hover point.
+     * 
+     * @return  the hover point
+     */
     public Point getHoverPoint() {
         return hoverPoint;
     }
     
+    /**
+     * Sets the current hover point.
+     * 
+     * @param   hoverPoint  the new hover point
+     */
     public void setHoverPoint( Point hoverPoint ) {
         this.hoverPoint = hoverPoint;
     }
     
+    /**
+     * Returns whether the game is completed.
+     * 
+     * @return  <tt>true</tt> if the game is finished, otherwise <tt>false</tt>
+     */
     public boolean isFinished() {
         return game.isFinished();
     }
     
     /**
-     * This class 
+     * This class is a holder of move information that can be reverted.
      * 
      * @author  Peter O. Erickson
      * 
