@@ -852,6 +852,9 @@ public class AtomicView extends View {
         return goalView;
     }
     
+    int downX = 0;
+    int downY = 0;
+    
     /**
      * Called on each touch event, and used to mark a hover point, select an
      * atom, or click on a direction that an atom is to be moved.
@@ -862,8 +865,9 @@ public class AtomicView extends View {
      */
     @Override
     public boolean onTouchEvent( MotionEvent event ) {
+        Log.d( LOG_TAG, "" );
         // ignore clicking if the game is finished
-        if ( ! gameState.isFinished() ) {
+        if ( ( ! gameState.isFinished() ) || ( animation != null ) ) {
             Square[][] board = gameState.getBoard();
             
             // what portion of the screen was clicked?
@@ -879,14 +883,63 @@ public class AtomicView extends View {
                 try {
                     if ( board[ j ][ i ] != null ) {
                         // try to set as hoverpoint first and foremost
-                        setHoverpoint( i, j, true );
-
-                        if ( event.getAction() == MotionEvent.ACTION_UP ) {
-                            Log.d( "TOUCH EVENT",
-                                    "Selected at " + i + ", " + j );
-
+                        //setHoverpoint( i, j, true );
+                        
+                        if ( event.getAction() == MotionEvent.ACTION_DOWN ) {
+                            Log.d( LOG_TAG, "DOWN " + x + "," + y );
+                            
+                            downX = x;
+                            downY = y;
+                            gameState.setSelected( new Point( i, j ) );
+                            
+                        } else if ( event.getAction() ==
+                                MotionEvent.ACTION_UP ) {
+                            Log.d( LOG_TAG, "UP " + x + "," + y );
+                            
+                            //Log.d( "TOUCH EVENT",
+                            //        "Selected at " + i + ", " + j );
+                            
                             // select the currently hovered square
-                            touch( i, j );
+                            //touch( i, j );
+                            
+                            // if we didn't move off this square, ignore
+                            int downI = ( int )( ( downX - offsetX ) / size );
+                            int downJ = ( int )( ( downY - offsetY ) / size );
+                            
+                            if ( ( downI == i ) && ( downJ == j ) ) {
+                                Log.d( LOG_TAG, "Same square" );
+                                return true;
+                            }
+                            
+                            // calculate the direction of the swipe
+                            int xDiff = x - downX;
+                            int yDiff = y - downY;
+                            
+                            GameState.Direction d = null;
+                            if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {
+                                // horizonal swipe
+                                if ( x < downX ) {
+                                    // left
+                                    Log.d( LOG_TAG, "LEFT" );
+                                    d = GameState.Direction.LEFT;
+                                } else {
+                                    // right
+                                    Log.d( LOG_TAG, "RIGHT" );
+                                    d = GameState.Direction.RIGHT;
+                                }
+                            } else {
+                                // vertical swipe
+                                if ( y < downY ) {
+                                    // up
+                                    Log.d( LOG_TAG, "UP" );
+                                    d = GameState.Direction.UP;
+                                } else {
+                                    //down
+                                    Log.d( LOG_TAG, "DOWN" );
+                                    d = GameState.Direction.DOWN;
+                                }
+                            }
+                            slide( d );
                         }
                     }
                 } catch ( ArrayIndexOutOfBoundsException e ) {
@@ -895,6 +948,42 @@ public class AtomicView extends View {
             }
         }
         return true;
+    }
+    
+    private void slide( GameState.Direction d ) {
+        Square[][] board = gameState.getBoard();
+        Point selected = gameState.getSelected();
+        try {
+            int oldX = selected.x;
+            int oldY = selected.y;
+            Atom atom = ( Atom )board[ oldY ][ oldX ];
+
+            boolean win = GameController.moveSelected( gameState, d );
+
+            if ( win ) {
+                Log.d( "ATOMIC_VIEW", "this is a win..." );
+                if ( gameState.isFinished() ) {
+                    Log.d( "ATOMIC_VIEW", "GameState FINISHED" );
+                }
+            }
+
+            int newX = selected.x;
+            int newY = selected.y;
+
+            animation = new SlideAnimation( atom, oldX, oldY, newX,
+                    newY, win );
+            animation.start();
+
+        } catch ( Exception e ) {
+            // no currently selected atom.  this shouldn't happen. evar.
+            //assert false;
+        }
+
+        // move the hover point to the new location of the Atom
+        setHoverpoint( selected.x, selected.y, false );
+
+        // force a redraw
+        super.postInvalidate();
     }
     
     /**
@@ -1125,6 +1214,7 @@ public class AtomicView extends View {
      * Sets the locations to draw arrows on the board.
      */
     private void setArrowSquares() {
+        if ( true ) return;
         
         // identify and store all Direction flags to be drawn
         EnumSet<GameState.Direction> directions =
